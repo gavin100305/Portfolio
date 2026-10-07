@@ -1,0 +1,18 @@
+name = "gavin-soares-ship-presence"
+main = "src/index.ts"
+compatibility_date = "2026-10-05"
+
+[vars]
+ALLOWED_ORIGIN = "http://localhost:3000"
+
+[[durable_objects.bindings]]
+name = "COORDINATOR"
+class_name = "Coordinator"
+
+[[durable_objects.bindings]]
+name = "LOBBIES"
+class_name = "Lobby"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Coordinator", "Lobby"]

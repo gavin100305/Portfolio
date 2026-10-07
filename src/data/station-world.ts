@@ -4,6 +4,8 @@ export type Point = { x: number; y: number };
 export type Rect = Point & { width: number; height: number };
 // Preserve the original illustration at 3× scale; extend its east wing for the arena.
 export const MAP_SCALE = 3;
+export const CORRIDOR_WIDTH = 16;
+export const DOOR_APPROACH_RADIUS = 180;
 const enlarge = (rect: Rect): Rect => ({ x: rect.x * MAP_SCALE, y: rect.y * MAP_SCALE, width: rect.width * MAP_SCALE, height: rect.height * MAP_SCALE });
 export const WORLD = { width: 1656 * MAP_SCALE, height: 800 * MAP_SCALE, radius: 10, speed: 330, spawn: { x: 552 * MAP_SCALE, y: 448 * MAP_SCALE } };
 export const rooms: Record<SectionId, Rect> = {
@@ -27,16 +29,6 @@ export const cockpitConsole = { x: rooms.about.x + 36 * 3.6, y: rooms.about.y + 
 export const cockpitApproach = { x: cockpitConsole.x + cockpitConsole.width / 2, y: cockpitConsole.y + cockpitConsole.height + 32 };
 export function nearCockpit(point: Point) { return Math.hypot(point.x - cockpitApproach.x, point.y - cockpitApproach.y) < 105; }
 
-// Extend the original corridors through airlocks into the room floors.
-export const corridorRoutes: Point[][] = [
-  [{ x: 1113, y: 508 }, { x: 1280, y: 508 }, { x: 1280, y: 520 }],
-  [{ x: 246, y: 246 }, { x: 246, y: 270 }, { x: 246, y: 300 }, { x: 482, y: 300 }],
-  [{ x: 954, y: 234 }, { x: 954, y: 253 }, { x: 954, y: 300 }, { x: 720, y: 300 }],
-  [{ x: 356, y: 460 }, { x: 430, y: 460 }, { x: 430, y: 400 }, { x: 476, y: 400 }],
-  [{ x: 891, y: 478 }, { x: 804, y: 478 }, { x: 804, y: 404 }, { x: 724, y: 404 }],
-  [{ x: 624, y: 589 }, { x: 624, y: 466 }],
-];
-export const corridorPath = corridorRoutes.map((route) => `M${route.map(({ x, y }) => `${x} ${y}`).join("L")}`).join("");
 export const airlocks: Rect[] = [
   { x: 238, y: 258, width: 16, height: 24 },
   { x: 946, y: 241, width: 16, height: 24 },
@@ -51,6 +43,66 @@ export const airlocks: Rect[] = [
   { x: 1098, y: 500, width: 30, height: 16 },
   { x: 1260, y: 500, width: 40, height: 16 },
 ];
+
+const doorwayCenter = (index: number): Point => {
+  const doorway = airlocks[index];
+  return { x: doorway.x + doorway.width / 2, y: doorway.y + doorway.height / 2 };
+};
+
+export type CorridorRoute = Readonly<{
+  id: string;
+  points: readonly Point[];
+  doorwayIndices: readonly [number, number];
+  width: number;
+}>;
+
+// Route endpoints are always the center of their doorway. SVG art and
+// movement collision are both derived from these same floor-plan routes.
+export const corridorRoutes: readonly CorridorRoute[] = [
+  { id: "stack-command", points: [doorwayCenter(0), { x: 246, y: 300 }, doorwayCenter(2)], doorwayIndices: [0, 2], width: CORRIDOR_WIDTH },
+  { id: "achievements-command", points: [doorwayCenter(1), { x: 954, y: 300 }, doorwayCenter(3)], doorwayIndices: [1, 3], width: CORRIDOR_WIDTH },
+  { id: "projects-command", points: [doorwayCenter(4), { x: 430, y: 460 }, { x: 430, y: 400 }, doorwayCenter(5)], doorwayIndices: [4, 5], width: CORRIDOR_WIDTH },
+  { id: "contact-command", points: [doorwayCenter(7), { x: 804, y: 478 }, { x: 804, y: 404 }, doorwayCenter(6)], doorwayIndices: [7, 6], width: CORRIDOR_WIDTH },
+  { id: "command-experience", points: [doorwayCenter(8), doorwayCenter(9)], doorwayIndices: [8, 9], width: CORRIDOR_WIDTH },
+  { id: "contact-training", points: [doorwayCenter(10), doorwayCenter(11)], doorwayIndices: [10, 11], width: CORRIDOR_WIDTH },
+];
+
+function routePath(points: readonly Point[]) {
+  const [first, ...rest] = points;
+  return `M${first.x} ${first.y}` + rest.map((point, index) => {
+    const previous = points[index];
+    if (point.y === previous.y) return `H${point.x}`;
+    if (point.x === previous.x) return `V${point.y}`;
+    return `L${point.x} ${point.y}`;
+  }).join("");
+}
+
+export const corridorPath = corridorRoutes.map((route) => routePath(route.points)).join("");
+
+// This polygon is shared with RoomArtwork to keep visible and walkable floor aligned.
+export const ROOM_FLOOR_OUTLINE: readonly Point[] = [
+  { x: 38, y: 20 }, { x: 202, y: 20 }, { x: 202, y: 30 }, { x: 216, y: 30 },
+  { x: 216, y: 140 }, { x: 202, y: 140 }, { x: 202, y: 156 }, { x: 38, y: 156 },
+  { x: 38, y: 140 }, { x: 24, y: 140 }, { x: 24, y: 30 }, { x: 38, y: 30 },
+];
+
+function segmentBounds(start: Point, end: Point, width: number): Rect {
+  const half = width * MAP_SCALE / 2;
+  const horizontal = start.y === end.y;
+  return {
+    x: Math.min(start.x, end.x) * MAP_SCALE - (horizontal ? 0 : half),
+    y: Math.min(start.y, end.y) * MAP_SCALE - (horizontal ? half : 0),
+    width: Math.abs(end.x - start.x) * MAP_SCALE + (horizontal ? 0 : half * 2),
+    height: Math.abs(end.y - start.y) * MAP_SCALE + (horizontal ? half * 2 : 0),
+  };
+}
+
+const corridorWalkways: Rect[] = corridorRoutes.flatMap((route) => {
+  const half = route.width * MAP_SCALE / 2;
+  const legs = route.points.slice(1).map((end, index) => segmentBounds(route.points[index], end, route.width));
+  const bends = route.points.slice(1, -1).map((point) => ({ x: point.x * MAP_SCALE - half, y: point.y * MAP_SCALE - half, width: half * 2, height: half * 2 }));
+  return [...legs, ...bends];
+});
 
 
 // The Command Deck has open thresholds; sliding doors remain at the other room entrances.
@@ -71,18 +123,7 @@ function inRoom(room: Rect, box: Rect): Rect {
   const scale = room.width / 240;
   return { x: room.x + box.x * scale, y: room.y + box.y * scale, width: box.width * scale, height: box.height * scale };
 }
-export const walkways: Rect[] = [
-  ...corridorRoutes.flatMap((route) => route.slice(1).map((end, i) => {
-    const start = route[i];
-    return enlarge({ x: Math.min(start.x, end.x) - 8, y: Math.min(start.y, end.y) - 8, width: Math.abs(end.x - start.x) + 16, height: Math.abs(end.y - start.y) + 16 });
-  })),
-  // Portals bridge room floor polygons and hallway lanes; closed doors still block them in moveCharacter.
-  ...airlocks.map((airlock) => enlarge(airlock)),
-  ...Object.values(rooms).flatMap((room) => [
-    inRoom(room, { x: 24, y: 30, width: 192, height: 110 }),
-    inRoom(room, { x: 38, y: 20, width: 164, height: 136 }),
-  ]),
-];
+export const walkways: Rect[] = [...corridorWalkways, ...airlocks.map(enlarge)];
 
 // Solid equipment footprints in native room coordinates. Shadows and screen light are walkable.
 const furniture: Record<SectionId, Rect[]> = {
@@ -108,36 +149,61 @@ export function roomAt(point: Point): SectionId | null {
   return (Object.keys(rooms) as SectionId[]).find((id) => contains(rooms[id], point)) ?? null;
 }
 
-const footprintOffsets = Array.from({ length: 16 }, (_, i) => ({
-  x: Math.cos(i * Math.PI / 8) * WORLD.radius,
-  y: Math.sin(i * Math.PI / 8) * WORLD.radius,
+const footprintOffsets = Array.from({ length: 32 }, (_, i) => ({
+  x: Math.cos(i * Math.PI / 16) * WORLD.radius,
+  y: Math.sin(i * Math.PI / 16) * WORLD.radius,
 }));
 
+function pointInPolygon(point: Point, polygon: readonly Point[]) {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const a = polygon[i];
+    const b = polygon[j];
+    const crosses = (a.y > point.y) !== (b.y > point.y) && point.x < ((b.x - a.x) * (point.y - a.y)) / (b.y - a.y) + a.x;
+    if (crosses) inside = !inside;
+  }
+  return inside;
+}
+
+function onRoomFloor(point: Point) {
+  return Object.values(rooms).some((room) => {
+    const scale = room.width / 240;
+    const local = { x: (point.x - room.x) / scale, y: (point.y - room.y) / scale };
+    return pointInPolygon(local, ROOM_FLOOR_OUTLINE);
+  });
+}
+
+function overlapsRect(point: Point, box: Rect, radius = WORLD.radius) {
+  const nearestX = Math.max(box.x, Math.min(box.x + box.width, point.x));
+  const nearestY = Math.max(box.y, Math.min(box.y + box.height, point.y));
+  return Math.hypot(point.x - nearestX, point.y - nearestY) < radius;
+}
+
 export function canWalk(point: Point) {
-  const r = WORLD.radius;
-  // A round footprint can pass equipment corners without a square invisible margin.
   const samples = [{ ...point }, ...footprintOffsets.map((offset) => ({ x: point.x + offset.x, y: point.y + offset.y }))];
-  return samples.every((sample) => walkways.some((rect) => contains(rect, sample))) &&
-    !obstacles.some((box) => {
-      const nearestX = Math.max(box.x, Math.min(box.x + box.width, point.x));
-      const nearestY = Math.max(box.y, Math.min(box.y + box.height, point.y));
-      return Math.hypot(point.x - nearestX, point.y - nearestY) < r;
-    });
+  const onFloor = (sample: Point) => onRoomFloor(sample) || walkways.some((rect) => contains(rect, sample));
+  return samples.every(onFloor) && !obstacles.some((box) => samples.some((sample) => contains(box, sample)));
+}
+
+export function canWalkSegment(from: Point, to: Point, closedDoors: Rect[] = []) {
+  const distance = Math.hypot(to.x - from.x, to.y - from.y);
+  const steps = Math.max(1, Math.ceil(distance / 4));
+  for (let index = 0; index <= steps; index += 1) {
+    const progress = index / steps;
+    const point = { x: from.x + (to.x - from.x) * progress, y: from.y + (to.y - from.y) * progress };
+    if (!canWalk(point) || closedDoors.some((door) => overlapsRect(point, door))) return false;
+  }
+  return true;
 }
 
 export function moveCharacter(point: Point, dx: number, dy: number, closedDoors: Rect[] = []): Point {
-  const clearDoor = (point: Point) => !closedDoors.some((door) => {
-    const x = Math.max(door.x, Math.min(door.x + door.width, point.x));
-    const y = Math.max(door.y, Math.min(door.y + door.height, point.y));
-    return Math.hypot(point.x - x, point.y - y) < WORLD.radius;
-  });
   const steps = Math.max(1, Math.ceil(Math.max(Math.abs(dx), Math.abs(dy)) / 4));
   let next = { ...point };
   for (let i = 0; i < steps; i++) {
     const horizontal = { x: next.x + dx / steps, y: next.y };
-    if (canWalk(horizontal) && clearDoor(horizontal)) next = horizontal;
+    if (canWalkSegment(next, horizontal, closedDoors)) next = horizontal;
     const vertical = { x: next.x, y: next.y + dy / steps };
-    if (canWalk(vertical) && clearDoor(vertical)) next = vertical;
+    if (canWalkSegment(next, vertical, closedDoors)) next = vertical;
   }
   return next;
 }

@@ -1,27 +1,42 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { airlocks, MAP_SCALE, WORLD, canWalk, corridorPath, corridorRoutes, moveCharacter, rooms, stationDoors } from "./station-world.ts";
+import * as stationWorld from "./station-world";
+import { MAP_SCALE, WORLD, airlocks, canWalk, canWalkSegment, corridorPath, corridorRoutes, moveCharacter, obstacles, rooms, stationDoors } from "./station-world";
 
-function isOnRoute(point: { x: number; y: number }, route: readonly { x: number; y: number }[]) {
-  return route.slice(1).some((end, index) => {
-    const start = route[index];
-    return start.x === end.x
-      ? point.x === start.x && point.y >= Math.min(start.y, end.y) && point.y <= Math.max(start.y, end.y)
-      : point.y === start.y && point.x >= Math.min(start.x, end.x) && point.x <= Math.max(start.x, end.x);
-  });
-}
-
-test("project route starts at the center of its visible airlock", () => {
-  assert.ok(corridorRoutes.some((route) => route.some(({ x, y }) => x === 356 && y === 460)));
-  const expectedPath = corridorRoutes.map((route) => `M${route.map(({ x, y }) => `${x} ${y}`).join("L")}`).join("");
-  assert.equal(corridorPath, expectedPath);
+test("corridor artwork stops at aligned doorway centerlines", () => {
+  assert.match(corridorPath, /M246 270V300H482/);
+  assert.match(corridorPath, /M954 253V300H720/);
+  assert.match(corridorPath, /M356 460H430V400H476/);
+  assert.match(corridorPath, /M891 478H804V404H724/);
+  assert.match(corridorPath, /M624 466V589/);
+  assert.match(corridorPath, /M1113 508H1280/);
 });
 
-test("every airlock center is joined to the shared corridor network", () => {
-  for (const airlock of airlocks) {
-    const center = { x: airlock.x + airlock.width / 2, y: airlock.y + airlock.height / 2 };
-    assert.ok(corridorRoutes.some((route) => isOnRoute(center, route)), `airlock at ${center.x},${center.y} has no corridor connection`);
+test("corridor routes terminate at the center of their paired doorways", () => {
+  const routes = (stationWorld as unknown as { corridorRoutes?: { id: string; points: { x: number; y: number }[]; doorwayIndices: [number, number]; width: number }[] }).corridorRoutes;
+  assert.ok(routes, "corridorRoutes must be the shared artwork and collision source");
+  assert.equal(routes.length, 6);
+  for (const route of routes) {
+    assert.equal(route.width, 16, `${route.id} uses the common corridor width`);
+    const center = (index: number) => ({ x: airlocks[index].x + airlocks[index].width / 2, y: airlocks[index].y + airlocks[index].height / 2 });
+    assert.deepEqual(route.points[0], center(route.doorwayIndices[0]), `${route.id} begins at its doorway center`);
+    assert.deepEqual(route.points.at(-1), center(route.doorwayIndices[1]), `${route.id} ends at its doorway center`);
   }
+  for (const doorway of airlocks) {
+    assert.equal(canWalk({ x: (doorway.x + doorway.width / 2) * MAP_SCALE, y: (doorway.y + doorway.height / 2) * MAP_SCALE }), true, "each doorway center joins a walkable floor");
+  }
+});
+
+test("movement segment validation rejects crossing the hull and accepts a connected corridor", () => {
+  const canWalkSegment = (stationWorld as unknown as { canWalkSegment?: (from: { x: number; y: number }, to: { x: number; y: number }, doors?: typeof stationDoors) => boolean }).canWalkSegment;
+  assert.equal(typeof canWalkSegment, "function", "client and presence worker need the same segment validator");
+  assert.equal(canWalkSegment!({ x: 390 * MAP_SCALE, y: 460 * MAP_SCALE }, { x: 420 * MAP_SCALE, y: 460 * MAP_SCALE }), true);
+  assert.equal(canWalkSegment!({ x: rooms.projects.x + 12, y: rooms.projects.y + 40 }, { x: rooms.projects.x - 80, y: rooms.projects.y + 40 }), false);
+});
+
+test("avatar cannot enter the project room's solid outer bulkhead", () => {
+  const room = rooms.projects;
+  assert.equal(canWalk({ x: room.x + 10 * MAP_SCALE, y: room.y + room.height / 2 }), false);
 });
 
 test("avatar remains inside room interiors and outside solid consoles", () => {
@@ -30,10 +45,10 @@ test("avatar remains inside room interiors and outside solid consoles", () => {
   assert.equal(canWalk({ x: room.x + 165 * room.width / 240, y: room.y + 84 * room.width / 240 }), false);
 });
 
-test("avatar can move from a corridor through the open project airlock", () => {
+test("avatar can move from the project room through its open corridor approach", () => {
   const beforeDoor = { x: 390 * MAP_SCALE, y: 460 * MAP_SCALE };
   const after = moveCharacter(beforeDoor, -120 * MAP_SCALE, 0);
-  assert.ok(after.x < 320 * MAP_SCALE);
+  assert.ok(after.x < 330 * MAP_SCALE);
   assert.ok(after.x > 300 * MAP_SCALE);
   assert.ok(after.y === beforeDoor.y);
 });
@@ -48,6 +63,36 @@ test("closed airlock stops movement while a corridor bend stays traversable", ()
   const aroundBend = moveCharacter(corner, 0, -60 * MAP_SCALE);
   assert.ok(aroundBend.x > 420 * MAP_SCALE);
   assert.ok(aroundBend.y < 410 * MAP_SCALE);
+});
+
+test("every corridor leg is continuously walkable from threshold to threshold", () => {
+  for (const route of corridorRoutes) {
+    for (let index = 1; index < route.points.length; index += 1) {
+      const from = route.points[index - 1];
+      const to = route.points[index];
+      assert.equal(canWalkSegment({ x: from.x * MAP_SCALE, y: from.y * MAP_SCALE }, { x: to.x * MAP_SCALE, y: to.y * MAP_SCALE }), true, `${route.id} leg ${index} has a floor gap`);
+    }
+  }
+});
+
+test("a fast movement segment cannot tunnel through a station wall", () => {
+  assert.equal(canWalkSegment(WORLD.spawn, { x: -WORLD.width, y: WORLD.spawn.y }), false);
+});
+
+test("all mapped consoles and solid room props block the astronaut", () => {
+  for (const obstacle of obstacles) {
+    assert.equal(canWalk({ x: obstacle.x + obstacle.width / 2, y: obstacle.y + obstacle.height / 2 }), false, "a solid prop center must not be walkable");
+  }
+});
+
+test("each animated door blocks its own room-to-room route until open", () => {
+  for (const route of corridorRoutes) {
+    const blockedDoor = route.doorwayIndices.map((index) => stationDoors.find((door) => door.id === `airlock-${index}`)).find(Boolean);
+    if (!blockedDoor) continue;
+    const from = route.points[0];
+    const to = route.points.at(-1)!;
+    assert.equal(canWalkSegment({ x: from.x * MAP_SCALE, y: from.y * MAP_SCALE }, { x: to.x * MAP_SCALE, y: to.y * MAP_SCALE }, [blockedDoor]), false, `${route.id} crossed a closed door`);
+  }
 });
 
 test("the command-deck spawn is walkable and outer space is blocked", () => {

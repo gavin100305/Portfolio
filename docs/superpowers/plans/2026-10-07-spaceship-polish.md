@@ -6,7 +6,7 @@
 
 **Architecture:** Keep world geometry in `station-world.ts` as the authority for both rendered corridors and movement. Keep art in the existing SVG components, panel and mood styling in global CSS, and movement state in its existing hook. Add focused geometry tests before changing route or collision behavior, then visually verify the integrated site at desktop and mobile sizes.
 
-**Tech Stack:** Next.js App Router 16, React 19, TypeScript, native SVG/CSS, Node.js 24 built-in test runner with native TypeScript stripping.
+**Tech Stack:** Next.js App Router 16, React 19, TypeScript, native SVG/CSS, Node.js 24 built-in test runner via the small `tsx` test runner.
 
 **Spec:** `docs/superpowers/specs/2026-10-07-station-polish-design.md`
 
@@ -35,14 +35,14 @@
 - Modify: `src/components/ship-artwork.tsx`
 - Modify: `src/components/use-station-exploration.ts` only if integration requires it
 - Create: `src/data/station-world.test.ts`
-- Modify: `package.json` to add a `test:world` script
+- Modify: `package.json` and `package-lock.json` to add a `test:world` script and the `tsx` dev dependency
 
 **Interfaces:**
 - Consumes: existing `Point`, `Rect`, `airlocks`, `rooms`, `stationDoors`, and movement calls.
 - Produces: exported immutable corridor route definitions; a route-derived SVG path for `StationConnections`; route-derived walkable bounds for `canWalk` and `moveCharacter`.
 
 - [ ] **Step 1: Add focused failing geometry tests** for all route/airlock joins, blocked space and solid fixtures, large movement steps across walls, open door passage, and movement around a 90-degree corridor bend.
-- [ ] **Step 2: Run `npm run test:world` and confirm route-source and collision assertions fail against the current duplicated geometry.**
+- [ ] **Step 2: Run `npm run test:world` and confirm the new route-consistency and collision assertions fail against the current duplicated geometry.**
 - [ ] **Step 3: Make route definitions the single source** for SVG path generation and corridor walkable geometry; align every route endpoint to its airlock, including the project route currently starting at native x=330 while its artwork starts at x=358.
 - [ ] **Step 4: Correct collision using the astronaut's existing circular footprint** against connected room/corridor walkable surfaces, furniture, hull boundaries, and closed doors. Preserve axis sliding so corners remain navigable.
 - [ ] **Step 5: Run `npm run test:world`, `npm run lint`, and `npm run typecheck`; confirm geometry tests and static checks pass.**
