@@ -6,7 +6,7 @@ export const moods = [
   { id: "deep-space", label: "Deep Space" },
   { id: "nebula-drift", label: "Nebula Drift" },
   { id: "planetary-orbit", label: "Planetary Orbit" },
-  { id: "meteor-shower", label: "Meteor Shower" },
+  { id: "meteor-shower", label: "Near-Sun Meteor Shower" },
 ] as const;
 export type SpaceMood = typeof moods[number]["id"];
 const key = "portfolio:space-mood";

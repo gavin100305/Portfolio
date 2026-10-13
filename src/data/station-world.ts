@@ -20,7 +20,7 @@ export const rooms: Record<SectionId, Rect> = {
 
 // Native room coordinates shared by the playable ball, astronaut and camera.
 const footballScale = rooms.football.width / 240;
-export const footballBall = { x: rooms.football.x + 118 * footballScale, y: rooms.football.y + 96 * footballScale };
+export const footballBall = { x: rooms.football.x + 118 * footballScale, y: rooms.football.y + 80 * footballScale };
 export const footballKicker = { x: footballBall.x, y: footballBall.y + 14 * footballScale };
 export function nearFootball(point: Point) { return Math.hypot(point.x - footballBall.x, point.y - footballBall.y) < 90; }
 
@@ -128,13 +128,20 @@ export const walkways: Rect[] = [...corridorWalkways, ...airlocks.map(enlarge)];
 // Solid equipment footprints in native room coordinates. Shadows and screen light are walkable.
 const furniture: Record<SectionId, Rect[]> = {
   football: [{ x: 88, y: 34, width: 64, height: 16 }],
-  about: [{ x: 36, y: 60, width: 44, height: 24 }, { x: 98, y: 52, width: 44, height: 24 }, { x: 160, y: 60, width: 44, height: 24 }, { x: 84, y: 102, width: 68, height: 28 }, { x: 96, y: 94, width: 44, height: 44 }, { x: 104, y: 92, width: 26, height: 48 }, { x: 56, y: 104, width: 16, height: 20 }, { x: 168, y: 104, width: 16, height: 20 }],
+  about: [{ x: 36, y: 60, width: 44, height: 24 }, { x: 98, y: 52, width: 44, height: 24 }, { x: 160, y: 60, width: 44, height: 24 }, { x: 100, y: 96, width: 36, height: 40 }, { x: 92, y: 100, width: 52, height: 32 }, { x: 88, y: 108, width: 60, height: 16 }, { x: 56, y: 104, width: 16, height: 20 }, { x: 168, y: 104, width: 16, height: 20 }],
   projects: [{ x: 74, y: 60, width: 10, height: 12 }, { x: 66, y: 72, width: 26, height: 34 }, { x: 54, y: 106, width: 50, height: 26 }, { x: 70, y: 132, width: 18, height: 10 }, { x: 146, y: 68, width: 42, height: 24 }, { x: 146, y: 104, width: 42, height: 24 }, { x: 26, y: 58, width: 10, height: 66 }],
   achievements: [40, 96, 152].map((x) => ({ x, y: 68, width: 44, height: 50 })).concat([{ x: 46, y: 132, width: 146, height: 10 }]),
   stack: [{ x: 38, y: 62, width: 68, height: 24 }, { x: 134, y: 62, width: 68, height: 24 }, { x: 42, y: 94, width: 52, height: 44 }, { x: 138, y: 94, width: 52, height: 44 }, { x: 114, y: 106, width: 12, height: 24 }],
   experience: [{ x: 38, y: 62, width: 160, height: 68 }, { x: 86, y: 140, width: 64, height: 8 }],
   contact: [{ x: 42, y: 60, width: 60, height: 74 }, { x: 130, y: 72, width: 70, height: 24 }, { x: 136, y: 110, width: 56, height: 24 }],
 };
+
+// Planters are physical equipment too; their shadows remain walkable.
+for (const [id, positions] of Object.entries({
+  about: [[26, 124], [194, 124]], achievements: [[24, 118], [202, 118]], contact: [[204, 126]],
+})) {
+  furniture[id as SectionId].push(...positions.map(([x, y]) => ({ x: x + 1, y, width: 15, height: 20 })));
+}
 
 export const obstacles = Object.entries(furniture).flatMap(([id, boxes]) => {
   const room = rooms[id as SectionId];

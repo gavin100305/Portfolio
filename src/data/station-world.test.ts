@@ -101,6 +101,14 @@ test("all mapped consoles and solid room props block the astronaut", () => {
   }
 });
 
+test("the navigation table blocks its surface while its clipped corner stays walkable", () => {
+  const room = rooms.about;
+  const scale = room.width / 240;
+  const local = (x: number, y: number) => ({ x: room.x + x * scale, y: room.y + y * scale });
+  assert.equal(canWalk(local(118, 116)), false);
+  assert.equal(canWalk(local(86, 100)), true);
+});
+
 test("each animated door blocks its own room-to-room route until open", () => {
   for (const route of corridorRoutes) {
     const blockedDoor = route.doorwayIndices.map((index) => stationDoors.find((door) => door.id === `airlock-${index}`)).find(Boolean);

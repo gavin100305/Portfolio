@@ -2,11 +2,11 @@
 
 import { useSpaceMood } from "@/components/use-space-mood";
 import { MoodControl } from "@/components/mood-control";
-import { useCallback, useState, type MouseEvent, type PointerEvent } from "react";
+import { useCallback, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { sections, getSection, type SectionId } from "@/data/sections";
 import { contains, footballBall, cockpitConsole, roomSigns, stationDoors, rooms, WORLD } from "@/data/station-world";
 import { RoomArtwork } from "@/components/room-artwork";
-import { Astronaut, StationConnections, StationAirlocks, StationForeground, StationEngines, SpaceBackdrop } from "@/components/ship-artwork";
+import { Astronaut, StationConnections, StationForeground, StationEngines, SpaceBackdrop } from "@/components/ship-artwork";
 import { useStationExploration } from "@/components/use-station-exploration";
 import { FootballArenaScene, FootballArenaControls, FootballArenaSpectators, useFootballGame } from "@/components/football-arena";
 import { useShipPresence } from "@/components/use-ship-presence";
@@ -28,10 +28,13 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
   const { backdropRef, viewportRef, worldRef, characterRef, location, atCockpit, atFootball, focusCockpit, press, release, focusRoom, releaseFocus, getMovementSnapshot } = useStationExploration(activeId, onActivate, Boolean(flight) || cockpitOpen, openCockpit);
   const remoteVisitors = useShipPresence((!activeId || footballActive) && !flight && !cockpitOpen, getMovementSnapshot);
   const current = getSection(location);
+  const dragMoved = useRef(false);
+  const suppressRoomClickUntil = useRef(0);
   const [drag, setDrag] = useState<{ id: number; x: number; y: number; direction: "up" | "down" | "left" | "right" | null } | null>(null);
   const onTouchStart = (event: PointerEvent<HTMLDivElement>) => {
-    if (footballActive || event.pointerType !== "touch" || (event.target as HTMLElement).closest("a, button")) return;
-    event.currentTarget.setPointerCapture(event.pointerId);
+    if (footballActive || event.pointerType !== "touch" || (event.target as HTMLElement).closest("button, .room-wayfinding")) return;
+    dragMoved.current = false;
+    suppressRoomClickUntil.current = 0;
     setDrag({ id: event.pointerId, x: event.clientX, y: event.clientY, direction: null });
   };
   const onTouchMove = (event: PointerEvent<HTMLDivElement>) => {
@@ -39,6 +42,11 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
     const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
     const next = Math.hypot(dx, dy) < 18 ? null : Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
     if (next === drag.direction) return;
+    if (next) {
+      dragMoved.current = true;
+      // Capture only once a drag starts, so an ordinary tap reaches the room link.
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
     if (drag.direction) release(drag.direction);
     if (next) press(next);
     setDrag({ ...drag, direction: next });
@@ -46,6 +54,7 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
   const onTouchEnd = (event: PointerEvent<HTMLDivElement>) => {
     if (drag?.id !== event.pointerId) return;
     if (drag.direction) release(drag.direction);
+    if (dragMoved.current) suppressRoomClickUntil.current = performance.now() + 350;
     setDrag(null);
   };
   return (
@@ -65,7 +74,10 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
                 style={{ left: room.x, top: room.y, width: room.width, height: room.height }}
                 aria-label={`Open ${section.label} — ${section.roomName}`}
                 aria-current={activeId === section.id ? "page" : undefined}
-                onClick={(event) => onOpen(section.id, event)}
+                onClick={(event) => {
+                  if (performance.now() < suppressRoomClickUntil.current) { event.preventDefault(); return; }
+                  onOpen(section.id, event);
+                }}
                 onFocus={() => focusRoom(section.id)} onBlur={releaseFocus}
                 onKeyDown={(event) => { if (event.key === " ") { event.preventDefault(); event.currentTarget.click(); } }}>
                 <RoomArtwork id={section.id} goals={section.id === "football" ? game.displayGoals : undefined} saves={section.id === "football" ? game.displaySaves : undefined} />
@@ -81,7 +93,6 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
           </button>
           <FootballArenaScene active={footballActive} game={game} />
           {!footballActive && <button className="football-ball-control" type="button" aria-label="Play penalties on the Orbital Training Deck pitch" style={{ left: footballBall.x - 24, top: footballBall.y - 24 }} onFocus={() => focusRoom("football")} onBlur={releaseFocus} onClick={(event) => onActivate("football", event.currentTarget)} />}
-          <StationAirlocks />
           {stationDoors.map((door) => <div key={door.id} className="station-door" data-door-id={door.id} data-axis={door.axis} data-state="closed" role="img" aria-label="Room door — closed"
             style={{ left: door.x, top: door.y, width: door.width, height: door.height }}>
             <div className="door-aperture"><span className="door-leaf" /><span className="door-leaf" /></div>

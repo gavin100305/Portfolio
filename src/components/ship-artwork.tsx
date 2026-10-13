@@ -1,5 +1,6 @@
 import type { RefObject } from "react";
 import type { CSSProperties } from "react";
+import { DeckPattern } from "@/components/deck-pattern";
 import { RoomBulkheads } from "@/components/room-artwork";
 import { airlocks, corridorPath, CORRIDOR_WIDTH, MAP_SCALE, rooms, WORLD } from "@/data/station-world";
 import { suitColors, type Direction, type SuitPalette } from "@/data/astronauts";
@@ -54,6 +55,7 @@ export function StationConnections() {
   return (
     <svg className="station-connections" width={WORLD.width} height={WORLD.height} viewBox={`0 0 ${WORLD.width / MAP_SCALE} ${WORLD.height / MAP_SCALE}`} aria-hidden="true" focusable="false" shapeRendering="crispEdges">
       <defs>
+        <DeckPattern id="corridor-deck" />
         <pattern id="solar-grid" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#182e4c" /><path d="M0 14V0h14" fill="none" stroke="#405b7a" strokeWidth="2" /></pattern>
       </defs>
       <path d="M24 480h48M1560 496h48" stroke="#405775" strokeWidth="12" />
@@ -66,47 +68,11 @@ export function StationConnections() {
         <path d={corridorPath} transform="translate(0 2)" fill="none" stroke="#111722" strokeWidth="38" />
         {[{ color: "#8ba2ba", width: 36 }, { color: "#252b38", width: 32 }, { color: "#405775", width: 26 }].map(({ color, width }) => <path key={width} d={corridorPath} fill="none" stroke={color} strokeWidth={width} />)}
         <path d={corridorPath} fill="none" stroke="#65c8ff" strokeWidth={CORRIDOR_WIDTH + 6} opacity=".035" />
-        <path d={corridorPath} fill="none" stroke="#d9d4be" strokeWidth={CORRIDOR_WIDTH} />
-        <path d={corridorPath} transform="translate(-1 -1)" fill="none" stroke="#fff4d4" strokeWidth="1" opacity=".42" />
-        <path d={corridorPath} fill="none" stroke="#fff8e8" strokeWidth="2" strokeDasharray="4 6" opacity=".88" />
+        <path d={corridorPath} fill="none" stroke="url(#corridor-deck)" strokeWidth={CORRIDOR_WIDTH} />
+        <path d={corridorPath} fill="none" stroke="#fff8e8" strokeWidth="1" strokeDasharray="3 7" opacity=".65" />
       </g>
     </svg>
   );
-}
-
-// Small traversable openings in the existing hulls; the rooms stay in place.
-export function StationAirlocks() {
-  return <svg className="station-airlocks" width={WORLD.width} height={WORLD.height} viewBox={`0 0 ${WORLD.width / MAP_SCALE} ${WORLD.height / MAP_SCALE}`} aria-hidden="true" focusable="false" shapeRendering="crispEdges">
-    {/* Keep the actual floor above room shadows so neither the hull nor its
-        underside can visually interrupt a traversable corridor. */}
-    <path d={corridorPath} fill="none" stroke="#d9d4be" strokeWidth={CORRIDOR_WIDTH} strokeLinejoin="round" />
-    <path d={corridorPath} fill="none" stroke="#fff8e8" strokeWidth="2" strokeDasharray="4 6" strokeLinejoin="round" opacity=".88" />
-    {airlocks.map((r, i) => {
-      // Open Command Deck passages cross the complete hull, including its rim.
-      // Draw only the continuous floor here; raised airlock trim belongs at doors.
-      if ([2, 3, 5, 6, 8].includes(i)) {
-        const horizontal = r.width > r.height;
-        const x = r.x - (horizontal ? 2 : 0);
-        const y = r.y - (horizontal ? 0 : 2);
-        const width = r.width + (horizontal ? 4 : 0);
-        const height = r.height + (horizontal ? 0 : 4);
-        return <path key={i} d={`M${x} ${y}h${width}v${height}h-${width}z`} fill="#d9d4be" />;
-      }
-      return <g key={i}>
-        <rect {...r} fill="#d9d4be" />
-        {r.width > r.height ? <>
-          <rect x={r.x + 2} y={r.y + 2} width="4" height={r.height - 4} fill="#798a91" opacity=".5" />
-          <path d={`M${r.x + 3} ${r.y + 3}v${r.height - 6}`} stroke="#dce2d4" strokeWidth="1" />
-          <path d={`M${r.x + r.width - 5} ${r.y + 4}v${r.height - 8}`} stroke="#748792" strokeWidth="2" strokeDasharray="2 2" />
-        </> : <>
-          <rect x={r.x + 2} y={r.y + 2} width={r.width - 4} height="4" fill="#798a91" opacity=".5" />
-          <path d={`M${r.x + 3} ${r.y + 3}h${r.width - 6}`} stroke="#dce2d4" strokeWidth="1" />
-          <path d={`M${r.x + 4} ${r.y + r.height - 5}h${r.width - 8}`} stroke="#748792" strokeWidth="2" strokeDasharray="2 2" />
-        </>}
-        {r.width > r.height ? <path d={`M${r.x} ${r.y}h${r.width}m-${r.width} ${r.height}h${r.width}`} stroke="#405775" strokeWidth="2" /> : <path d={`M${r.x} ${r.y}v${r.height}m${r.width} -${r.height}v${r.height}`} stroke="#405775" strokeWidth="2" />}
-      </g>;
-    })}
-  </svg>;
 }
 
 // A separate foreground plane gives the existing walls an overhanging rim.

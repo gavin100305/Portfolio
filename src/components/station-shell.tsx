@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore, type KeyboardEvent, type MouseEvent } from "react";
 import { getSection, type SectionId } from "@/data/sections";
 import { StationMap } from "@/components/station-map";
+import { RoomEquipmentIcon } from "@/components/room-artwork";
 
 const SECTION_URL_EVENT = "portfolio:sectionchange";
 
@@ -131,8 +132,11 @@ export function StationShell() {
               </button>
             </div>
             <div className="dialog-content">
-              <span className="dialog-index">{activeSection.roomName}</span>
-              <h1 id="section-dialog-title">{activeSection.label}</h1>
+              <div className="dialog-hero">
+                <span className="dialog-illustration"><RoomEquipmentIcon id={activeSection.id as Exclude<SectionId, "football">} /></span>
+                <div><span className="dialog-index">{activeSection.roomName}</span>
+                  <h1 id="section-dialog-title">{activeSection.label}</h1></div>
+              </div>
               <p>{activeSection.description}</p>
               <div className="content-placeholder" data-destination={activeSection.id} aria-live="polite">
                 <span className="module-mark"><ModuleGlyph id={activeSection.id as Exclude<SectionId, "football">} /></span>

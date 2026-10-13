@@ -11,6 +11,12 @@
   --ink: #172033;
   --muted: #9aabc5;
   --line: rgb(158 184 220 / 18%);
+  --ship-light: #65c8ff;
+  --ship-secondary: #264c70;
+  --ship-blue: #4b75b8;
+  --ship-screen: #14334a;
+  --ship-warning: #ffc875;
+  --ship-halo: transparent;
   --font-sans: var(--font-manrope), Arial, sans-serif;
   --font-pixel: var(--font-pixelify), monospace;
 }
@@ -84,13 +90,13 @@ button { color: inherit; }
 .distant-asteroid { transform: translate(calc(var(--parallax-x, 0px) * .09), calc(var(--parallax-y, 0px) * .09)); width: 30px; top: 10%; right: 17%; }
 .distant-debris { transform: translate(calc(var(--parallax-x, 0px) * .025), calc(var(--parallax-y, 0px) * .025)); width: 96px; bottom: 25%; left: 8%; opacity: .7; }
 .station-foreground { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
-.station-connections, .station-airlocks { position: absolute; inset: 0; pointer-events: none; }
+.station-connections { position: absolute; inset: 0; pointer-events: none; }
 .world-room { position: absolute; display: block; color: inherit; text-decoration: none; outline-offset: -24px; }
 .world-room .room-artwork { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.room-artwork { overflow: visible; filter: drop-shadow(4px 12px 0 rgb(6 13 24 / 70%)); }
-.room-props { filter: drop-shadow(2px 3px 0 rgb(22 31 43 / 22%)); }
-.world-room:hover { outline: 2px dashed rgb(23 32 51 / 45%); }
-.world-room:focus-visible, .world-room.is-active { outline: 4px dashed #172033; box-shadow: inset 0 0 0 20px rgb(53 197 195 / 12%); }
+.room-artwork { overflow: visible; }
+.world-room:hover .room-hull { stroke: #c2d2df; }
+.world-room:focus-visible, .world-room.is-active { outline: none; }
+.world-room:focus-visible .room-hull, .world-room.is-active .room-hull { stroke: var(--ship-light, #65c8ff); stroke-width: 3px; }
 .astronaut { position: absolute; top: 0; left: 0; z-index: 2; width: 48px; height: 60px; margin: -48px 0 0 -24px; pointer-events: none; }
 .astronaut-ring { position: absolute; left: -6px; top: 43px; width: 60px; height: 34px; border: 2px dashed #172033; border-radius: 50%; box-shadow: 0 0 0 2px rgb(247 242 231 / 65%); }
 .astronaut::before { content: ""; position: absolute; left: 7px; top: 49px; width: 34px; height: 12px; background: rgb(13 23 37 / 38%); border-radius: 50%; }
@@ -143,38 +149,30 @@ button { color: inherit; }
 
 .section-dialog {
   display: flex;
-  width: min(600px, 100%);
+  width: min(700px, 100%);
   min-height: min(480px, calc(100svh - 48px));
   max-height: calc(100svh - 48px);
   overflow-y: auto;
   flex-direction: column;
   position: relative;
-  border: 3px solid var(--ship-warning, #f4bc66);
-  border-radius: 10px;
-  background: linear-gradient(145deg, #eee6d1 0%, #e2d9c2 58%, #d6ceb8 100%);
-  box-shadow: 0 8px 0 #111722, 0 34px 110px rgb(0 0 0 / 62%), inset 0 0 0 3px #879bb0, inset 0 0 0 6px rgb(255 255 255 / 55%);
+  border: 7px solid #718795;
+  border-radius: 6px;
+  background: #e8e4d3;
+  box-shadow: 0 0 0 2px #111722, 0 6px 0 #405463, 0 20px 48px rgb(0 0 0 / 40%), inset 0 0 0 2px #c0d0d7;
   color: #252b38;
   animation: panel-in 180ms ease-out both;
 }
 .section-dialog::before {
-  position: absolute;
-  top: 0;
-  right: 10%;
-  left: 10%;
-  height: 2px;
-  border-radius: 0 0 2px 2px;
-  background: linear-gradient(90deg, transparent, var(--ship-light, #65c8ff) 28%, var(--ship-warning, #f4bc66) 72%, transparent);
-  content: "";
-  opacity: .8;
-  pointer-events: none;
+  position: absolute; inset: 3px; border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 2px; content: ""; pointer-events: none;
 }
 
 .section-dialog :focus-visible { outline-color: var(--ship-light, #65c8ff); }
 
 .dialog-topline, .dialog-footer { display: flex; align-items: center; justify-content: space-between; padding: 17px 20px; }
 .dialog-topline { border-bottom: 1px solid rgb(37 43 56 / 18%); }
-.dialog-eyebrow, .dialog-footer-note { color: #667386; }
-.dialog-index { color: var(--ship-light, #65c8ff); text-transform: uppercase; }
+.dialog-eyebrow, .dialog-footer-note { color: #435b70; font: 12px var(--font-pixel); letter-spacing: .1em; }
+.dialog-index { color: #435b70; font: 13px var(--font-pixel); letter-spacing: .07em; text-transform: uppercase; }
 
 .icon-button {
   display: grid;
@@ -183,7 +181,7 @@ button { color: inherit; }
   place-items: center;
   border: 2px solid #8ba2ba;
   border-radius: 6px;
-  background: #f4bc66;
+  background: #c0d0d7;
   color: #252b38;
   cursor: pointer;
   font-size: 25px;
@@ -191,9 +189,13 @@ button { color: inherit; }
 }
 .icon-button:hover { background: var(--ship-light, #65c8ff); border-color: #252b38; }
 
-.dialog-content { display: flex; flex: 1; flex-direction: column; align-items: flex-start; justify-content: center; padding: 48px clamp(24px, 8vw, 64px); }
+.dialog-content { display: flex; flex: 1; flex-direction: column; align-items: flex-start; justify-content: center; padding: 32px clamp(24px, 6vw, 44px); }
+.dialog-hero { display: flex; width: 100%; gap: 24px; align-items: center; }
+.dialog-illustration { display: grid; width: 144px; height: 104px; flex: 0 0 144px; place-items: center; border: 2px solid #718795; border-radius: 4px; background: #d9d4be; box-shadow: inset 0 1px #f2f5fa, 0 3px #405463; }
+.dialog-illustration > svg { width: 100%; height: 100%; padding: 5px; }
+.dialog-hero h1 { margin-top: 6px; }
 .dialog-content h1 { margin: 12px 0 0; font-family: var(--font-pixel); font-size: clamp(30px, 6vw, 44px); font-weight: 500; line-height: 1.18; letter-spacing: -.025em; text-wrap: balance; }
-.dialog-content p { max-width: 390px; margin: 14px 0 0; color: #596578; font-size: 15px; line-height: 1.7; }
+.dialog-content p { max-width: 520px; margin: 24px 0 0; color: #596578; font-size: 15px; line-height: 1.7; }
 
 .content-placeholder {
   display: flex;
@@ -201,13 +203,13 @@ button { color: inherit; }
   min-height: 102px;
   align-items: center;
   gap: 16px;
-  margin-top: 32px;
-  padding: 17px 18px;
-  border: 2px solid #9e9278;
+  margin-top: 24px;
+  padding: 20px;
+  border: 2px solid #879ba4;
   border-left: 4px solid var(--ship-light, #65c8ff);
   border-radius: 7px;
-  background: linear-gradient(135deg, #f4ecd8, #e8dfc8 68%, #ddd4bd);
-  box-shadow: inset 0 0 0 3px rgb(255 255 255 / 45%), 0 5px 0 #b8aa8d;
+  background: #f1eedf;
+  box-shadow: inset 0 1px #fffdf3, 0 4px 0 #a8b6b8;
   color: #5b6574;
   font-size: 12px;
   letter-spacing: .02em;
@@ -226,9 +228,9 @@ button { color: inherit; }
 }
 .module-mark svg { width: 25px; height: 25px; }
 .module-copy { display: grid; min-width: 0; gap: 7px; }
-.module-kicker { color: #667386; font: 9px var(--font-pixel); letter-spacing: .12em; }
-.module-placeholder { color: #252b38; font-size: 13px; font-weight: 700; }
-.module-status { display: inline-flex; align-items: center; gap: 7px; margin-left: auto; color: #526173; font: 9px var(--font-pixel); letter-spacing: .08em; white-space: nowrap; }
+.module-kicker { color: #667386; font: 11px var(--font-pixel); letter-spacing: .12em; }
+.module-placeholder { color: #252b38; font-size: 15px; font-weight: 700; }
+.module-status { display: inline-flex; align-items: center; gap: 7px; margin-left: auto; color: #526173; font: 11px var(--font-pixel); letter-spacing: .08em; white-space: nowrap; }
 .module-status i { width: 6px; height: 6px; border-radius: 50%; background: var(--ship-light, #65c8ff); box-shadow: 0 0 9px var(--ship-light, #65c8ff); }
 .content-placeholder[data-destination] { --module-accent: var(--ship-light, #65c8ff); }
 .content-placeholder[data-destination] .module-mark,
@@ -236,9 +238,9 @@ button { color: inherit; }
 .content-placeholder[data-destination] { border-color: color-mix(in srgb, var(--module-accent) 25%, #283749); }
 .content-placeholder-icon { color: var(--ship-light, #65c8ff); font-family: var(--font-pixel); font-size: 22px; }
 .dialog-footer { border-top: 1px solid rgb(167 176 192 / 15%); }
-.home-button { display: inline-flex; min-height: 44px; align-items: center; gap: 10px; padding: 0 14px; border: 1px solid rgb(139 162 186 / 36%); border-radius: 6px; background: rgb(255 255 255 / 2%); color: #f2f5fa; cursor: pointer; font-size: 12px; }
+.home-button { display: inline-flex; min-height: 44px; align-items: center; gap: 10px; padding: 0 14px; border: 1px solid #8091a0; border-radius: 6px; background: #f1ebdb; color: #252b38; cursor: pointer; font-size: 12px; }
 .home-button:hover { background: rgb(101 200 255 / 10%); border-color: var(--ship-light, #65c8ff); }
-.home-button span { color: var(--ship-light, #65c8ff); font-size: 17px; }
+.home-button span { color: #435b70; font-size: 17px; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
 
 @keyframes panel-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -272,20 +274,14 @@ button { color: inherit; }
 
 
 /* Space moods: palettes, atmospheric layers and flight effects live here. */
-/* The station structure stays consistent across moods; only atmosphere and
-   illuminated accents change. Defaults also cover an unset mood. */
+/* Theme variables affect only scenery outside the hull. Interior tokens
+   are fixed on :root, including all screens, lights, cards, and controls. */
 .exploration-map {
   --space-background: #03050A;
   --star-color: #DCE8FF;
   --star-accent: #86BFFF;
   --distant-planet: #17243A;
   --planet-rim: #496978;
-  --ship-light: #65C8FF;
-  --ship-secondary: #264C70;
-  --ship-blue: #4b75b8;
-  --ship-screen: #14334a;
-  --ship-warning: #f4bc66;
-  --ship-halo: transparent;
   --rocket-outer: #65C8FF;
   --rocket-core: #b8edff;
   --nebula-opacity: 0;
@@ -298,17 +294,13 @@ button { color: inherit; }
 }
 .exploration-map[data-mood="nebula-drift"] {
   --space-background: #04040A;
-  --star-color: #E5DDFF; --star-accent: #73D9D0;
-  --ship-light: #B68AFF; --ship-secondary: #52CFC6;
-  --ship-halo: rgb(182 138 255 / 16%); --nebula-opacity: .28;
+  --star-color: #E5DDFF; --star-accent: #73D9D0; --nebula-opacity: .28;
   --rocket-outer: #B68AFF; --rocket-core: #e7d6ff;
 }
 .exploration-map[data-mood="planetary-orbit"] {
   --space-background: #050609;
   --star-color: #EAF0FA; --star-accent: #FFD99A;
-  --distant-planet: #26364A; --planet-rim: #9BCBFF;
-  --ship-light: #FFC875; --ship-secondary: #6CBDF5;
-  --ship-halo: rgb(155 203 255 / 12%); --orbit-opacity: 1;
+  --distant-planet: #26364A; --planet-rim: #9BCBFF; --orbit-opacity: 1;
   --rocket-outer: #FFC875; --rocket-core: #ffedbf;
 }
 .exploration-map[data-mood="meteor-shower"] {
@@ -316,20 +308,18 @@ button { color: inherit; }
   --star-color: #ffe8dc; --star-accent: #ffc1a1;
   --distant-planet: #291a25;
   --planet-rim: #a34d45;
-  --ship-light: #78D9FF; --ship-secondary: #264C70;
-  --ship-warning: #FFB36A;
   --meteor-trail: #ffd1a7;
   --meteor-haze: 1;
-  --ship-halo: rgb(255 151 105 / 15%);
   --rocket-outer: #78D9FF; --rocket-core: #d1fbff;
 }
 .room-props rect { rx: 1.5px; }
 .station-connections path { stroke-linejoin: round; stroke-linecap: butt; }
-.station-airlocks rect { rx: 1px; }
 .console-status-light { transform-box: fill-box; transform-origin: center; animation: console-blink 3.8s steps(1, end) infinite; }
-.room-artwork:not([data-room="football"]) .room-hull { filter: drop-shadow(0 0 5px var(--ship-halo)); }
+.radar-sweep { transform-box: fill-box; transform-origin: center; animation: radar-scan 9s linear infinite; }
+@keyframes radar-scan { to { transform: rotate(360deg); } }
 @keyframes console-blink { 0%, 72%, 100% { opacity: 1; } 74%, 80% { opacity: .24; } 82% { opacity: .72; } }
-.room-artwork { filter: drop-shadow(4px 12px 0 rgb(6 13 24 / 70%)) drop-shadow(0 0 12px var(--ship-halo)); }
+/* Hull depth is drawn inside the SVG and cut at entrances. A filter on the
+   whole room would cast a shadow across the connected corridor floor. */
 .ship-flight { position: absolute; inset: 0; transform-origin: center; }
 .ship-flight .station-world { transition: transform 480ms cubic-bezier(.22,.61,.36,1); }
 /* Camera updates must stay immediate during normal exploration. */
@@ -374,7 +364,7 @@ button { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .ship-flight, .rocket-plume, .meteor, .travel-streaks { animation: none !important; }
   .travel-streaks, .rocket-plume { display: none; }
-  .console-status-light, [data-mood="meteor-shower"] .stars-near, .football-streak { animation: none !important; }
+  .console-status-light, .radar-sweep, [data-mood="meteor-shower"] .stars-near, .football-streak { animation: none !important; }
   .nebula-cloud, .orbit-planet, .station-world, .space-backdrop::after { transition: none !important; }
   .astronaut[data-remote="true"] { transition: none; }
 }
@@ -497,3 +487,13 @@ button, input, textarea, select { font-family: inherit; }
 .spectator-overflow { font-size: max(12px, calc(10px / var(--scene-scale, 1))); }
 .penalty-celebration { animation: penalty-celebrate 900ms ease-out both; }
 @keyframes penalty-celebrate { 0% { opacity: 0; } 18% { opacity: 1; } 100% { opacity: 0; } }
+
+@media (max-width: 540px) {
+  .section-dialog { min-height: 0; }
+  .dialog-content { padding: 28px 20px; }
+  .dialog-hero { gap: 14px; }
+  .dialog-illustration { flex-basis: 92px; width: 92px; height: 80px; }
+  .dialog-index { font-size: 11px; letter-spacing: .02em; }
+  .dialog-hero h1 { font-size: 32px; }
+  .module-status { display: none; }
+}

@@ -98,7 +98,7 @@ export function FootballArenaScene({ active, game }: { active: boolean; game: Ga
   const style = {
     left: room.x, top: room.y, width: room.width, height: room.height,
     "--shot-x": `${(shot?.aim ?? game.aim) * 20 - 20}px`,
-    "--shot-y": `${shot?.goal ? -51 : -43}px`,
+    "--shot-y": `${shot?.goal ? -35 : -27}px`,
     "--keeper-x": `${(shot?.keeper ?? 1) * 20 - 20}px`,
     "--keeper-tilt": `${((shot?.keeper ?? 1) - 1) * 55}deg`,
   } as CSSProperties;
@@ -108,11 +108,11 @@ export function FootballArenaScene({ active, game }: { active: boolean; game: Ga
       <rect className="penalty-net-flash" x="89" y="35" width="62" height="14" fill="#65c8ff" opacity="0" />
     </g>
     {active && <>
-      {!shot && <path d={`M118 96L${target} 46`} stroke="#e4f0df" strokeWidth=".8" strokeDasharray="2 3" opacity=".6" />}
+      {!shot && <path d={`M118 80L${target} 46`} stroke="#e4f0df" strokeWidth=".8" strokeDasharray="2 3" opacity=".6" />}
       {spots.map((spot, i) => <rect key={spot} x={94 + i * 20} y="38" width="8" height="8" fill="none" stroke={game.aim === i ? "#ffd38b" : "#cde5db"} strokeWidth={game.aim === i ? 1 : .5} opacity={game.aim === i ? 1 : .4} />)}
     </>}
     <g className="penalty-keeper"><ellipse cx="118" cy="51" rx="6" ry="2" fill="#111722" opacity=".4" /><g className="keeper-body"><g transform="translate(112 35) scale(.25)"><Astronaut palette="coral" /></g></g></g>
-    <g className="penalty-ball"><path d="M116 93h4v1h1v4h-1v1h-4v-1h-1v-4h1z" fill="#f2f5fa" stroke="#111722" strokeWidth=".5" /><rect x="117" y="95" width="2" height="2" fill="#111722" /></g>
+    <g className="penalty-ball"><path d="M116 77h4v1h1v4h-1v1h-4v-1h-1v-4h1z" fill="#f2f5fa" stroke="#111722" strokeWidth=".5" /><rect x="117" y="79" width="2" height="2" fill="#111722" /></g>
     {active && game.lastShot?.goal && <g className="penalty-celebration" fill="#ffd38b"><path d="M78 65h2v6h-2zM76 67h6v2h-6zM158 75h2v6h-2zM156 77h6v2h-6zM88 122h2v6h-2zM86 124h6v2h-6zM148 116h2v6h-2zM146 118h6v2h-6z" /></g>}
   </svg>;
 }

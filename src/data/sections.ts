@@ -46,7 +46,7 @@ export const sections = [
     label: "Orbital Training Deck",
     roomName: "Orbital Training Deck",
     marker: "07",
-    description: "Take three penalties against the ship’s goalkeeper. Pick your spot and shoot.",
+    description: "Practise penalties against the ship’s goalkeeper. Pick your spot and shoot.",
   },
 ] as const;
 
