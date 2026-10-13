@@ -52,23 +52,29 @@ function Plant({ x, y }: { x: number; y: number }) {
 }
 
 function Hangar() {
-  return (
-    <g>
-      <path d="M46 56v80h66V56M140 56v80h58V56" fill="none" stroke="#a6a18e" strokeWidth="2" />
-      <path d="M42 140h164" stroke={palette.amber} strokeWidth="4" strokeDasharray="10 6" />
-      <g transform="translate(50 60)">
-        <rect x="8" y="14" width="40" height="64" fill={palette.shadow} />
-        <path d="M24 0h10v12h8v34h12v26H38v10H20V72H4V46h12V12h8z" fill={palette.cream} />
-        <path d="M24 14h10v22H24zM6 50h10v20H6zM42 50h10v20H42z" fill={palette.blue} />
-        <rect x="22" y="62" width="14" height="8" fill={palette.steel} />
-        <path d="M22 82v8h6v-8m4 0v8h6v-8" fill={palette.teal} />
-      </g>
-      <Console x={146} y={68} width={42} />
-      <Console x={146} y={104} width={42} />
-      <rect x="26" y="58" width="10" height="66" fill={palette.steel} />
-      <path d="M28 64h6m-6 10h6m-6 10h6m-6 10h6" stroke={palette.amber} strokeWidth="2" />
+  return <g>
+    <path d="M46 56v80h66V56M140 56v80h58V56" fill="none" stroke="#a6a18e" strokeWidth="1" />
+    <path d="M50 58h10m40 0h10M50 134h10m40 0h10" stroke={palette.edge} strokeWidth="2" />
+    <path d="M42 144h164" stroke={palette.amber} strokeWidth="2" strokeDasharray="6 4" />
+    <g transform="translate(50 60)">
+      <path d="M24 0h10v12h8v34h12v26H38v10H20V72H4V46h12V12h8z" fill={palette.shadow} />
+      <path d="M28 2h2v4h2v8h8v34h12v22H36v10H22V70H6V48h12V14h8V6h2z" fill="#dce3e8" />
+      <path d="M26 4h6v12h-6zM20 18h18v22H20z" fill={palette.edge} />
+      <path d="M24 18h10v18H24z" fill={palette.screen} />
+      <path d="M26 20h6v2h-6z" fill={palette.teal} />
+      <path d="M18 42h22v4H18zM24 46h10v16H24z" fill="#b5c2ce" />
+      <path d="M8 50h8v18H8zM42 50h8v18h-8z" fill={palette.blue} />
+      <path d="M10 52h4m30 0h4M20 48v18m18-18v18" stroke={palette.edge} strokeWidth="1" />
+      <path d="M24 48h10v4H24z" fill={palette.steel} />
+      <path d="M24 49h6" stroke={palette.teal} strokeWidth="1" />
+      <path d="M22 72h6v10h-6zM32 72h6v10h-6z" fill={palette.steel} />
+      <path d="M23 78h4m6 0h4" stroke={palette.amber} strokeWidth="2" />
+      <path d="M20 38h18M8 64h8m26 0h8" stroke="#f2f5fa" strokeWidth="1" />
     </g>
-  );
+    <Console x={146} y={68} width={42} /><Console x={146} y={104} width={42} />
+    <rect x="26" y="58" width="10" height="66" fill={palette.steel} />
+    {[62, 74, 86, 98, 110].map((y) => <g key={y}><path d={`M28 ${y}h6v8h-6z`} fill={palette.frame} /><path d={`M29 ${y + 2}h4`} stroke={palette.amber} strokeWidth="1" /></g>)}
+  </g>;
 }
 
 function Archive() {
@@ -91,35 +97,53 @@ function Archive() {
 }
 
 function Engineering() {
-  return (
-    <g>
-      <Console x={38} y={62} width={68} /><Console x={134} y={62} width={68} />
-      <path d="M46 98h52v44H46zM142 98h52v44h-52z" fill={palette.shadow} />
-      <path d="M42 94h52v44H42zM138 94h52v44h-52z" fill={palette.steel} />
-      <path d="M48 100h40v24H48zM144 100h40v24h-40z" fill={palette.frame} />
-      <path d="M58 100v24m10-24v24m10-24v24M150 108h28m-28 8h28" stroke={palette.teal} strokeWidth="2" />
-      <path d="M52 130h12m8 0h12m68 0h12m8 0h10" stroke={palette.amber} strokeWidth="2" />
-      <rect x="114" y="106" width="12" height="24" fill={palette.edge} />
-      <rect x="116" y="110" width="8" height="12" fill={palette.blue} />
+  return <g>
+    <Console x={38} y={62} width={68} /><Console x={134} y={62} width={68} />
+    <g transform="translate(42 94)">
+      <rect width="52" height="44" fill={palette.steel} />
+      <path d="M2 2h48v2H4v36H2z" fill={palette.edge} />
+      {[8, 18, 28].map((y) => <g key={y}>
+        <rect x="6" y={y} width="40" height="8" fill={palette.shadow} />
+        <path d={`M10 ${y + 3}h18m-18 3h18`} stroke={palette.frame} strokeWidth="1" />
+        <path d={`M34 ${y + 3}h2m4 0h2`} stroke={palette.teal} strokeWidth="2" />
+      </g>)}
+      <path d="M8 40h12m12 0h12" stroke={palette.amber} strokeWidth="1" />
     </g>
-  );
+    <g transform="translate(138 94)">
+      <rect width="52" height="44" fill={palette.steel} />
+      <path d="M2 2h48v2H4v36H2z" fill={palette.edge} />
+      <rect x="6" y="6" width="40" height="30" fill={palette.screen} />
+      <path d="M12 12h8v6m12-6h8v8h-6M12 30h8v-6m12 6h8v-4" stroke={palette.teal} strokeWidth="1" fill="none" />
+      <path d="M22 14h10v12H22z" fill={palette.edge} />
+      <path d="M24 16h6v8h-6z" fill={palette.steel} />
+      <path d="M24 12v2m4-2v2m-4 12v2m4-2v2M20 18h2m-2 4h2m10-4h2m-2 4h2" stroke={palette.amber} strokeWidth="1" />
+      <path d="M8 40h12m12 0h12" stroke={palette.edge} strokeWidth="1" />
+    </g>
+    <rect x="114" y="106" width="12" height="24" fill={palette.steel} />
+    <path d="M116 108h8v18h-8z" fill={palette.edge} />
+    <path d="M118 110h4v10h-4z" fill={palette.screen} />
+    <path d="M118 112h4m-4 4h4" stroke={palette.teal} strokeWidth="1" />
+    <path d="M118 124h4" stroke={palette.amber} strokeWidth="1" />
+  </g>;
 }
 
 function CommandDeck() {
-  return (
-    <g>
-      <Console x={36} y={60} width={44} /><Console x={98} y={52} width={44} /><Console x={160} y={60} width={44} />
-      <path d="M98 98h44v8h12v30h-12v8H98v-8H86v-30h12z" fill={palette.shadow} />
-      <path d="M96 94h44v8h12v28h-12v8H96v-8H84v-28h12z" fill={palette.steel} />
-      <path d="M104 92h26v6h10v10h6v16h-6v10h-10v6h-26v-6H94v-10h-6v-16h6V98h10z" fill={palette.teal} />
-      <path d="M104 92h26v6h10v10h-4V102h-10v-6h-22z" fill="#97eee0" opacity=".7" />
-      <path d="M94 124v10h10v6h26v-6h10v-10h-4v6h-10v6h-22v-6H98v-6z" fill="#178896" />
-      <path d="M104 102h14v8h-6v6h-10v-8h2zM122 114h12v6h-6v12h-6z" fill="#a9eee1" />
-      <path d="M94 116h46M116 98v36" stroke={palette.cream} strokeWidth="2" opacity=".5" />
-      <path d="M56 104h16v20H56zM168 104h16v20h-16z" fill={palette.blue} />
-      <Plant x={26} y={124} /><Plant x={194} y={124} />
-    </g>
-  );
+  return <g>
+    <Console x={36} y={60} width={44} /><Console x={98} y={52} width={44} /><Console x={160} y={60} width={44} />
+    <path d="M96 94h44v8h12v28h-12v8H96v-8H84v-28h12z" fill={palette.shadow} />
+    <path d="M98 96h40v8h12v24h-12v8H98v-8H86v-24h12z" fill={palette.edge} />
+    <path d="M100 98h36v8h12v20h-12v8h-36v-8H88v-20h12z" fill={palette.steel} />
+    <path d="M102 100h32v8h12v16h-12v8h-32v-8H90v-16h12z" fill={palette.screen} />
+    <path d="M102 108h32M96 116h44M102 124h32M110 102v28m8-28v28m8-28v28" stroke={palette.edge} strokeWidth=".5" opacity=".22" />
+    <path d="M104 104h28v24h-28z" stroke={palette.teal} strokeWidth="1" fill="none" opacity=".5" />
+    <path d="M108 108h20v16h-20zM108 116h20M118 108v16" fill="none" stroke={palette.edge} strokeWidth="1" />
+    <path d="M114 112h8v8h-8zM106 106h4v4h-4zM126 106h4v4h-4zM106 122h4v4h-4zM126 122h4v4h-4z" fill={palette.cream} />
+    <path d="M116 114h4v4h-4z" fill={palette.teal} />
+    <path d="M96 112h4m36 8h4" stroke={palette.amber} strokeWidth="2" />
+    <path d="M104 94h28M104 138h28" stroke={palette.teal} strokeWidth="1" />
+    {[56, 168].map((x) => <g key={x}><rect x={x} y="104" width="16" height="20" fill={palette.steel} /><path d={`M${x + 2} 106h12v12h-12z`} fill={palette.blue} /><path d={`M${x + 3} 108h10M${x + 4} 122h8`} stroke={palette.edge} strokeWidth="1" /></g>)}
+    <Plant x={26} y={124} /><Plant x={194} y={124} />
+  </g>;
 }
 
 function MissionLog() {
@@ -144,23 +168,30 @@ function MissionLog() {
 }
 
 function Communications() {
-  return (
-    <g>
-      <g transform="translate(42 60)">
-        <path d="M18 0h24v6h10v10h6v24h-6v10H42v6H18v-6H8V40H2V16h6V6h10z" fill={palette.steel} />
-        <path d="M20 6h20v6h10v10h6v12h-6v10H40v6H20v-6H10V34H4V22h6V12h10z" fill={palette.edge} />
-        <path d="M18 18h24v24H18z" fill={palette.frame} />
-        <path d="M28 0v54M2 28h54" stroke={palette.cream} strokeWidth="2" />
-        <rect x="26" y="24" width="8" height="8" fill={palette.teal} />
-        <path d="M24 56h12v10h12v8H12v-8h12z" fill={palette.steel} />
+  return <g>
+    <g transform="translate(42 60)">
+      <path d="M14 0h32v6h10v10h4v28h-4v10H46v6H14v-6H4V44H0V16h4V6h10z" fill={palette.steel} />
+      <path d="M16 4h28v6h10v10h2v20h-2v10H44v6H16v-6H6V40H4V20h2V10h10z" fill={palette.edge} />
+      <path d="M18 6h24v6h10v10h2v16h-2v10H42v6H18v-6H8V38H6V22h2V12h10z" fill={palette.screen} />
+      <g shapeRendering="geometricPrecision" fill="none" stroke={palette.teal} strokeWidth=".7">
+        <circle cx="30" cy="30" r="20" opacity=".5" /><circle cx="30" cy="30" r="13" opacity=".4" /><circle cx="30" cy="30" r="6" opacity=".4" />
+        <path d="M10 30h40M30 10v40" opacity=".3" />
       </g>
-      <Console x={130} y={72} width={70} />
-      <path d="M136 110h56v24h-56z" fill={palette.steel} />
-      <path d="M142 114h44v12h-44z" fill={palette.frame} />
-      <path d="M146 118h14m6 0h14" stroke={palette.teal} strokeWidth="2" />
-      <Plant x={204} y={126} />
+      <path d="M30 30V10l14 6z" fill={palette.teal} opacity=".12" />
+      <path d="M30 30l14-14" stroke={palette.teal} strokeWidth="1" />
+      <path d="M18 24h2v2h-2zM38 18h2v2h-2zM34 40h2v2h-2z" fill={palette.cream} />
+      <path d="M30 28h2v2h-2z" fill={palette.amber} />
+      <path d="M14 62h32v12H14z" fill={palette.steel} />
+      <path d="M18 64h24v6H18z" fill={palette.shadow} />
+      <path d="M20 66h8m8 0h4" stroke={palette.teal} strokeWidth="1" />
     </g>
-  );
+    <Console x={130} y={72} width={70} />
+    <path d="M140 82h8l3-4 4 7 4-5h6l3-2 4 5 4-3h14" fill="none" stroke={palette.edge} strokeWidth="1" />
+    <rect x="136" y="110" width="56" height="24" fill={palette.steel} />
+    <path d="M138 112h52" stroke={palette.edge} strokeWidth="1" />
+    {[142, 158, 174].map((x) => <g key={x}><rect x={x} y="116" width="12" height="12" fill={palette.shadow} /><path d={`M${x + 2} 118h8v4h-8z`} fill={palette.frame} /><path d={`M${x + 3} 125h6`} stroke={palette.amber} strokeWidth="1" /></g>)}
+    <Plant x={204} y={126} />
+  </g>;
 }
 
 function FootballArenaArtwork({ goals = 0, saves = 0 }: { goals?: number | string; saves?: number | string }) {
@@ -214,6 +245,12 @@ export function RoomArtwork({ id, goals = 0, saves = 0 }: { id: SectionId; goals
       <path shapeRendering="geometricPrecision" d={hullShape} transform="translate(0 2)" fill="#182a42" stroke="#61738b" strokeWidth="2" />
       <path className="room-hull" shapeRendering="geometricPrecision" d={hullShape} fill="#252b38" stroke={palette.edge} strokeWidth="2" />
       <path d="M32 10h176v8h12v14h10v108h-10v14h-12v12H32v-12H20v-14H10V32h10V18h12z" fill={palette.frame} />
+      <g className="exterior-plating">
+        <path d="M30 4h180v4H30zM26 10h188v2H26zM8 34h6v108H8zM226 34h6v108h-6zM30 164h180v4H30z" fill="#30445f" />
+        <path d="M34 4h172M16 34v106m208-106v106M34 170h172" fill="none" stroke="#9ab2c8" strokeWidth="1" opacity=".7" />
+        {[44, 100, 156].map((x) => <g key={x}><path d={`M${x} 12h32v4h-32zM${x} 160h32v2h-32z`} fill="#617d9c" /><path d={`M${x + 4} 13h24`} stroke="#b6c9d7" strokeWidth="1" opacity=".55" /></g>)}
+        {[48, 90, 132].map((y) => <g key={y}><path d={`M14 ${y}h5v18h-5zM221 ${y}h5v18h-5z`} fill="#334b68" /><path d={`M15 ${y + 2}v10m210-10v10`} stroke="#7597b5" strokeWidth="1" /></g>)}
+      </g>
       <path shapeRendering="geometricPrecision" d={floorShape} fill={`url(#floor-${id})`} />
       <g clipPath={`url(#deck-clip-${id})`}>
         <path shapeRendering="geometricPrecision" d={floorShape} fill="none" stroke="#112538" strokeWidth="16" opacity=".1" />
@@ -244,7 +281,7 @@ export function RoomArtwork({ id, goals = 0, saves = 0 }: { id: SectionId; goals
       <g className="room-light-spill">
         <path d="M24 64h10v16H24zM24 96h10v16H24zM206 64h10v16h-10zM206 96h10v16h-10z" fill={palette.teal} opacity=".12" />
         <path d="M34 64h6v16h-6zM34 96h6v16h-6zM200 64h6v16h-6zM200 96h6v16h-6z" fill={palette.teal} opacity=".05" />
-        {id === "about" && <><path d="M100 84h34v6h16v16h8v26h-8v16h-16v6h-34v-6H84v-16h-8v-26h8V90h16z" fill={palette.teal} opacity=".08" /><path d="M36 84h44v8H36zM98 76h44v8H98zM160 84h44v8h-44z" fill={palette.teal} opacity=".1" /></>}
+        {id === "about" && <><path d="M36 84h44v8H36zM98 76h44v8H98zM160 84h44v8h-44z" fill={palette.teal} opacity=".1" /></>}
       </g>
       <g className="room-props">{id === "football" ? <FootballArenaArtwork goals={goals} saves={saves} /> : <Props />}</g>
       <rect x="108" y="156" width="24" height="20" fill={palette.frame} />

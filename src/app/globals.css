@@ -72,7 +72,7 @@ button { color: inherit; }
 .map-viewport:focus-visible { outline: 2px solid var(--teal); }
 .station-world { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
 .space-backdrop { overflow: hidden; pointer-events: none; }
-.space-backdrop::after { position: absolute; inset: 0; background: radial-gradient(ellipse at 78% 24%, rgb(91 151 190 / 12%), transparent 38%), radial-gradient(ellipse at 16% 76%, rgb(60 117 151 / 8%), transparent 34%); content: ""; opacity: var(--meteor-haze); mix-blend-mode: screen; transition: opacity 450ms ease; }
+.space-backdrop::after { position: absolute; inset: 0; background: radial-gradient(ellipse at 82% 18%, rgb(178 54 47 / 18%), transparent 42%), radial-gradient(ellipse at 14% 82%, rgb(110 28 39 / 12%), transparent 42%); content: ""; opacity: var(--meteor-haze); mix-blend-mode: screen; transition: opacity 450ms ease; }
 /* Background layers move more slowly than the ship, with no idle animation. */
 .stars { position: absolute; inset: -120px; width: calc(100% + 240px); height: calc(100% + 240px); }
 .stars-far { transform: translate(calc(var(--parallax-x, 0px) * .018), calc(var(--parallax-y, 0px) * .018)); }
@@ -312,14 +312,15 @@ button { color: inherit; }
   --rocket-outer: #FFC875; --rocket-core: #ffedbf;
 }
 .exploration-map[data-mood="meteor-shower"] {
-  --space-background: #03050A;
-  --star-color: #DCE8FF; --star-accent: #86BFFF;
-  --distant-planet: #17202D;
+  --space-background: #080407;
+  --star-color: #ffe8dc; --star-accent: #ffc1a1;
+  --distant-planet: #291a25;
+  --planet-rim: #a34d45;
   --ship-light: #78D9FF; --ship-secondary: #264C70;
   --ship-warning: #FFB36A;
-  --star-accent: #A8E8FF;
+  --meteor-trail: #ffd1a7;
   --meteor-haze: 1;
-  --ship-halo: rgb(120 217 255 / 14%);
+  --ship-halo: rgb(255 151 105 / 15%);
   --rocket-outer: #78D9FF; --rocket-core: #d1fbff;
 }
 .room-props rect { rx: 1.5px; }
@@ -347,17 +348,20 @@ button { color: inherit; }
 .nebula-teal { bottom: -18%; right: -12%; background: radial-gradient(ellipse, var(--nebula-teal), transparent 65%); transform: translate(calc(var(--parallax-x,0px) * .014),calc(var(--parallax-y,0px) * .014)); }
 .orbit-planet { position: absolute; width: clamp(320px,46vw,680px); aspect-ratio: 1; bottom: -28%; left: -16%; border-radius: 50%; overflow: hidden; opacity: var(--orbit-opacity); transition: opacity 650ms ease; background: radial-gradient(circle at 68% 28%, var(--planet-rim) 0%, var(--distant-planet) 36%, #102232 65%, var(--space-background) 82%); box-shadow: inset -8px 10px 18px color-mix(in srgb, var(--planet-rim) 40%, transparent), 0 0 26px color-mix(in srgb, var(--planet-rim) 14%, transparent); transform: translate(calc(var(--parallax-x,0px) * .025),calc(var(--parallax-y,0px) * .025)); }
 .orbit-clouds { position: absolute; inset: 8%; border-radius: 50%; opacity: .2; background: repeating-linear-gradient(-24deg,transparent 0 16px,#a1bfc6 18px 22px,transparent 24px 48px); }
-.meteor-field { position: absolute; inset: 0; overflow: hidden; opacity: 0; }
+.meteor-field { position: absolute; inset: 0; overflow: hidden; opacity: 0; transition: opacity 450ms ease; background: radial-gradient(ellipse at 82% 18%, rgb(103 27 29 / 28%), transparent 48%), radial-gradient(ellipse at 17% 84%, rgb(77 22 36 / 20%), transparent 44%); }
 [data-mood="meteor-shower"] .meteor-field { opacity: 1; }
-.meteor { position: absolute; width: 62px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--meteor-trail)); box-shadow: 0 0 7px rgb(168 232 255 / 55%); opacity: 0; transform: rotate(-24deg); }
-[data-mood="meteor-shower"] .meteor { animation: meteor-pass 9s linear infinite; }
-.meteor-0 { top: 16%; left: 9%; animation-delay: .5s !important; }
-.meteor-1 { top: 68%; left: 56%; animation-delay: 3.1s !important; width: 44px; }
-.meteor-2 { top: 42%; left: 77%; animation-delay: 5.6s !important; }
-.meteor-3 { top: 24%; left: 62%; animation-delay: 7.1s !important; width: 38px; }
-.meteor-4 { top: 81%; left: 26%; animation-delay: 8.2s !important; width: 48px; }
+.meteor-world { position: absolute; top: -32%; right: -14%; width: clamp(320px, 44vw, 620px); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 34% 72%, #422431, #1d111b 48%, #0a070e 75%); box-shadow: -13px 12px 34px rgb(223 91 62 / 18%), inset 9px -8px 18px rgb(230 111 75 / 18%); opacity: .65; }
+.meteor { position: absolute; width: 84px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--meteor-trail)); box-shadow: 0 0 8px rgb(255 176 138 / 60%); opacity: 0; transform: rotate(-24deg); }
+[data-mood="meteor-shower"] .meteor { animation: meteor-pass 7s linear infinite; }
+.meteor-0 { top: 12%; left: 6%; animation-delay: -.4s !important; }
+.meteor-1 { top: 64%; left: 52%; animation-delay: -1.8s !important; width: 56px; }
+.meteor-2 { top: 38%; left: 72%; animation-delay: -3.2s !important; }
+.meteor-3 { top: 25%; left: 58%; animation-delay: -4.6s !important; width: 46px; }
+.meteor-4 { top: 82%; left: 22%; animation-delay: -6s !important; width: 64px; }
+.meteor-5 { top: 56%; left: 12%; animation-delay: -2.5s !important; width: 50px; }
+.meteor-6 { top: 8%; left: 80%; animation-delay: -5.3s !important; width: 72px; }
 [data-mood="meteor-shower"] .stars-near { animation: star-drift 26s linear infinite, meteor-star-twinkle 2.8s steps(2, end) infinite; }
-@keyframes meteor-pass { 0%,68%,100% { opacity: 0; transform: translate(0,0) rotate(-24deg); } 70% { opacity: .9; } 77% { opacity: 0; transform: translate(220px,124px) rotate(-24deg); } }
+@keyframes meteor-pass { 0%,42%,100% { opacity: 0; transform: translate(0,0) rotate(-24deg); } 46% { opacity: .78; } 82% { opacity: 0; transform: translate(260px,146px) rotate(-24deg); } }
 @keyframes star-drift { to { transform: translate(calc(var(--parallax-x, 0px) * .055 - 12px), calc(var(--parallax-y, 0px) * .055 + 9px)); } }
 @keyframes meteor-star-twinkle { 0%,100% { filter: brightness(.72); } 50% { filter: brightness(1.55); } }
 .travel-streaks { position: absolute; inset: 0; opacity: 0; background: repeating-linear-gradient(-8deg,transparent 0 70px,rgb(134 186 208 / 15%) 71px 72px,transparent 73px 142px); }
@@ -369,7 +373,7 @@ button { color: inherit; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ship-flight, .rocket-plume, .meteor, .travel-streaks { animation: none !important; }
-  .meteor-field, .travel-streaks, .rocket-plume { display: none; }
+  .travel-streaks, .rocket-plume { display: none; }
   .console-status-light, [data-mood="meteor-shower"] .stars-near, .football-streak { animation: none !important; }
   .nebula-cloud, .orbit-planet, .station-world, .space-backdrop::after { transition: none !important; }
   .astronaut[data-remote="true"] { transition: none; }

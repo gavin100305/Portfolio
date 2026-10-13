@@ -75,6 +75,22 @@ test("every corridor leg is continuously walkable from threshold to threshold", 
   }
 });
 
+test("the five command-deck openings join the visible room floor", () => {
+  const interiorPoints = [
+    { x: 510, y: 300 }, { x: 690, y: 300 },
+    { x: 500, y: 400 }, { x: 700, y: 404 }, { x: 624, y: 448 },
+  ];
+  [2, 3, 5, 6, 8].forEach((index, position) => {
+    const opening = airlocks[index];
+    const inside = interiorPoints[position];
+    const center = { x: opening.x + opening.width / 2, y: opening.y + opening.height / 2 };
+    assert.equal(canWalkSegment(
+      { x: inside.x * MAP_SCALE, y: inside.y * MAP_SCALE },
+      { x: center.x * MAP_SCALE, y: center.y * MAP_SCALE },
+    ), true, `command-deck opening ${index} joins the room floor`);
+  });
+});
+
 test("a fast movement segment cannot tunnel through a station wall", () => {
   assert.equal(canWalkSegment(WORLD.spawn, { x: -WORLD.width, y: WORLD.spawn.y }), false);
 });

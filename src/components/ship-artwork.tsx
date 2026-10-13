@@ -9,7 +9,7 @@ export function SpaceBackdrop({ backdropRef }: { backdropRef: RefObject<HTMLDivE
     <div ref={backdropRef} className="space-backdrop" aria-hidden="true">
       <div className="nebula-cloud nebula-purple" /><div className="nebula-cloud nebula-teal" />
       <div className="orbit-planet"><span className="orbit-clouds" /></div>
-      <div className="meteor-field">{[0, 1, 2, 3, 4].map((i) => <span key={i} className={`meteor meteor-${i}`} />)}</div>
+      <div className="meteor-field"><span className="meteor-world" />{[0, 1, 2, 3, 4, 5, 6].map((i) => <span key={i} className={`meteor meteor-${i}`} />)}</div>
       <div className="travel-streaks" />
       <svg className="stars stars-far" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice" shapeRendering="crispEdges">
         {Array.from({ length: 92 }, (_, i) => <rect key={i} x={(i * 137 + 29) % 1200} y={(i * 293 + 71) % 900} width={i % 8 === 0 ? 2 : 1} height={i % 8 === 0 ? 2 : 1} fill="var(--star-color, #DCE8FF)" opacity={.18 + (i % 5) * .08} />)}
@@ -60,6 +60,8 @@ export function StationConnections() {
       <rect x="0" y="392" width="48" height="168" fill="url(#solar-grid)" stroke="#8ba2ba" strokeWidth="3" />
       <rect x="1584" y="408" width="48" height="168" fill="url(#solar-grid)" stroke="#8ba2ba" strokeWidth="3" />
       <g strokeLinecap="butt" strokeLinejoin="round">
+        <path d={corridorPath} transform="translate(2 8)" fill="none" stroke="#050b13" strokeWidth="48" />
+        <path d={corridorPath} transform="translate(0 3)" fill="none" stroke="#1c2d42" strokeWidth="44" />
         <path d={corridorPath} transform="translate(2 6)" fill="none" stroke="#050b13" strokeWidth="40" />
         <path d={corridorPath} transform="translate(0 2)" fill="none" stroke="#111722" strokeWidth="38" />
         {[{ color: "#8ba2ba", width: 36 }, { color: "#252b38", width: 32 }, { color: "#405775", width: 26 }].map(({ color, width }) => <path key={width} d={corridorPath} fill="none" stroke={color} strokeWidth={width} />)}
@@ -75,19 +77,35 @@ export function StationConnections() {
 // Small traversable openings in the existing hulls; the rooms stay in place.
 export function StationAirlocks() {
   return <svg className="station-airlocks" width={WORLD.width} height={WORLD.height} viewBox={`0 0 ${WORLD.width / MAP_SCALE} ${WORLD.height / MAP_SCALE}`} aria-hidden="true" focusable="false" shapeRendering="crispEdges">
-    {airlocks.map((r, i) => <g key={i}>
-      <rect {...r} fill="#d9d4be" />
-      {r.width > r.height ? <>
-        <rect x={r.x + 2} y={r.y + 2} width="4" height={r.height - 4} fill="#798a91" opacity=".5" />
-        <path d={`M${r.x + 3} ${r.y + 3}v${r.height - 6}`} stroke="#dce2d4" strokeWidth="1" />
-        <path d={`M${r.x + r.width - 5} ${r.y + 4}v${r.height - 8}`} stroke="#748792" strokeWidth="2" strokeDasharray="2 2" />
-      </> : <>
-        <rect x={r.x + 2} y={r.y + 2} width={r.width - 4} height="4" fill="#798a91" opacity=".5" />
-        <path d={`M${r.x + 3} ${r.y + 3}h${r.width - 6}`} stroke="#dce2d4" strokeWidth="1" />
-        <path d={`M${r.x + 4} ${r.y + r.height - 5}h${r.width - 8}`} stroke="#748792" strokeWidth="2" strokeDasharray="2 2" />
-      </>}
-      {r.width > r.height ? <path d={`M${r.x} ${r.y}h${r.width}m-${r.width} ${r.height}h${r.width}`} stroke="#405775" strokeWidth="2" /> : <path d={`M${r.x} ${r.y}v${r.height}m${r.width} -${r.height}v${r.height}`} stroke="#405775" strokeWidth="2" />}
-    </g>)}
+    {/* Keep the actual floor above room shadows so neither the hull nor its
+        underside can visually interrupt a traversable corridor. */}
+    <path d={corridorPath} fill="none" stroke="#d9d4be" strokeWidth={CORRIDOR_WIDTH} strokeLinejoin="round" />
+    <path d={corridorPath} fill="none" stroke="#fff8e8" strokeWidth="2" strokeDasharray="4 6" strokeLinejoin="round" opacity=".88" />
+    {airlocks.map((r, i) => {
+      // Open Command Deck passages cross the complete hull, including its rim.
+      // Draw only the continuous floor here; raised airlock trim belongs at doors.
+      if ([2, 3, 5, 6, 8].includes(i)) {
+        const horizontal = r.width > r.height;
+        const x = r.x - (horizontal ? 2 : 0);
+        const y = r.y - (horizontal ? 0 : 2);
+        const width = r.width + (horizontal ? 4 : 0);
+        const height = r.height + (horizontal ? 0 : 4);
+        return <path key={i} d={`M${x} ${y}h${width}v${height}h-${width}z`} fill="#d9d4be" />;
+      }
+      return <g key={i}>
+        <rect {...r} fill="#d9d4be" />
+        {r.width > r.height ? <>
+          <rect x={r.x + 2} y={r.y + 2} width="4" height={r.height - 4} fill="#798a91" opacity=".5" />
+          <path d={`M${r.x + 3} ${r.y + 3}v${r.height - 6}`} stroke="#dce2d4" strokeWidth="1" />
+          <path d={`M${r.x + r.width - 5} ${r.y + 4}v${r.height - 8}`} stroke="#748792" strokeWidth="2" strokeDasharray="2 2" />
+        </> : <>
+          <rect x={r.x + 2} y={r.y + 2} width={r.width - 4} height="4" fill="#798a91" opacity=".5" />
+          <path d={`M${r.x + 3} ${r.y + 3}h${r.width - 6}`} stroke="#dce2d4" strokeWidth="1" />
+          <path d={`M${r.x + 4} ${r.y + r.height - 5}h${r.width - 8}`} stroke="#748792" strokeWidth="2" strokeDasharray="2 2" />
+        </>}
+        {r.width > r.height ? <path d={`M${r.x} ${r.y}h${r.width}m-${r.width} ${r.height}h${r.width}`} stroke="#405775" strokeWidth="2" /> : <path d={`M${r.x} ${r.y}v${r.height}m${r.width} -${r.height}v${r.height}`} stroke="#405775" strokeWidth="2" />}
+      </g>;
+    })}
   </svg>;
 }
 
