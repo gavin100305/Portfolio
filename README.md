@@ -78,18 +78,26 @@ After changing world bounds or furniture footprints, redeploy the optional prese
 
 Opening Projects, Achievements, Tech Stack, Experience, About, or Contact presents a full-screen information page as a single off-white station panel with a blue perimeter frame, four corner screw bolts, original vector illustrations, and local Pixelify Sans / Manrope typography. Dark blue is used for frames, control highlights, and depth edges. Information pages use no gradients, branding header, section tabs, or footer directory. The underlying station stays mounted, so returning preserves the astronaut's position. The football game remains on its physical deck.
 
-Each page has a persistent **Return to station** button. Existing URLs (`/#projects`, `/#achievements`, `/#stack`, `/#experience`, `/#about`, `/#contact`) and browser Back/Forward work. Escape or **Return to station** leaves the information view in one action, including when following the optional football detour from About. Focus starts on the page title and returns to the original station launcher; the underlying map is inert. Project search, a compact collection selector, links, and email-copy feedback support keyboard use. Mobile pages scroll independently; reduced motion removes entrance, orbital, and hover movement.
+Each page has a persistent **Return to station** button. Existing URLs (`/#projects`, `/#achievements`, `/#stack`, `/#experience`, `/#about`, `/#contact`) and browser Back/Forward work. Escape or **Return to station** leaves the information view in one action, including when following the optional football detour from About. Focus starts on the page title and returns to the original station launcher; the underlying map is inert. Project search, a compact collection selector, links, and email-copy feedback support keyboard use. Mobile pages scroll independently; reduced motion removes entrance, instrument, and hover movement.
 
 ### Updating content
 
 - `src/data/portfolio-content.ts`: biography, education, experience, skills, achievements, and the curated project list. Personal facts come from Gavin's supplied CV; additional projects come from public repositories and the user-provided Draft XI site. Keep project descriptions factual, distinguish team contributions, and check outbound links before adding them.
 - `src/data/sections.ts`: section identifiers, labels, and room names. These also drive station links; keep IDs stable for shared URLs.
-- `src/components/portfolio-page.tsx`: full-screen shell and section layouts. `portfolio-illustrations.tsx` supplies original decorative artwork, not app screenshots.
+- `src/components/portfolio-page.tsx`: full-screen shell and section layouts. `portfolio-illustrations.tsx` retains the original project artwork; `section-hero-art.tsx` supplies six original station-instrument illustrations for the page headers. Project screenshots are not used.
 - `src/app/portfolio-pages.css`: scoped page palette, responsive layouts, frames, and animation. These styles do not recolor the exploration map.
 
 Ten selected projects include Draft XI, Zenith, Money Council, InfluenceIQ, Neurolytics, TISD, EcoScan, Pashu Pehchan, NourishNet, and Vathavaran Variables. Source links are included where known. Draft XI has a verified live link but no supplied repository link. EcoScan and Vathavaran Variables currently link only to source because their listed deployments returned 404 during review. The contact page uses email, GitHub, and the user-confirmed LinkedIn URL. Phone numbers and the original CV PDF are intentionally not published.
 
-No new packages or external artwork are required. Lint, typecheck, and production build use the existing npm scripts above.
+### Technology entries and GitHub activity
+
+Tech Stack uses labeled logo entries grouped by the existing résumé categories, with no proficiency scores. The small, locally bundled SVG logos in `public/tech-icons` come from [Devicon](https://github.com/devicons/devicon) (MIT) and [Simple Icons](https://github.com/simple-icons/simple-icons) (CC0); their license files are included. Brand marks identify the tools and do not imply endorsement. Generic concepts such as SQL, REST APIs, NLP, and LLM integration use original interface icons.
+
+About includes a live GitHub contribution calendar for `gavin100305`. `src/app/api/github-contributions/route.ts` fetches GitHub's public calendar on the server and caches upstream requests for six hours; the browser receives only dates, counts and levels. No token or extra service is required. The calendar supports the last twelve months and three recent calendar years, pointer/touch selection, arrow-key navigation, Home/End, daily count feedback, and a link back to GitHub. Colors follow the station palette. Counts follow [GitHub's contribution definition](https://docs.github.com/en/account-and-profile/concepts/contributions-on-your-profile), rather than representing commits alone.
+
+The adapter in `src/lib/github-calendar.ts` parses GitHub's public calendar HTML. If GitHub changes that format or is unavailable, the component shows a retry button and profile link instead of fabricated activity. Do not embed upstream HTML, private repository details, or credentials in the client. A future authenticated GraphQL adapter can replace this parser without changing the calendar UI.
+
+No new packages are required. Lint, typecheck, and production build use the existing npm scripts above.
 
 ## Three.js depth and Station view
 

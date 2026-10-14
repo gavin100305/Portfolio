@@ -3,19 +3,22 @@
 import { useState, type KeyboardEvent, type MouseEvent, type ReactNode, type RefObject } from "react";
 import { sections, type SectionId } from "@/data/sections";
 import { achievements, experience, profile, projects, skillGroups, type Project } from "@/data/portfolio-content";
-import { OrbitIllustration, ProjectIllustration } from "@/components/portfolio-illustrations";
+import { ProjectIllustration } from "@/components/portfolio-illustrations";
 import { PortfolioIcon } from "@/components/portfolio-icon";
+import { SectionHeroArt } from "@/components/section-hero-art";
+import { TechnologyList } from "@/components/technology-list";
+import { GitHubCalendar } from "@/components/github-calendar";
 import { Astronaut } from "@/components/ship-artwork";
 
 export type InfoSectionId = Exclude<SectionId, "football">;
 
-const pageCopy: Record<InfoSectionId, { title: string; intro: string; note: string }> = {
-  projects: { title: "Projects in orbit.", intro: "A collection of things I’ve built and contributed to. From intelligent platforms to a football career of your own.", note: "IDEAS → WORKING EXPERIENCES" },
-  achievements: { title: "Milestones, earned.", intro: "A few memorable results from building, learning, and solving problems at hackathons.", note: "THE ACHIEVEMENT ARCHIVE" },
-  stack: { title: "The engineering kit.", intro: "The languages, frameworks, and tools I use to connect interfaces, services, and intelligent features.", note: "INSIDE THE ENGINEERING BAY" },
-  experience: { title: "Where I’ve contributed.", intro: "Hands-on experience building marketplace workflows, payment systems, and developer tools.", note: "FROM THE MISSION LOG" },
-  about: { title: "The person on board.", intro: "Hi, I’m Gavin. A developer, a Computer Engineering student, and a football enthusiast.", note: "A NOTE FROM THE COMMAND DECK" },
-  contact: { title: "Let’s make contact.", intro: "Have a project in mind, a question, or something interesting to share? Here’s where to find me.", note: "COMMUNICATIONS CHANNEL OPEN" },
+const pageCopy: Record<InfoSectionId, { title: string; intro: string }> = {
+  projects: { title: "Projects", intro: "A collection of things I’ve built and contributed to. From intelligent platforms to a football career of your own." },
+  achievements: { title: "Achievements", intro: "A few memorable results from building, learning, and solving problems at hackathons." },
+  stack: { title: "Tech Stack", intro: "The languages, frameworks, and tools I use to connect interfaces, services, and intelligent features." },
+  experience: { title: "Experience", intro: "Hands-on experience building marketplace workflows, payment systems, and developer tools." },
+  about: { title: "About", intro: "Hi, I’m Gavin. A developer, a Computer Engineering student, and a football enthusiast." },
+  contact: { title: "Contact", intro: "Have a project in mind, a question, or something interesting to share? Here’s where to find me." },
 };
 
 function OutboundLink({ href, children, className = "" }: { href: string; children: ReactNode; className?: string }) {
@@ -36,11 +39,10 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
       <div className="info-card-eyebrow">{project.category}</div>
       <h2>{project.name}</h2>
       <p>{project.summary}</p>
-      <details className="info-project-disclosure"><summary>Project details<PortfolioIcon name="right" /></summary><ul className="info-project-details">{project.highlights.map(highlight => <li key={highlight}>{highlight}</li>)}</ul></details>
-      <Tags items={project.technologies} />
       <div className="info-project-links">
         {project.deployment && <OutboundLink href={project.deployment} className="info-link-primary">Open project</OutboundLink>}
         {project.repository && <OutboundLink href={project.repository} className="info-link-source"><PortfolioIcon name="github" />Source code</OutboundLink>}
+        <details className="info-project-disclosure"><summary>Details<PortfolioIcon name="right" /></summary><div className="info-project-expanded"><ul className="info-project-details">{project.highlights.map(highlight => <li key={highlight}>{highlight}</li>)}</ul><Tags items={project.technologies} /></div></details>
       </div>
     </div>
   </article>;
@@ -80,9 +82,8 @@ function AchievementsPage() {
 
 function SkillsPage() {
   return <>
-    <div className="info-skills-grid">{skillGroups.map((group, index) => <article className="info-skill-card" key={group.name}>
-      <div className="info-skill-top"><span className="info-skill-icon" aria-hidden="true"><PortfolioIcon name={group.icon} /></span><span className="info-overline">SYSTEM / 0{index + 1}</span></div>
-      <h2>{group.name}</h2><p>{group.description}</p><Tags items={group.items} />
+    <div className="info-skills-grid">{skillGroups.map(group => <article className="info-skill-card" key={group.name}>
+      <div className="info-skill-heading"><span className="info-skill-icon" aria-hidden="true"><PortfolioIcon name={group.icon} /></span><div><h2>{group.name}</h2><p>{group.description}</p></div></div><TechnologyList items={group.items} />
     </article>)}</div>
     <div className="info-closing-note"><PortfolioIcon name="stack" /><p>Different tools, one goal: useful, well-connected applications.</p></div>
   </>;
@@ -105,6 +106,7 @@ function AboutPage({ onOpen }: { onOpen: (id: SectionId, event: MouseEvent<HTMLE
       <aside className="info-crew-card"><div className="info-crew-portrait" aria-hidden="true"><span className="info-portrait-orbit" /><Astronaut palette="azure" /><PortfolioIcon name="star" className="info-portrait-star" /></div><span className="info-overline">ON BOARD THE SPACE STATION</span><h2>{profile.name}</h2><p>{profile.role}</p><div className="info-crew-interests"><span>Full-stack</span><span>AI & ML</span><span>Football</span></div></aside>
     </div>
     <section className="info-education" aria-labelledby="education-title"><div><span className="info-overline">LEARNING LOG / 2023 → PRESENT</span><h2 id="education-title">{profile.education.degree}</h2><p>{profile.education.college}<br />{profile.education.location} · {profile.education.period}</p></div><div className="info-cgpa"><span>CGPA</span><strong>{profile.education.cgpa}<small>/ 10</small></strong><p>{profile.education.cgpaNote}</p></div></section>
+    <GitHubCalendar />
     <a href="#football" className="info-football-invite" onClick={event => onOpen("football", event)}><PortfolioIcon name="football" /><div><span className="info-overline">OFF DUTY</span><h2>Fancy a penalty shootout?</h2><p>Take a detour to the Orbital Training Deck.</p></div><PortfolioIcon name="right" className="info-invite-arrow" /></a>
   </>;
 }
@@ -135,7 +137,7 @@ export function PortfolioPage({ id, pageRef, titleRef, onKeyDown, onClose, onOpe
     <div className="info-page-hardware" aria-hidden="true"><span className="info-page-bolt" data-corner="top-left" /><span className="info-page-bolt" data-corner="top-right" /><span className="info-page-bolt" data-corner="bottom-left" /><span className="info-page-bolt" data-corner="bottom-right" /></div>
     <div className="info-page-tools"><button type="button" className="info-return" onClick={onClose}><PortfolioIcon name="left" /> Return to station <kbd>Esc</kbd></button></div>
     <div className="info-page-body">
-      <div className="info-page-hero"><div><div className="info-hero-kicker"><span><PortfolioIcon name={id} /></span><span>{section.roomName} / {section.label}</span></div><h1 id="info-page-title" ref={titleRef} tabIndex={-1}>{copy.title}</h1><p>{copy.intro}</p><span className="info-hero-note"><PortfolioIcon name="star" />{copy.note}</span></div><div className="info-hero-art"><OrbitIllustration variant={id === "contact" ? "signal" : id === "achievements" ? "award" : "planet"} /></div></div>
+      <div className="info-page-hero"><div><div className="info-hero-kicker"><PortfolioIcon name={id} /><span>{section.roomName}</span></div><h1 id="info-page-title" ref={titleRef} tabIndex={-1}>{copy.title}</h1><p>{copy.intro}</p></div><SectionHeroArt section={id} /></div>
       <div className="info-section-content">
         {id === "projects" && <ProjectGallery />}{id === "achievements" && <AchievementsPage />}{id === "stack" && <SkillsPage />}{id === "experience" && <ExperiencePage />}{id === "about" && <AboutPage onOpen={onOpen} />}{id === "contact" && <ContactPage />}
       </div>
