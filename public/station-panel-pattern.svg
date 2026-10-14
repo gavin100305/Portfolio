@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320" fill="none">
 <!-- Original shallow deck seams, tiny rivets, and instrument accents. -->
-<path d="M0 .5H320M.5 0V320" stroke="#627e91" stroke-opacity=".14"/>
-<path d="M4 319H316M319 4V316" stroke="#fffdf5" stroke-opacity=".8"/>
+<path d="M0 .5H320M.5 0V320" stroke="#627e91" stroke-opacity=".19"/>
+<path d="M4 319H316M319 4V316" stroke="#ffffff" stroke-opacity=".95"/>
 <path d="M17 25v-8h24m262 278v8h-24" stroke="#708b9b" stroke-opacity=".22"/>
 <g fill="#708b9b" fill-opacity=".22"><rect x="15" y="15" width="3" height="3"/><rect x="302" y="302" width="3" height="3"/></g>
 <path d="M49 17h23" stroke="#708b9b" stroke-opacity=".17" stroke-width="2"/>
 <path d="M248 303h23" stroke="#708b9b" stroke-opacity=".17" stroke-width="2"/>
-<path d="M158 160h4m-2-2v4" stroke="#708b9b" stroke-opacity=".16"/>
+<rect x="148" y="150" width="24" height="20" rx="3" stroke="#708b9b" stroke-opacity=".07"/>
+<path d="M155 160h10m-5-5v10" stroke="#708b9b" stroke-opacity=".13"/>
 </svg>

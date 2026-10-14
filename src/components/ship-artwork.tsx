@@ -2,7 +2,7 @@ import type { RefObject } from "react";
 import type { CSSProperties } from "react";
 import { DeckPattern } from "@/components/deck-pattern";
 import { RoomBulkheads } from "@/components/room-artwork";
-import { airlocks, corridorPath, CORRIDOR_WIDTH, MAP_SCALE, rooms, WORLD } from "@/data/station-world";
+import { airlocks, corridorPath, CORRIDOR_WIDTH, MAP_SCALE, rooms, ROOM_FLOOR_OUTLINE, WORLD } from "@/data/station-world";
 import { suitColors, type Direction, type SuitPalette } from "@/data/astronauts";
 
 export function SpaceBackdrop({ backdropRef }: { backdropRef: RefObject<HTMLDivElement | null> }) {
@@ -56,18 +56,23 @@ export function StationConnections() {
     <svg className="station-connections" width={WORLD.width} height={WORLD.height} viewBox={`0 0 ${WORLD.width / MAP_SCALE} ${WORLD.height / MAP_SCALE}`} aria-hidden="true" focusable="false" shapeRendering="crispEdges">
       <defs>
         <DeckPattern id="corridor-deck" />
+        {/* Keep corridor rails outside the real room floor and doorway union.
+            Room bounding boxes also contain empty space at stepped corners. */}
+        <mask id="corridor-exterior-only" maskUnits="userSpaceOnUse" x="0" y="0" width={WORLD.width / MAP_SCALE} height={WORLD.height / MAP_SCALE}>
+          <rect width={WORLD.width / MAP_SCALE} height={WORLD.height / MAP_SCALE} fill="white" />
+          {Object.entries(rooms).map(([id, room]) => <polygon key={id} points={ROOM_FLOOR_OUTLINE.map(point => `${room.x / MAP_SCALE + point.x * room.width / (240 * MAP_SCALE)},${room.y / MAP_SCALE + point.y * room.width / (240 * MAP_SCALE)}`).join(" ")} fill="black" />)}
+          {airlocks.map((opening, index) => <rect key={index} {...opening} fill="black" />)}
+        </mask>
         <pattern id="solar-grid" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#182e4c" /><path d="M0 14V0h14" fill="none" stroke="#405b7a" strokeWidth="2" /></pattern>
       </defs>
       <path d="M24 480h48M1560 496h48" stroke="#405775" strokeWidth="12" />
       <rect x="0" y="392" width="48" height="168" fill="url(#solar-grid)" stroke="#8ba2ba" strokeWidth="3" />
       <rect x="1584" y="408" width="48" height="168" fill="url(#solar-grid)" stroke="#8ba2ba" strokeWidth="3" />
       <g strokeLinecap="butt" strokeLinejoin="round">
-        <path d={corridorPath} transform="translate(2 8)" fill="none" stroke="#050b13" strokeWidth="48" />
-        <path d={corridorPath} transform="translate(0 3)" fill="none" stroke="#1c2d42" strokeWidth="44" />
-        <path d={corridorPath} transform="translate(2 6)" fill="none" stroke="#050b13" strokeWidth="40" />
-        <path d={corridorPath} transform="translate(0 2)" fill="none" stroke="#111722" strokeWidth="38" />
+        <g mask="url(#corridor-exterior-only)">
         {[{ color: "#8ba2ba", width: 36 }, { color: "#252b38", width: 32 }, { color: "#405775", width: 26 }].map(({ color, width }) => <path key={width} d={corridorPath} fill="none" stroke={color} strokeWidth={width} />)}
         <path d={corridorPath} fill="none" stroke="#65c8ff" strokeWidth={CORRIDOR_WIDTH + 6} opacity=".035" />
+        </g>
         <path d={corridorPath} fill="none" stroke="url(#corridor-deck)" strokeWidth={CORRIDOR_WIDTH} />
         <path d={corridorPath} fill="none" stroke="#fff8e8" strokeWidth="1" strokeDasharray="3 7" opacity=".65" />
       </g>

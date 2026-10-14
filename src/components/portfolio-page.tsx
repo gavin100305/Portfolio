@@ -8,6 +8,7 @@ import { PortfolioIcon } from "@/components/portfolio-icon";
 import { SectionHeroArt } from "@/components/section-hero-art";
 import { TechnologyList } from "@/components/technology-list";
 import { GitHubCalendar } from "@/components/github-calendar";
+import { StationSelect } from "@/components/station-select";
 import { Astronaut } from "@/components/ship-artwork";
 
 export type InfoSectionId = Exclude<SectionId, "football">;
@@ -57,7 +58,7 @@ function ProjectGallery() {
     && `${project.name} ${project.category} ${project.summary} ${project.technologies.join(" ")}`.toLowerCase().includes(query.trim().toLowerCase()));
   return <>
     <div className="info-gallery-toolbar">
-      <label className="info-collection"><span>Collection</span><select value={filter} onChange={event => setFilter(event.target.value)}>{filters.map(item => <option key={item} value={item}>{item}{item === "All projects" ? ` (${projects.length})` : ""}</option>)}</select></label>
+      <div className="info-collection"><span>Collection</span><StationSelect label="Project collection" value={filter} onChange={setFilter} options={filters.map(item => ({ value: item, label: `${item}${item === "All projects" ? ` (${projects.length})` : ""}` }))} /></div>
       <label className="info-search"><PortfolioIcon name="search" /><span className="visually-hidden">Search projects by name or technology</span><input type="search" value={query} placeholder="Find a project or technology" onChange={event => setQuery(event.target.value)} /></label>
     </div>
     <p className="info-result-count" role="status">{visible.length} {visible.length === 1 ? "project" : "projects"}{query.trim() ? ` matching “${query.trim()}”` : " in this collection"}</p>
@@ -103,9 +104,13 @@ function AboutPage({ onOpen }: { onOpen: (id: SectionId, event: MouseEvent<HTMLE
   return <>
     <div className="info-about-grid">
       <article className="info-biography"><span className="info-overline">GAVIN SOARES / CREW PROFILE</span><h2>Curious by nature.<br /><em>A builder at heart.</em></h2><p>{profile.summary}</p><p>I’m driven by continuous learning and the chance to turn an idea into something useful.</p></article>
-      <aside className="info-crew-card"><div className="info-crew-portrait" aria-hidden="true"><span className="info-portrait-orbit" /><Astronaut palette="azure" /><PortfolioIcon name="star" className="info-portrait-star" /></div><span className="info-overline">ON BOARD THE SPACE STATION</span><h2>{profile.name}</h2><p>{profile.role}</p><div className="info-crew-interests"><span>Full-stack</span><span>AI & ML</span><span>Football</span></div></aside>
+      <aside data-profile-card aria-label="Gavin Soares profile" className="relative isolate flex flex-col items-center self-center gap-6 overflow-hidden rounded-xl border-2 border-[#8798a7] bg-[#fffaf0] px-6 py-8 text-center shadow-[0_4px_0_#a9b1b4,0_10px_24px_#263c531a,inset_0_1px_0_white] transition-shadow duration-300 hover:shadow-[0_4px_0_#8798a7,0_10px_26px_#263c5326,0_0_18px_#65c8ff25] motion-reduce:transition-none max-[700px]:px-4">
+        <div aria-hidden="true" className="grid h-[164px] w-[148px] shrink-0 place-items-center rounded-xl border-2 border-[#8ba2ba] bg-[#253858] shadow-[inset_0_0_0_6px_#405775,0_4px_0_#111722] [&_.astronaut-svg]:h-[138px] [&_.astronaut-svg]:w-[110px]"><Astronaut palette="azure" /></div>
+        <div className="flex w-full flex-col gap-2.5"><h2 className="text-[30px] leading-[1.15] tracking-[-0.02em] text-[#263c53] [font-family:var(--font-pixel)]">{profile.name}</h2><p className="text-xs leading-relaxed text-[#59697a]">{profile.role}</p></div>
+        <ul aria-label="Interests" className="flex flex-wrap justify-center gap-2 p-0 list-none">{["Full-stack", "AI & ML", "Football"].map(interest => <li key={interest} className="rounded-md border border-[#c9c2b2] bg-[#f3eee2] px-3 py-2 text-[10px] font-bold text-[#405775] shadow-[0_2px_0_#d6cfbf,inset_0_1px_0_white]">{interest}</li>)}</ul>
+      </aside>
     </div>
-    <section className="info-education" aria-labelledby="education-title"><div><span className="info-overline">LEARNING LOG / 2023 → PRESENT</span><h2 id="education-title">{profile.education.degree}</h2><p>{profile.education.college}<br />{profile.education.location} · {profile.education.period}</p></div><div className="info-cgpa"><span>CGPA</span><strong>{profile.education.cgpa}<small>/ 10</small></strong><p>{profile.education.cgpaNote}</p></div></section>
+    <section className="info-education" aria-labelledby="education-title"><div><span className="info-overline">LEARNING LOG / 2023 → PRESENT</span><h2 id="education-title">{profile.education.degree}</h2><p>{profile.education.college}<br />{profile.education.location} · {profile.education.period}</p></div></section>
     <GitHubCalendar />
     <a href="#football" className="info-football-invite" onClick={event => onOpen("football", event)}><PortfolioIcon name="football" /><div><span className="info-overline">OFF DUTY</span><h2>Fancy a penalty shootout?</h2><p>Take a detour to the Orbital Training Deck.</p></div><PortfolioIcon name="right" className="info-invite-arrow" /></a>
   </>;
@@ -133,7 +138,7 @@ export function PortfolioPage({ id, pageRef, titleRef, onKeyDown, onClose, onOpe
 }) {
   const section = sections.find(section => section.id === id)!;
   const copy = pageCopy[id];
-  return <section className="info-page" data-section={id} ref={pageRef} role="dialog" aria-modal="true" aria-labelledby="info-page-title" tabIndex={-1} onKeyDown={onKeyDown}>
+  return <section className="info-page bg-[#faf7ef] [background-size:280px_280px]" data-section={id} ref={pageRef} role="dialog" aria-modal="true" aria-labelledby="info-page-title" tabIndex={-1} onKeyDown={onKeyDown}>
     <div className="info-page-hardware" aria-hidden="true"><span className="info-page-bolt" data-corner="top-left" /><span className="info-page-bolt" data-corner="top-right" /><span className="info-page-bolt" data-corner="bottom-left" /><span className="info-page-bolt" data-corner="bottom-right" /></div>
     <div className="info-page-tools"><button type="button" className="info-return" onClick={onClose}><PortfolioIcon name="left" /> Return to station <kbd>Esc</kbd></button></div>
     <div className="info-page-body">
