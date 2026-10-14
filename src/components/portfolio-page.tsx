@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type KeyboardEvent, type MouseEvent, type ReactNode, type RefObject } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode, type RefObject } from "react";
 import { sections, type SectionId } from "@/data/sections";
 import { achievements, experience, profile, projects, skillGroups, type Project } from "@/data/portfolio-content";
 import { ProjectIllustration } from "@/components/portfolio-illustrations";
@@ -9,6 +9,7 @@ import { SectionHeroArt } from "@/components/section-hero-art";
 import { TechnologyList } from "@/components/technology-list";
 import { GitHubCalendar } from "@/components/github-calendar";
 import { StationSelect } from "@/components/station-select";
+import { PageHatch, usePageEntrance } from "@/components/page-entrance";
 import { Astronaut } from "@/components/ship-artwork";
 
 export type InfoSectionId = Exclude<SectionId, "football">;
@@ -138,11 +139,22 @@ export function PortfolioPage({ id, pageRef, titleRef, onKeyDown, onClose, onOpe
 }) {
   const section = sections.find(section => section.id === id)!;
   const copy = pageCopy[id];
-  return <section className="info-page bg-[#faf7ef] [background-size:280px_280px]" data-section={id} ref={pageRef} role="dialog" aria-modal="true" aria-labelledby="info-page-title" tabIndex={-1} onKeyDown={onKeyDown}>
+  const [closing, setClosing] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  usePageEntrance(pageRef);
+  useEffect(() => () => { if (closeTimer.current) clearTimeout(closeTimer.current); }, []);
+  const closePage = () => {
+    if (closeTimer.current) return;
+    setClosing(true);
+    const duration = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 500;
+    closeTimer.current = setTimeout(onClose, duration);
+  };
+  return <section className="info-page bg-[#faf7ef] [background-size:280px_280px]" data-section={id} data-closing={closing} ref={pageRef} role="dialog" aria-modal="true" aria-labelledby="info-page-title" tabIndex={-1} onKeyDown={event => { if (event.key === "Escape" && !event.defaultPrevented) { event.preventDefault(); closePage(); } else onKeyDown(event); }}>
+    <PageHatch closing={closing} />
     <div className="info-page-hardware" aria-hidden="true"><span className="info-page-bolt" data-corner="top-left" /><span className="info-page-bolt" data-corner="top-right" /><span className="info-page-bolt" data-corner="bottom-left" /><span className="info-page-bolt" data-corner="bottom-right" /></div>
-    <div className="info-page-tools"><button type="button" className="info-return" onClick={onClose}><PortfolioIcon name="left" /> Return to station <kbd>Esc</kbd></button></div>
+    <div className="info-page-tools"><button type="button" className="info-return" onClick={closePage}><PortfolioIcon name="left" /> Return to station <kbd>Esc</kbd></button></div>
     <div className="info-page-body">
-      <div className="info-page-hero"><div><div className="info-hero-kicker"><PortfolioIcon name={id} /><span>{section.roomName}</span></div><h1 id="info-page-title" ref={titleRef} tabIndex={-1}>{copy.title}</h1><p>{copy.intro}</p></div><SectionHeroArt section={id} /></div>
+      <div className="info-page-hero"><div className="motion-safe:animate-[station-header-in_600ms_ease-out_650ms_both]"><div className="info-hero-kicker"><PortfolioIcon name={id} /><span>{section.roomName}</span></div><h1 id="info-page-title" ref={titleRef} tabIndex={-1}>{copy.title}</h1><p className="motion-safe:animate-[station-header-in_550ms_ease-out_850ms_both]">{copy.intro}</p></div><div className="motion-safe:animate-[station-header-in_600ms_ease-out_650ms_both]"><SectionHeroArt section={id} /></div></div>
       <div className="info-section-content">
         {id === "projects" && <ProjectGallery />}{id === "achievements" && <AchievementsPage />}{id === "stack" && <SkillsPage />}{id === "experience" && <ExperiencePage />}{id === "about" && <AboutPage onOpen={onOpen} />}{id === "contact" && <ContactPage />}
       </div>
