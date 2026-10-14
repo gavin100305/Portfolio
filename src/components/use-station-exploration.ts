@@ -10,6 +10,7 @@ const vectors: Record<Direction, Point> = { up: { x: 0, y: -1 }, down: { x: 0, y
 
 export function useStationExploration(activeId: SectionId | null, onActivate: (id: SectionId, opener: HTMLElement | null) => void, travelling = false, onCockpit?: () => void) {
   const backdropRef = useRef<HTMLDivElement>(null);
+  const depthFrameRef = useRef<((time: number) => void) | null>(null);
   const doorProgress = useRef(stationDoors.map(() => 0));
   const closedDoors = useRef<Rect[]>(stationDoors);
   const velocity = useRef<Point>({ x: 0, y: 0 });
@@ -155,6 +156,7 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
       character.dataset.x = position.current.x.toFixed(2);
       character.dataset.y = position.current.y.toFixed(2);
       character.dataset.facing = facingRef.current;
+      depthFrameRef.current?.(time);
       frame = requestAnimationFrame(tick);
     };
 
@@ -206,5 +208,5 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
     position.current = { ...WORLD.spawn };
     previousRoom.current = "about"; setLocation("about"); viewportRef.current?.focus();
   }, []);
-  return { backdropRef, viewportRef, worldRef, characterRef, location, atCockpit, atFootball, focusCockpit, press, release, step, focusRoom, releaseFocus, getMovementSnapshot, reset };
+  return { backdropRef, depthFrameRef, viewportRef, worldRef, characterRef, location, atCockpit, atFootball, focusCockpit, press, release, step, focusRoom, releaseFocus, getMovementSnapshot, reset };
 }

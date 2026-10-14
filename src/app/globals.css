@@ -76,6 +76,14 @@ button { color: inherit; }
 .exploration-map { background: #000; }
 .map-viewport { overflow: clip; outline-offset: -4px; touch-action: none; }
 .map-viewport:focus-visible { outline: 2px solid var(--teal); }
+.interior-experience { position: absolute; inset: 0; }
+.exploration-map[data-exterior="true"] .interior-experience { visibility: hidden; }
+.interior-depth-canvas { position: absolute; inset: 0; pointer-events: none; }
+.interior-depth-canvas canvas { display: block; width: 100%; height: 100%; }
+.exploration-map[data-depth-ready="true"] .world-room:not([href="#football"]) .room-artwork { opacity: 0; }
+.room-focus-outline { display: none; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; color: #65c8ff; transform: translateY(-8.5px); }
+.exploration-map[data-depth-ready="true"] .world-room:not([href="#football"]):is(:hover, :focus-visible, .is-active) .room-focus-outline { display: block; }
+.exploration-map[data-depth-ready="true"] .world-room:hover:not(:focus-visible) .room-focus-outline { color: #c2d2df; }
 .station-world { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
 .space-backdrop { overflow: hidden; pointer-events: none; }
 .space-backdrop::after { position: absolute; inset: 0; background: radial-gradient(ellipse at 82% 18%, rgb(178 54 47 / 18%), transparent 42%), radial-gradient(ellipse at 14% 82%, rgb(110 28 39 / 12%), transparent 42%); content: ""; opacity: var(--meteor-haze); mix-blend-mode: screen; transition: opacity 450ms ease; }
@@ -497,3 +505,66 @@ button, input, textarea, select { font-family: inherit; }
   .dialog-hero h1 { font-size: 32px; }
   .module-status { display: none; }
 }
+
+/* Optional observation view. The playable interior and its styles stay intact. */
+.ship-view-launch { position: absolute; right: 20px; bottom: 16px; z-index: 5; display: flex; gap: 8px; align-items: center; min-height: 44px; padding: 8px 14px; border: 1px solid #61738b; border-radius: 5px; background: rgb(17 24 36 / 94%); color: #f2f5fa; font-size: 12px; cursor: pointer; }
+.ship-view-launch svg { width: 20px; height: 20px; color: #a6c9dc; }
+.ship-view-launch:hover { border-color: #65c8ff; }
+.ship-view-launch:disabled { opacity: .5; cursor: default; }
+.ship-view { position: absolute; inset: 0; z-index: 12; display: flex; flex-direction: column; padding: clamp(16px, 3vw, 44px); color: #f2f5fa; animation: observation-enter 220ms ease-out both; }
+.ship-view-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-shrink: 0; }
+.ship-view-eyebrow { font: 10px var(--font-manrope); color: #a7b0c0; letter-spacing: .18em; }
+.ship-view-heading h2 { margin: 6px 0 0; font: 36px/1 var(--font-pixel); letter-spacing: .02em; }
+.ship-view-return { display: flex; align-items: center; gap: 18px; min-height: 44px; padding: 10px 16px; border: 1px solid #7e94a8; border-radius: 5px; background: #dce2dd; color: #172033; cursor: pointer; font-size: 12px; font-weight: 700; box-shadow: inset 0 2px #f2f5fa, 0 3px #283746; }
+.ship-view-return span { font-size: 20px; }
+.ship-view-return:hover { background: #f2f5fa; }
+.ship-view-observation { position: relative; flex: 1; min-height: 160px; margin: 12px 0 24px; }
+.ship-view-canvas { position: absolute; inset: 0; }
+.ship-view-canvas canvas { display: block; width: 100%; height: 100%; }
+.ship-view-canvas { touch-action: none; cursor: grab; }
+.ship-view-canvas:active { cursor: grabbing; }
+.ship-view-caption { position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); max-width: 100%; width: max-content; text-align: center; font: 9px var(--font-manrope); letter-spacing: .14em; color: #a7b0c0; pointer-events: none; }
+.ship-view-footer { flex-shrink: 0; width: min(100%, 1040px); margin: 0 auto; }
+.ship-view-camera { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
+.ship-view-camera p { margin: 0 12px 0 0; color: #a7b0c0; font-size: 11px; }
+.ship-view-camera button { min-width: 44px; min-height: 44px; padding: 8px 12px; border: 1px solid #61738b; border-radius: 4px; background: #111824; color: #f2f5fa; cursor: pointer; font-size: 13px; }
+.ship-view-camera button:hover { border-color: #65c8ff; }
+.ship-view-camera button:disabled { opacity: .4; cursor: default; }
+.ship-view-settings { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid rgb(139 162 186 / 25%); }
+.ship-view-peek { min-height: 44px; padding: 10px 16px; border: 1px solid #7e94a8; border-radius: 5px; background: #252b38; color: #f2f5fa; cursor: pointer; font-size: 12px; }
+.ship-view-peek[aria-pressed="true"] { border-color: #65c8ff; color: #a4dfff; box-shadow: inset 0 -2px #65c8ff; }
+.ship-view-peek:disabled { opacity: .45; cursor: default; }
+.ship-view-mood { display: flex; align-items: center; gap: 10px; color: #a7b0c0; font-size: 11px; }
+.ship-view-mood select { min-height: 44px; max-width: 240px; padding: 8px 28px 8px 12px; border: 1px solid #61738b; border-radius: 5px; background: #111824; color: #f2f5fa; font-size: 12px; }
+.ship-view-settings p { margin: 0 0 0 auto; color: #a7b0c0; font-size: 11px; }
+.ship-view-directory { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; padding-top: 16px; }
+.ship-view-directory a { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 44px; padding: 8px 10px; color: #dce4ec; background: rgb(17 24 36 / 65%); text-decoration: none; font-size: 11px; border: 1px solid #344353; border-radius: 4px; }
+.ship-view-directory a span { color: #86bfff; }
+.ship-view-directory a:hover { border-color: #8ba2ba; background: #252b38; }
+.ship-view-fallback { position: absolute; inset: 0; display: grid; align-content: center; justify-items: center; }
+.ship-view-fallback-art { width: 100%; max-height: 90%; }
+.ship-view-fallback p { padding: 8px; color: #a7b0c0; font-size: 12px; text-align: center; }
+@keyframes observation-enter { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 700px) {
+  .ship-view-launch { right: 10px; bottom: 10px; }
+  .ship-view-heading h2 { font-size: 28px; }
+  .ship-view-return { padding: 8px 10px; gap: 8px; font-size: 11px; }
+  .ship-view-settings { gap: 10px; padding-bottom: 10px; }
+  .ship-view-mood { flex: 1; gap: 8px; }
+  .ship-view-mood select { min-width: 0; width: 100%; max-width: none; font-size: 11px; }
+  .ship-view-settings p { display: none; }
+  .ship-view-camera { margin-bottom: 10px; }
+  .ship-view-camera p { width: 100%; margin: 0; text-align: center; font-size: 10px; }
+  .ship-view-camera button { padding: 8px 10px; }
+  .ship-view-directory { grid-template-columns: repeat(4, minmax(0, 1fr)); padding-top: 10px; gap: 6px; }
+  .ship-view-directory a { padding: 8px 7px; font-size: 10px; }
+  .ship-view-caption { font-size: 8px; letter-spacing: .06em; }
+}
+@media (max-height: 540px) and (min-width: 701px) {
+  .ship-view { padding: 12px 20px; }
+  .ship-view-heading h2 { font-size: 24px; }
+  .ship-view-eyebrow { display: none; }
+  .ship-view-observation { min-height: 80px; margin-bottom: 20px; }
+  .ship-view-settings, .ship-view-directory { padding-top: 8px; padding-bottom: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .ship-view { animation: none; } }

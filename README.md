@@ -50,7 +50,7 @@ A mood change briefly pulls back to show the ship and firing engines, travels to
 
 `src/data/station-world.ts` defines world dimensions, spawn, the original room placements, airlocks, walkable areas, furniture collisions, and camera clamping. Keep these shared coordinates aligned with the artwork when editing the ship. `src/components/ship-artwork.tsx` renders the original corridor network, solar arrays, foreground wall lips, and space backdrop. `room-artwork.tsx` draws the room hulls, connected floor outlines, and room-specific equipment. All text and controls remain HTML; no map labels or text are flattened into artwork.
 
-`use-station-exploration.ts` handles input, movement, and camera updates with a single requestAnimationFrame loop. It clears input when the window loses focus or the page is hidden. The world uses the same geometry on desktop and phones and does not require a 3D engine, game framework, or additional app dependencies.
+`use-station-exploration.ts` handles input, movement, and camera updates with a single requestAnimationFrame loop. It clears input when the window loses focus or the page is hidden. The world uses the same movement geometry on desktop and phones. A small Three.js layer adds shallow visual depth while HTML/SVG retains all interactions and the graphics fallback.
 
 ## Live visitor astronauts
 
@@ -77,6 +77,18 @@ After changing world bounds or furniture footprints, redeploy the optional prese
 ## Portfolio panels
 
 Each section uses the same light station-terminal frame, readable Manrope text, Pixelify Sans headings, and an original SVG equipment illustration from its room. The data in `src/data/sections.ts` remains the content source; it currently contains placeholders rather than biography, project, internship, award, or contact details.
+
+## Three.js depth and Ship view
+
+The original interior remains the default. Three.js adds shallow equipment sides, raised wall edges and a static shadow map under the existing original artwork. It uses an orthographic camera whose ground projection matches the HTML floor exactly, so room positions, off-white tiles, corridors, astronaut movement and collision coordinates stay aligned. Room drawings supply the surface textures; no external models or artwork are used. The radar and console signals remain animated. Football retains its live SVG pitch and scoreboard so each shot updates immediately.
+
+The small **Ship view** button opens an optional perspective view of the same seven-room layout. There is no new enclosing hull. Each existing module gains shallow side faces, restrained service panels, recessed windows and room-specific details. Drag with a mouse or one finger to orbit; scroll or pinch to zoom. The visible rotate, zoom and reset buttons also work with keyboard and touch. Left/Right arrows rotate, +/− zoom, Home resets, and Escape returns to the deck. Peek inside exposes the original Command Deck and Project Hangar drawing. All portfolio destinations remain available as real links below the model. Returning preserves the astronaut's position, and multiplayer stays connected while observing.
+
+Both scenes load from separate client chunks, cap pixel ratio at 1.5 on desktop and 1.25 on phones, and release GPU resources on cleanup. The interior renders through the existing exploration loop and skips unchanged frames; Ship view caps rendering at 30 fps (24 on coarse pointers). Hidden tabs and a hidden interior stop drawing. Reduced motion removes orbit easing and idle animation while keeping direct camera controls usable. Graphics initialization failure or context loss restores the existing SVG interior; Ship view supplies a small SVG overview and usable section links.
+
+`interior-depth-model.ts` builds the shallow geometry and original surface textures; `interior-depth-scene.ts` aligns it to the exploration camera. `exterior-model.ts` builds the observation model, `exterior-scene.ts` owns its renderer and camera controls, and `ship-view.tsx` owns the accessible dialog. The backgrounds and ship colors still live in `globals.css`. Changing space mood never rebuilds or recolors either ship.
+
+The implementation follows the Three.js guidance for [color management](https://threejs.org/manual/pages/color-management.html), [responsive rendering](https://threejs.org/manual/pages/responsive.html), [resource cleanup](https://threejs.org/manual/pages/cleanup.html) and [rendering on demand](https://threejs.org/manual/pages/rendering-on-demand.html).
 
 ## Design references
 

@@ -5,11 +5,13 @@ import { MoodControl } from "@/components/mood-control";
 import { useCallback, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { sections, getSection, type SectionId } from "@/data/sections";
 import { contains, footballBall, cockpitConsole, roomSigns, stationDoors, rooms, WORLD } from "@/data/station-world";
-import { RoomArtwork } from "@/components/room-artwork";
+import { RoomArtwork, RoomFocusOutline } from "@/components/room-artwork";
 import { Astronaut, StationConnections, StationForeground, StationEngines, SpaceBackdrop } from "@/components/ship-artwork";
 import { useStationExploration } from "@/components/use-station-exploration";
 import { FootballArenaScene, FootballArenaControls, FootballArenaSpectators, useFootballGame } from "@/components/football-arena";
 import { useShipPresence } from "@/components/use-ship-presence";
+import { ShipView } from "@/components/ship-view";
+import { InteriorDepth } from "@/components/interior-depth";
 
 type StationMapProps = {
   activeId: SectionId | null;
@@ -23,9 +25,19 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
   const footballActive = activeId === "football";
   const game = useFootballGame(footballActive);
   const [cockpitOpen, setCockpitOpen] = useState(false);
+  const [exteriorOpen, setExteriorOpen] = useState(false);
+  const [depthReady, setDepthReady] = useState(false);
+  const exteriorControlRef = useRef<HTMLButtonElement>(null);
+  const closeExterior = useCallback(() => {
+    setExteriorOpen(false);
+    // The launcher becomes focusable after React removes the interior's inert
+    // attribute. Returning focus in the next frame also works in Strict Mode.
+    requestAnimationFrame(() => requestAnimationFrame(() => exteriorControlRef.current?.focus({ preventScroll: true })));
+  }, []);
+  if (activeId && exteriorOpen) setExteriorOpen(false);
   const openCockpit = useCallback(() => setCockpitOpen(true), []);
   const { controlRef, mood, flight, choose, advance } = useSpaceMood();
-  const { backdropRef, viewportRef, worldRef, characterRef, location, atCockpit, atFootball, focusCockpit, press, release, focusRoom, releaseFocus, getMovementSnapshot } = useStationExploration(activeId, onActivate, Boolean(flight) || cockpitOpen, openCockpit);
+  const { backdropRef, depthFrameRef, viewportRef, worldRef, characterRef, location, atCockpit, atFootball, focusCockpit, press, release, focusRoom, releaseFocus, getMovementSnapshot } = useStationExploration(activeId, onActivate, Boolean(flight) || cockpitOpen || exteriorOpen, openCockpit);
   const remoteVisitors = useShipPresence((!activeId || footballActive) && !flight && !cockpitOpen, getMovementSnapshot);
   const current = getSection(location);
   const dragMoved = useRef(false);
@@ -58,10 +70,12 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
     setDrag(null);
   };
   return (
-    <div className="exploration-map" data-mood={mood} data-travelling={Boolean(flight)} data-football={footballActive}>
+    <div className="exploration-map" data-mood={mood} data-travelling={Boolean(flight)} data-football={footballActive} data-exterior={exteriorOpen} data-depth-ready={depthReady}>
       <SpaceBackdrop backdropRef={backdropRef} />
+      <div className="interior-experience" inert={exteriorOpen}>
       <div className="map-viewport" inert={Boolean(flight)} ref={viewportRef} tabIndex={0} role="region" aria-label="Explore the spaceship" aria-describedby="movement-instructions" onPointerDown={onTouchStart} onPointerMove={onTouchMove} onPointerUp={onTouchEnd} onPointerCancel={onTouchEnd}>
         <div className="ship-flight" data-flight={flight ?? undefined} onAnimationEnd={(event) => { if (event.target === event.currentTarget) advance(); }}>
+        <InteriorDepth worldRef={worldRef} frameRef={depthFrameRef} enabled={!exteriorOpen} onReady={setDepthReady} />
         <div className="station-world" ref={worldRef} style={{ width: WORLD.width, height: WORLD.height }}>
           <StationEngines />
           <StationConnections />
@@ -81,6 +95,7 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
                 onFocus={() => focusRoom(section.id)} onBlur={releaseFocus}
                 onKeyDown={(event) => { if (event.key === " ") { event.preventDefault(); event.currentTarget.click(); } }}>
                 <RoomArtwork id={section.id} goals={section.id === "football" ? game.displayGoals : undefined} saves={section.id === "football" ? game.displaySaves : undefined} />
+                <RoomFocusOutline id={section.id} />
                 <span className="visually-hidden">{section.roomName}</span>
               </a>
             );
@@ -108,7 +123,7 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
             <span className="astronaut-ring" aria-hidden="true" /><Astronaut palette={visitor.palette} facing={visitor.facing} remote />
           </div>)}
           <FootballArenaSpectators visitors={remoteVisitors} />
-          <StationForeground />
+          <StationForeground depth={depthReady} />
         </div>
         </div>
       </div>
@@ -117,6 +132,9 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
       <p hidden={footballActive} id="movement-instructions" className="movement-instructions"><span className="desktop-instructions">Move: WASD · Enter: open room</span><span className="touch-instructions">Touch: drag to steer.<br />Tap a room to open.</span></p>
       {atFootball && !footballActive && <button className="nearby-action" type="button" onClick={(event) => onActivate("football", event.currentTarget)}>Play penalties <span aria-hidden="true">E</span></button>}
       {atCockpit && !footballActive && <button className="nearby-action" type="button" disabled={Boolean(flight)} onClick={openCockpit}>Change space mood <span aria-hidden="true">E</span></button>}
+      {!activeId && <button className="ship-view-launch" type="button" ref={exteriorControlRef} disabled={Boolean(flight) || cockpitOpen} aria-haspopup="dialog" onClick={() => setExteriorOpen(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8v3h3v12h-3v3H8v-3H5V6h3zM2 9v6m20-6v6M9 8h6v8H9z" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>Ship view</button>}
+      </div>
+      {exteriorOpen && <ShipView worldRef={worldRef} mood={mood} onMoodChange={next => choose(next, false)} onClose={closeExterior} onSection={id => { setExteriorOpen(false); onActivate(id, exteriorControlRef.current); }} />}
     </div>
   );
 }

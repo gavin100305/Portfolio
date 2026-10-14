@@ -77,13 +77,13 @@ export function StationConnections() {
 
 // A separate foreground plane gives the existing walls an overhanging rim.
 // Airlock holes prevent the rim from covering traversable doorways.
-export function StationForeground() {
+export function StationForeground({ depth = false }: { depth?: boolean }) {
   return <svg className="station-foreground" width={WORLD.width} height={WORLD.height} viewBox={`0 0 ${WORLD.width} ${WORLD.height}`} aria-hidden="true" focusable="false" shapeRendering="crispEdges">
     <defs><mask id="bulkhead-openings" maskUnits="userSpaceOnUse" x="0" y="0" width={WORLD.width} height={WORLD.height}>
       <rect width={WORLD.width} height={WORLD.height} fill="white" />
       {airlocks.map((r, i) => <rect key={i} x={r.x * MAP_SCALE - 2} y={r.y * MAP_SCALE - 2} width={r.width * MAP_SCALE + 4} height={r.height * MAP_SCALE + 4} fill="black" />)}
     </mask></defs>
-    <g mask="url(#bulkhead-openings)">{Object.entries(rooms).map(([id, room]) => <g key={id} transform={`translate(${room.x} ${room.y}) scale(${room.width / 240})`}><RoomBulkheads /></g>)}</g>
+    <g mask="url(#bulkhead-openings)">{Object.entries(rooms).map(([id, room]) => <g key={id} transform={`translate(${room.x} ${room.y - (depth && id !== "football" ? 8.5 : 0)}) scale(${room.width / 240})`}><RoomBulkheads /></g>)}</g>
   </svg>;
 }
 

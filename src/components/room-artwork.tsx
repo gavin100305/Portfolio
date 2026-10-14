@@ -18,6 +18,11 @@ function roundedOutline(points: number[][], radius: number) {
 }
 const hullShape = roundedOutline([[28,0],[212,0],[212,8],[224,8],[224,20],[232,20],[232,32],[240,32],[240,144],[232,144],[232,156],[224,156],[224,168],[212,168],[212,176],[28,176],[28,168],[16,168],[16,156],[8,156],[8,144],[0,144],[0,32],[8,32],[8,20],[16,20],[16,8],[28,8]], 2);
 
+// Real SVG focus/hover feedback stays above the decorative Three.js surface.
+export function RoomFocusOutline({ id }: { id: SectionId }) {
+  return <svg className="room-focus-outline" viewBox="0 0 240 176" aria-hidden="true" focusable="false"><path d={hullShape} fill="none" stroke="currentColor" strokeWidth="3" mask={`url(#hull-openings-${id})`} /></svg>;
+}
+
 // Cut genuine openings in every room's walls using the same geometry that
 // movement and multiplayer use. No entrance floor is painted over a wall.
 function roomOpenings(id: SectionId) {

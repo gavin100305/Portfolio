@@ -57,9 +57,9 @@ export function useSpaceMood() {
       if (document.activeElement === document.body) controlRef.current?.focus({ preventScroll: true });
     }
   }, [flight]);
-  const choose = (next: SpaceMood) => {
+  const choose = (next: SpaceMood, transition = true) => {
     if (flight || next === mood) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { save(next); return; }
+    if (!transition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { save(next); return; }
     setDestination(next); setFlight("departing");
   };
   return { controlRef, mood, flight, destination, choose, advance };
