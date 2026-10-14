@@ -1,6 +1,6 @@
 # Gavin Soares Portfolio
 
-A top-down pixel-art spaceship portfolio. The original six-room illustration, with its stepped hulls, room props, corridors, and solar arrays, is enlarged uniformly, with a new east wing extending the world to 4968 × 2400. The ship is larger than the viewport: an astronaut and following camera reveal its rooms as you explore. The latest exploration direction overrides the PRD's earlier whole-map fit requirement.
+An explorable pixel-art space station portfolio. The original six-room illustration, with its stepped hulls, room props, corridors, and solar arrays, is enlarged uniformly, with a new east wing extending the world to 4968 × 2400. The ship is larger than the viewport: an astronaut and following camera reveal its rooms as you explore. The latest exploration direction overrides the PRD's earlier whole-map fit requirement.
 
 ## Run locally
 
@@ -74,15 +74,28 @@ Take penalties for as long as you like: choose Left, Centre, or Right with A/D o
 
 After changing world bounds or furniture footprints, redeploy the optional presence Worker so online visitors can sync positions in the east wing. Each visitor plays their own solo penalties; gameplay results are not broadcast to other visitors. During play, presence stays connected at the visitor’s entry position so starting a shootout does not send an invalid teleport. Remote visitors in this room appear in four sideline seats with suit accents and anonymous pilot tags; additional visitors are counted below the pitch. Their authoritative positions and the Worker protocol are unchanged.
 
-## Portfolio panels
+## Full-screen portfolio pages
 
-Each section uses the same light station-terminal frame, readable Manrope text, Pixelify Sans headings, and an original SVG equipment illustration from its room. The data in `src/data/sections.ts` remains the content source; it currently contains placeholders rather than biography, project, internship, award, or contact details.
+Opening Projects, Achievements, Tech Stack, Experience, About, or Contact presents a full-screen information page as a single off-white station panel with a blue perimeter frame, four corner screw bolts, original vector illustrations, and local Pixelify Sans / Manrope typography. Dark blue is used for frames, control highlights, and depth edges. Information pages use no gradients, branding header, section tabs, or footer directory. The underlying station stays mounted, so returning preserves the astronaut's position. The football game remains on its physical deck.
 
-## Three.js depth and Ship view
+Each page has a persistent **Return to station** button. Existing URLs (`/#projects`, `/#achievements`, `/#stack`, `/#experience`, `/#about`, `/#contact`) and browser Back/Forward work. Escape or **Return to station** leaves the information view in one action, including when following the optional football detour from About. Focus starts on the page title and returns to the original station launcher; the underlying map is inert. Project search, a compact collection selector, links, and email-copy feedback support keyboard use. Mobile pages scroll independently; reduced motion removes entrance, orbital, and hover movement.
+
+### Updating content
+
+- `src/data/portfolio-content.ts`: biography, education, experience, skills, achievements, and the curated project list. Personal facts come from Gavin's supplied CV; additional projects come from public repositories and the user-provided Draft XI site. Keep project descriptions factual, distinguish team contributions, and check outbound links before adding them.
+- `src/data/sections.ts`: section identifiers, labels, and room names. These also drive station links; keep IDs stable for shared URLs.
+- `src/components/portfolio-page.tsx`: full-screen shell and section layouts. `portfolio-illustrations.tsx` supplies original decorative artwork, not app screenshots.
+- `src/app/portfolio-pages.css`: scoped page palette, responsive layouts, frames, and animation. These styles do not recolor the exploration map.
+
+Ten selected projects include Draft XI, Zenith, Money Council, InfluenceIQ, Neurolytics, TISD, EcoScan, Pashu Pehchan, NourishNet, and Vathavaran Variables. Source links are included where known. Draft XI has a verified live link but no supplied repository link. EcoScan and Vathavaran Variables currently link only to source because their listed deployments returned 404 during review. The contact page uses email, GitHub, and the user-confirmed LinkedIn URL. Phone numbers and the original CV PDF are intentionally not published.
+
+No new packages or external artwork are required. Lint, typecheck, and production build use the existing npm scripts above.
+
+## Three.js depth and Station view
 
 The original interior remains the default. Three.js adds shallow equipment sides, raised wall edges and a static shadow map under the existing original artwork. It uses an orthographic camera whose ground projection matches the HTML floor exactly, so room positions, off-white tiles, corridors, astronaut movement and collision coordinates stay aligned. Room drawings supply the surface textures; no external models or artwork are used. The radar and console signals remain animated. Football retains its live SVG pitch and scoreboard so each shot updates immediately.
 
-The small **Ship view** button opens an optional perspective view of the same seven-room layout. There is no new enclosing hull. Each existing module gains shallow side faces, restrained service panels, recessed windows and room-specific details. Drag with a mouse or one finger to orbit; scroll or pinch to zoom. The visible rotate, zoom and reset buttons also work with keyboard and touch. Left/Right arrows rotate, +/− zoom, Home resets, and Escape returns to the deck. Peek inside exposes the original Command Deck and Project Hangar drawing. All portfolio destinations remain available as real links below the model. Returning preserves the astronaut's position, and multiplayer stays connected while observing.
+The small **Station view** button opens an optional perspective view of the same seven-room layout. There is no new enclosing hull. Each existing module gains shallow side faces, restrained service panels, recessed windows and room-specific details. Drag with a mouse or one finger to orbit; scroll or pinch to zoom. The visible rotate, zoom and reset buttons also work with keyboard and touch. Left/Right arrows rotate, +/− zoom, Home resets, and Escape returns to the deck. Peek inside exposes the original Command Deck and Project Hangar drawing. All portfolio destinations remain available as real links below the model. Returning preserves the astronaut's position, and multiplayer stays connected while observing.
 
 Both scenes load from separate client chunks, cap pixel ratio at 1.5 on desktop and 1.25 on phones, and release GPU resources on cleanup. The interior renders through the existing exploration loop and skips unchanged frames; Ship view caps rendering at 30 fps (24 on coarse pointers). Hidden tabs and a hidden interior stop drawing. Reduced motion removes orbit easing and idle animation while keeping direct camera controls usable. Graphics initialization failure or context loss restores the existing SVG interior; Ship view supplies a small SVG overview and usable section links.
 

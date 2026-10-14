@@ -73,9 +73,9 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
     <div className="exploration-map" data-mood={mood} data-travelling={Boolean(flight)} data-football={footballActive} data-exterior={exteriorOpen} data-depth-ready={depthReady}>
       <SpaceBackdrop backdropRef={backdropRef} />
       <div className="interior-experience" inert={exteriorOpen}>
-      <div className="map-viewport" inert={Boolean(flight)} ref={viewportRef} tabIndex={0} role="region" aria-label="Explore the spaceship" aria-describedby="movement-instructions" onPointerDown={onTouchStart} onPointerMove={onTouchMove} onPointerUp={onTouchEnd} onPointerCancel={onTouchEnd}>
+      <div className="map-viewport" inert={Boolean(flight)} ref={viewportRef} tabIndex={0} role="region" aria-label="Explore the space station" aria-describedby="movement-instructions" onPointerDown={onTouchStart} onPointerMove={onTouchMove} onPointerUp={onTouchEnd} onPointerCancel={onTouchEnd}>
         <div className="ship-flight" data-flight={flight ?? undefined} onAnimationEnd={(event) => { if (event.target === event.currentTarget) advance(); }}>
-        <InteriorDepth worldRef={worldRef} frameRef={depthFrameRef} enabled={!exteriorOpen} onReady={setDepthReady} />
+        <InteriorDepth worldRef={worldRef} frameRef={depthFrameRef} enabled={!exteriorOpen && (!activeId || footballActive)} onReady={setDepthReady} />
         <div className="station-world" ref={worldRef} style={{ width: WORLD.width, height: WORLD.height }}>
           <StationEngines />
           <StationConnections />
@@ -118,7 +118,7 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
           <div className="astronaut" data-kicking={footballActive && Boolean(game.flight)} ref={characterRef} role="img" aria-label={`Your astronaut — ${current?.label ?? "corridor"}`}>
             <span className="astronaut-ring" aria-hidden="true" /><Astronaut />
           </div>
-          {remoteVisitors.filter((visitor) => !contains(rooms.football, visitor)).map((visitor) => <div key={visitor.guestId} className="astronaut" data-remote="true" data-facing={visitor.facing} aria-label="Another visitor exploring the spaceship" role="img"
+          {remoteVisitors.filter((visitor) => !contains(rooms.football, visitor)).map((visitor) => <div key={visitor.guestId} className="astronaut" data-remote="true" data-facing={visitor.facing} aria-label="Another visitor exploring the space station" role="img"
             style={{ left: visitor.x, top: visitor.y }}>
             <span className="astronaut-ring" aria-hidden="true" /><Astronaut palette={visitor.palette} facing={visitor.facing} remote />
           </div>)}
@@ -132,7 +132,7 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
       <p hidden={footballActive} id="movement-instructions" className="movement-instructions"><span className="desktop-instructions">Move: WASD · Enter: open room</span><span className="touch-instructions">Touch: drag to steer.<br />Tap a room to open.</span></p>
       {atFootball && !footballActive && <button className="nearby-action" type="button" onClick={(event) => onActivate("football", event.currentTarget)}>Play penalties <span aria-hidden="true">E</span></button>}
       {atCockpit && !footballActive && <button className="nearby-action" type="button" disabled={Boolean(flight)} onClick={openCockpit}>Change space mood <span aria-hidden="true">E</span></button>}
-      {!activeId && <button className="ship-view-launch" type="button" ref={exteriorControlRef} disabled={Boolean(flight) || cockpitOpen} aria-haspopup="dialog" onClick={() => setExteriorOpen(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8v3h3v12h-3v3H8v-3H5V6h3zM2 9v6m20-6v6M9 8h6v8H9z" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>Ship view</button>}
+      {!activeId && <button className="ship-view-launch" type="button" ref={exteriorControlRef} disabled={Boolean(flight) || cockpitOpen} aria-haspopup="dialog" onClick={() => setExteriorOpen(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8v3h3v12h-3v3H8v-3H5V6h3zM2 9v6m20-6v6M9 8h6v8H9z" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>Station view</button>}
       </div>
       {exteriorOpen && <ShipView worldRef={worldRef} mood={mood} onMoodChange={next => choose(next, false)} onClose={closeExterior} onSection={id => { setExteriorOpen(false); onActivate(id, exteriorControlRef.current); }} />}
     </div>

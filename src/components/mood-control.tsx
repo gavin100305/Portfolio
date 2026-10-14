@@ -28,12 +28,12 @@ export function MoodControl({ open, mood, controlRef, onClose, onChoose }: Props
   return <dialog ref={dialogRef} className="cockpit-mood-dialog" aria-labelledby="cockpit-title" aria-describedby="cockpit-description"
     onCancel={(event) => { event.preventDefault(); onClose(); }}>
     <div className="cockpit-dialog-heading"><h2 id="cockpit-title">Cockpit · Space mood</h2><button type="button" className="cockpit-close" aria-label="Close cockpit controls" onClick={onClose}>×</button></div>
-    <p id="cockpit-description">Choose the ship’s next destination.</p>
+    <p id="cockpit-description">Choose the station’s next atmosphere.</p>
     <div className="cockpit-mood-options" role="group" aria-label="Space moods">
       {moods.map((item) => <button key={item.id} type="button" aria-pressed={mood === item.id} onClick={() => onChoose(item.id)}>
         <span>{item.label}</span><span aria-hidden="true">{mood === item.id ? "✓" : "→"}</span>
       </button>)}
     </div>
-    <button type="button" className="cockpit-return" onClick={onClose}>Return to ship</button>
+    <button type="button" className="cockpit-return" onClick={onClose}>Return to station</button>
   </dialog>;
 }

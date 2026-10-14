@@ -9,7 +9,7 @@ import type { createExteriorScene } from "@/components/exterior-scene";
 import type { DeckSources } from "@/components/exterior-model";
 
 function ShipIllustration() {
-  return <svg className="ship-view-fallback-art" viewBox={`-24 32 ${WORLD.width / MAP_SCALE + 48} 820`} role="img" aria-label="Overview of the existing spaceship, with its seven connected decks">
+  return <svg className="ship-view-fallback-art" viewBox={`-24 32 ${WORLD.width / MAP_SCALE + 48} 820`} role="img" aria-label="Overview of the existing space station, with its seven connected decks">
     <path d={corridorPath} fill="none" stroke="#405775" strokeWidth="36" strokeLinejoin="round" />
     <path d={corridorPath} fill="none" stroke="#d9d4be" strokeWidth="16" strokeLinejoin="round" />
     {Object.entries(rooms).map(([id, r]) => <g key={id} transform={`translate(${r.x / MAP_SCALE} ${r.y / MAP_SCALE}) scale(${r.width / MAP_SCALE / 240})`}>
@@ -81,19 +81,19 @@ export function ShipView({ worldRef, mood, onMoodChange, onClose, onSection }: S
 
   return <section className="ship-view" ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="ship-view-title" onKeyDown={handleKeys}>
     <header className="ship-view-heading">
-      <div><span className="ship-view-eyebrow">EXTERIOR OBSERVATION</span><h2 id="ship-view-title">Ship view</h2></div>
+      <div><span className="ship-view-eyebrow">EXTERIOR OBSERVATION</span><h2 id="ship-view-title">Station view</h2></div>
       <button ref={closeRef} className="ship-view-return" type="button" onClick={onClose}>Return to deck <span aria-hidden="true">↵</span></button>
     </header>
     <div className="ship-view-observation">
-      <div className="ship-view-canvas" ref={hostRef} role="img" tabIndex={status === "ready" ? 0 : -1} aria-describedby="ship-view-help" aria-label={`Interactive perspective view of the existing seven-deck spaceship${peek ? ", with the Command Deck and Project Hangar exposed" : ""}`} hidden={status === "fallback"} />
+      <div className="ship-view-canvas" ref={hostRef} role="img" tabIndex={status === "ready" ? 0 : -1} aria-describedby="ship-view-help" aria-label={`Interactive perspective view of the existing seven-deck space station${peek ? ", with the Command Deck and Project Hangar exposed" : ""}`} hidden={status === "fallback"} />
       {status !== "ready" && <div className="ship-view-fallback"><ShipIllustration /><p role="status">{status === "loading" ? "Preparing observation view…" : "3D view unavailable. You can explore every deck below."}</p></div>}
       <span className="ship-view-caption">{peek ? "COMMAND DECK + PROJECT HANGAR · DECK PEEK" : "SEVEN CONNECTED DECKS · ORIGINAL FLOOR PLAN"}</span>
     </div>
     <footer className="ship-view-footer">
-      <div className="ship-view-camera" role="group" aria-label="Ship camera controls">
+      <div className="ship-view-camera" role="group" aria-label="Station camera controls">
         <p id="ship-view-help">Drag to rotate · Scroll or pinch to zoom<span className="visually-hidden">. Keyboard: left and right arrows rotate, plus and minus zoom, Home resets.</span></p>
-        <button type="button" aria-label="Rotate ship left" disabled={status !== "ready"} onClick={() => sceneRef.current?.rotate(-1)}>↶</button>
-        <button type="button" aria-label="Rotate ship right" disabled={status !== "ready"} onClick={() => sceneRef.current?.rotate(1)}>↷</button>
+        <button type="button" aria-label="Rotate station left" disabled={status !== "ready"} onClick={() => sceneRef.current?.rotate(-1)}>↶</button>
+        <button type="button" aria-label="Rotate station right" disabled={status !== "ready"} onClick={() => sceneRef.current?.rotate(1)}>↷</button>
         <button type="button" aria-label="Zoom in" disabled={status !== "ready"} onClick={() => sceneRef.current?.zoom(1)}>+</button>
         <button type="button" aria-label="Zoom out" disabled={status !== "ready"} onClick={() => sceneRef.current?.zoom(-1)}>−</button>
         <button type="button" disabled={status !== "ready"} onClick={() => sceneRef.current?.reset()}>Reset view</button>
@@ -106,7 +106,7 @@ export function ShipView({ worldRef, mood, onMoodChange, onClose, onSection }: S
       <nav className="ship-view-directory" aria-label="Go to a portfolio deck">{sections.map(section => <a href={`#${section.id}`} key={section.id} onClick={event => {
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
         event.preventDefault(); onSection(section.id);
-      }}>{section.label}<span aria-hidden="true">↗</span></a>)}</nav>
+      }}>{section.label}<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3h7v7m0-7L10 14M10 4H4v16h16v-6" /></svg></a>)}</nav>
     </footer>
   </section>;
 }
