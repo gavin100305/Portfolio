@@ -8,7 +8,7 @@ export type Direction = "up" | "down" | "left" | "right";
 const keys: Record<string, Direction> = { w: "up", arrowup: "up", s: "down", arrowdown: "down", a: "left", arrowleft: "left", d: "right", arrowright: "right" };
 const vectors: Record<Direction, Point> = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
 
-export function useStationExploration(activeId: SectionId | null, onActivate: (id: SectionId, opener: HTMLElement | null) => void, travelling = false, onCockpit?: () => void) {
+export function useStationExploration(activeId: SectionId | null, onActivate: (id: SectionId, opener: HTMLElement | null) => void, travelling = false, onCockpit?: () => void, onInteract?: (point: Point) => boolean) {
   const backdropRef = useRef<HTMLDivElement>(null);
   const depthFrameRef = useRef<((time: number) => void) | null>(null);
   const doorProgress = useRef(stationDoors.map(() => 0));
@@ -162,6 +162,7 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
 
     const keyDown = (event: KeyboardEvent) => {
       if (activeId || travelling || event.target instanceof HTMLSelectElement || (event.target instanceof HTMLElement && Boolean(event.target.closest(".mood-console"))) || event.ctrlKey || event.metaKey || event.altKey || event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || (event.target instanceof HTMLElement && event.target.isContentEditable)) return;
+      if (event.key.toLowerCase() === "e" && !event.repeat && onInteract?.(position.current)) { event.preventDefault(); return; }
       if (event.key.toLowerCase() === "e" && nearFootball(position.current)) { event.preventDefault(); onActivate("football", viewport); return; }
       if (event.key.toLowerCase() === "e" && nearCockpit(position.current)) { event.preventDefault(); onCockpit?.(); return; }
       const direction = keys[event.key.toLowerCase()];
@@ -183,7 +184,7 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
       window.removeEventListener("keydown", keyDown); window.removeEventListener("keyup", keyUp);
       window.removeEventListener("blur", clear); document.removeEventListener("visibilitychange", clear);
     };
-  }, [activeId, onActivate, travelling, onCockpit]);
+  }, [activeId, onActivate, travelling, onCockpit, onInteract]);
 
   const press = useCallback((direction: Direction) => {
     if (activeId || travelling) return;
@@ -200,6 +201,7 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
     position.current = moveCharacter(position.current, vector.x * 32, vector.y * 32, closedDoors.current);
   }, [activeId, travelling]);
   const focusRoom = useCallback((id: SectionId) => { const room = rooms[id]; focusedPoint.current = { x: room.x + room.width / 2, y: room.y + room.height / 2 }; }, []);
+  const focusDiscovery = useCallback((point: Point) => { focusedPoint.current = { ...point }; }, []);
   const focusCockpit = useCallback(() => { focusedPoint.current = cockpitApproach; }, []);
   const releaseFocus = useCallback(() => { focusedPoint.current = null; }, []);
   const getMovementSnapshot = useCallback(() => ({ x: (presenceAnchor.current ?? position.current).x, y: (presenceAnchor.current ?? position.current).y, facing: facingRef.current }), []);
@@ -208,5 +210,5 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
     position.current = { ...WORLD.spawn };
     previousRoom.current = "about"; setLocation("about"); viewportRef.current?.focus();
   }, []);
-  return { backdropRef, depthFrameRef, viewportRef, worldRef, characterRef, location, atCockpit, atFootball, focusCockpit, press, release, step, focusRoom, releaseFocus, getMovementSnapshot, reset };
+  return { backdropRef, depthFrameRef, viewportRef, worldRef, characterRef, location, atCockpit, atFootball, focusCockpit, press, release, step, focusRoom, focusDiscovery, releaseFocus, getMovementSnapshot, reset };
 }

@@ -1,0 +1,79 @@
+.station-discovery { position: absolute; z-index: 4; width: 70px; height: 34px; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 3px; border: 2px solid #718795; border-radius: 3px; background: var(--ship-screen); color: var(--ship-light); box-shadow: 0 3px #111722; font: 10px var(--font-pixel); cursor: pointer; }
+.station-discovery:hover { border-color: var(--ship-light); }
+.discovery-airlock-icon { width: 14px; height: 21px; border: 2px solid #b4c5ce; background: linear-gradient(90deg, #718795 42%, #111722 43% 57%, #718795 58%); }
+.discovery-signal-bars { font-size: 15px; }
+.discovery-near-label { position: absolute; width: 140px; z-index: 4; pointer-events: none; text-align: center; font: 11px var(--font-pixel); color: #172033; background: var(--surface-card); padding: 3px; border: 1px solid var(--card-border); border-radius: 3px; }
+.maintenance-robot { position: absolute; z-index: 4; width: 48px; height: 48px; border: 0; padding: 0; background: transparent; cursor: pointer; }
+.maintenance-robot svg { display: block; width: 48px; height: 48px; filter: drop-shadow(2px 4px 0 #11172255); }
+.robot-caption { position: absolute; left: 12px; top: -14px; white-space: nowrap; font: 12px var(--font-pixel); color: #172033; }
+.maintenance-robot[data-phase="sleeping"] .robot-eyes { opacity: .35; }
+.maintenance-robot[data-phase="sleeping"] .robot-caption { animation: robot-sleep 3s ease-in-out infinite; }
+.robot-repair-spark { opacity: 0; }
+.maintenance-robot[data-phase="repairing"] .robot-repair-spark { animation: robot-sparks .6s steps(2,end) infinite; }
+@keyframes robot-sleep { 50% { transform: translateY(-5px); opacity: .4; } }
+@keyframes robot-sparks { 50% { opacity: 1; } }
+.discovery-close { width: 40px; height: 40px; border: 1px solid var(--card-border); border-radius: 4px; background: var(--accent-wash); color: var(--accent-ink); cursor: pointer; font-size: 24px; }
+.alien-wave { height: 70px; display: flex; align-items: center; justify-content: center; gap: 5px; border: 2px solid var(--frame-color); border-radius: 4px; background: var(--ship-screen); }
+.alien-wave i { width: 5px; background: var(--ship-light); transition: height 150ms linear; }
+.alien-wave[data-clear="true"] { border-color: var(--accent-ink); }
+.spacewalk { position: absolute; inset: 0; z-index: 20; overflow: clip; outline: none; color: #edf2f7; }
+.spacewalk-world { position: absolute; top: 0; left: 0; width: 1800px; height: 1200px; transform-origin: 0 0; }
+.spacewalk-world[aria-hidden="true"] { visibility: hidden; }
+.spacewalk-station { position: absolute; width: 550px; height: 266px; pointer-events: none; }
+.spacewalk-station svg { display: block; width: 100%; height: 100%; }
+.spacewalk-station span { display: block; text-align: right; color: #c8d5df; font: 12px var(--font-pixel); }
+.spacewalk-planet { position: absolute; aspect-ratio: 1; pointer-events: none; }
+.spacewalk-planet svg { width: 100%; height: 100%; }
+.spacewalk-planet span { display: block; text-align: center; font: 12px var(--font-pixel); color: #c8d5df; }
+.spacewalker { position: absolute; top: -30px; left: -24px; width: 48px; height: 60px; transform-origin: 24px 30px; pointer-events: none; }
+.spacewalker .astronaut-svg { width: 48px; height: 60px; }
+.spacewalker-exhaust { position: absolute; top: 56px; left: 17px; width: 14px; height: 20px; background: #9de8ff; clip-path: polygon(0 0,100% 0,80% 65%,50% 100%,20% 65%); opacity: 0; }
+.spacewalker[data-thrust="true"] .spacewalker-exhaust { opacity: .8; animation: thruster-puff 180ms steps(2,end) infinite; }
+@keyframes thruster-puff { 50% { transform: scaleY(.6); } }
+.spacewalk-football { position: absolute; top: -12px; left: -12px; width: 24px; height: 24px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.spacewalk-football svg { display: block; width: 24px; height: 24px; }
+.spacewalk-header { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.discovery-return { min-height: 44px; padding: 8px 12px; border: 2px solid var(--frame-color); border-radius: 5px; background: var(--surface-card); color: var(--accent-ink); box-shadow: 0 3px var(--frame-dark); font: 14px var(--font-pixel); cursor: pointer; }
+.discovery-return kbd { margin-left: 10px; font: 12px var(--font-pixel); }
+.spacewalk-beacon { position: absolute; left: 20px; top: 90px; border: 1px solid #718795; border-radius: 4px; padding: 9px 12px; min-height: 44px; background: #142634; color: #dce8ff; font: 12px var(--font-pixel); cursor: pointer; }
+.spacewalk-beacon span { display: inline-block; margin-right: 9px; transform: rotate(var(--beacon-angle,0deg)); }
+.spacewalk-hud { position: absolute; bottom: 20px; left: 20px; max-width: calc(100% - 40px); pointer-events: none; font-size: 12px; color: #dce8ff; }
+.spacewalk-hud output { font: 14px var(--font-pixel); }
+.spacewalk-hud p { margin: 8px 0; }
+.spacewalk-touch { display: none; }
+.spacewalk-hatch { position: absolute; inset: 0; overflow: hidden; z-index: 2; }
+.hatch-door { position: absolute; top: 0; bottom: 0; width: 50%; border: 4px solid #8ba2ba; background: repeating-linear-gradient(0deg, #253858 0 79px, #405775 80px 83px); }
+.hatch-left { left: 0; }
+.hatch-right { right: 0; }
+.airlock-prompt { position: absolute; top: 50%; left: 50%; width: min(420px, calc(100% - 32px)); transform: translate(-50%, -50%); padding: 24px; border: 4px solid var(--frame-color); border-radius: 8px; background: var(--surface-card); color: #172033; box-shadow: 0 5px var(--frame-dark); }
+.airlock-prompt h2 { margin: 0; font: 28px var(--font-pixel); }
+.airlock-prompt p { margin: 12px 0; font-size: 13px; line-height: 1.7; }
+.airlock-prompt button { position: relative; width: 100%; min-height: 48px; padding: 10px; overflow: hidden; border: 2px solid var(--frame-dark); border-radius: 4px; background: var(--frame-color); color: #fffaf0; font: 16px var(--font-pixel); cursor: pointer; }
+.ejection-progress { position: absolute; left: 0; bottom: 0; height: 4px; width: 0; background: var(--ship-light); }
+.airlock-prompt button[data-holding="true"] .ejection-progress { width: 100%; transition: width 1s linear; }
+.airlock-prompt .airlock-hint { margin-bottom: 0; font-size: 11px; }
+.spacewalk-hatch[data-opening="true"] .hatch-left { animation: airlock-left 1s ease-in-out forwards; }
+.spacewalk-hatch[data-opening="true"] .hatch-right { animation: airlock-right 1s ease-in-out forwards; }
+.spacewalk-hatch[data-opening="true"] .airlock-prompt { opacity: 0; transition: opacity 180ms ease; }
+.spacewalk-header { z-index: 3; }
+@keyframes airlock-left { to { transform: translateX(-100%); } }
+@keyframes airlock-right { to { transform: translateX(100%); } }
+@media (max-width: 700px) {
+  .spacewalk-header { top: 12px; left: 12px; right: 12px; }
+  .spacewalk-header > span { font-size: 14px; }
+  .discovery-return { font-size: 12px; padding: 7px; }
+  .spacewalk-beacon { top: 72px; left: 12px; }
+  .spacewalk-hud { bottom: 142px; left: 12px; font-size: 10px; }
+  .spacewalk-touch { position: absolute; display: flex; align-items: end; justify-content: space-between; gap: 8px; bottom: 14px; left: 12px; right: 12px; }
+  .spacewalk-touch > div { display: grid; grid-template-columns: repeat(3,44px); gap: 5px; }
+  .spacewalk-touch button { min-width: 44px; min-height: 44px; border: 2px solid var(--card-border); border-radius: 4px; background: var(--surface-card); color: var(--accent-ink); font: 16px var(--font-pixel); touch-action: none; }
+  .spacewalk-touch > div button:first-child { grid-column: 2; }
+  .spacewalk-touch > div button:nth-child(2) { grid-column: 1; grid-row: 2; }
+  .spacewalk-touch > div button:nth-child(3) { grid-column: 2; grid-row: 2; }
+  .spacewalk-touch > div button:nth-child(4) { grid-column: 3; grid-row: 2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .robot-caption, .robot-repair-spark, .spacewalker-exhaust, .hatch-door { animation: none !important; }
+  .spacewalk-hatch[data-opening="true"] .hatch-door { visibility: hidden; }
+  .alien-wave i, .ejection-progress, .airlock-prompt { transition: none !important; }
+}
