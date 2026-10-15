@@ -1,6 +1,6 @@
 import type { InfoSectionId } from "@/components/portfolio-page";
 
-const palette = { ink: "#263c53", edge: "#829cb0", face: "#f5f2e6", screen: "#18384b", blue: "#4b75b8", cyan: "#75cfff", gold: "#f2c577" };
+const palette = { ink: "var(--frame-dark)", edge: "var(--card-border)", face: "var(--surface-card)", screen: "var(--ship-screen)", blue: "var(--ship-blue)", cyan: "var(--ship-light)", gold: "var(--ship-warning)" };
 
 /** Six original station instruments. Shared materials, distinct silhouettes;
  * decorative only, with all portfolio text kept in HTML.

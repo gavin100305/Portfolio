@@ -98,6 +98,10 @@ export const projects: readonly Project[] = [
 
 export const experience = [
   {
+    role: "Full Stack Development Intern", organization: "Pillow Tax", period: "July 2026 – Present", kind: "Internship",
+    description: "", highlights: [], tags: [],
+  },
+  {
     role: "Freelance Full Stack Developer", organization: "Independent work", period: "May 2026 – June 2026", kind: "Freelance",
     description: "Analytics tooling for e-commerce platforms.",
     highlights: ["Developed an npm-based analytics SDK and a client portal for event tracking and API key management.", "Integrated Brevo-powered email and web notifications."],

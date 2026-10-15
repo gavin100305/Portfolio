@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 // the original pixel drawings physical weight without changing the camera.
 export const equipment = {
   outline: "#111722", casing: "#718795", highlight: "#c0d0d7",
-  side: "#405463", inset: "#283b46", glass: "#142e38",
-  light: "#65c8ff", warm: "#ffc875", keys: "#b4c5ce",
+  side: "#405463", inset: "#283b46", glass: "var(--ship-screen, #142e38)",
+  light: "var(--ship-light, #65c8ff)", warm: "var(--ship-warning, #ffc875)", keys: "#b4c5ce",
 };
 
 export function EquipmentHousing({ x = 0, y = 0, width, height, children }: {

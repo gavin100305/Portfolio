@@ -70,12 +70,12 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
     setDrag(null);
   };
   return (
-    <div className="exploration-map" data-mood={mood} data-travelling={Boolean(flight)} data-football={footballActive} data-exterior={exteriorOpen} data-depth-ready={depthReady}>
-      <SpaceBackdrop backdropRef={backdropRef} />
+    <div className="exploration-map" data-travelling={Boolean(flight)} data-football={footballActive} data-exterior={exteriorOpen} data-depth-ready={depthReady}>
+      <SpaceBackdrop backdropRef={backdropRef} mood={mood} />
       <div className="interior-experience" inert={exteriorOpen}>
       <div className="map-viewport" inert={Boolean(flight)} ref={viewportRef} tabIndex={0} role="region" aria-label="Explore the space station" aria-describedby="movement-instructions" onPointerDown={onTouchStart} onPointerMove={onTouchMove} onPointerUp={onTouchEnd} onPointerCancel={onTouchEnd}>
         <div className="ship-flight" data-flight={flight ?? undefined} onAnimationEnd={(event) => { if (event.target === event.currentTarget) advance(); }}>
-        <InteriorDepth worldRef={worldRef} frameRef={depthFrameRef} enabled={!exteriorOpen && (!activeId || footballActive)} onReady={setDepthReady} />
+        <InteriorDepth theme={mood} worldRef={worldRef} frameRef={depthFrameRef} enabled={!exteriorOpen && (!activeId || footballActive)} onReady={setDepthReady} />
         <div className="station-world" ref={worldRef} style={{ width: WORLD.width, height: WORLD.height }}>
           <StationEngines />
           <StationConnections />

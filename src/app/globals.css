@@ -17,6 +17,13 @@
   --ship-screen: #14334a;
   --ship-warning: #ffc875;
   --ship-halo: transparent;
+  --surface-page: #faf7ef;
+  --surface-card: #fffaf0;
+  --card-border: #9cadb7;
+  --frame-color: #405775;
+  --frame-dark: #253858;
+  --accent-ink: #365f8b;
+  --accent-wash: #e7edf0;
   --font-sans: var(--font-manrope), Arial, sans-serif;
   --font-pixel: var(--font-pixelify), monospace;
 }
@@ -24,7 +31,37 @@
 @theme inline {
   --color-background: var(--space);
   --color-foreground: var(--cream);
+  --color-page-surface: var(--surface-page);
+  --color-card-surface: var(--surface-card);
+  --color-card-edge: var(--card-border);
+  --color-station-frame: var(--frame-color);
+  --color-station-accent: var(--accent-ink);
+  --color-station-wash: var(--accent-wash);
   --font-sans: var(--font-manrope), Arial, sans-serif;
+}
+
+/* Tailwind v4 semantic colors are shared by station instruments and pages.
+   Keep deck floors cream and text dark; themes adjust materials and accents. */
+.station-shell[data-theme="nebula-drift"] {
+  --ship-light: #ba9adf; --ship-blue: #7773ad; --ship-warning: #e1b18f;
+  --ship-screen: #292c47; --ship-secondary: #4a4669;
+  --surface-page: #f5f1f7; --surface-card: #fffbff;
+  --card-border: #b5a9c1; --frame-color: #55506e; --frame-dark: #343049;
+  --accent-ink: #665184; --accent-wash: #ece5f1;
+}
+.station-shell[data-theme="meteor-shower"] {
+  --ship-light: #edb777; --ship-blue: #927473; --ship-warning: #ffcc8c;
+  --ship-screen: #3d2e30; --ship-secondary: #654c44;
+  --surface-page: #faf2e7; --surface-card: #fff9ef;
+  --card-border: #bbaa97; --frame-color: #65534e; --frame-dark: #3c3030;
+  --accent-ink: #875638; --accent-wash: #f1e4d4;
+}
+.station-shell[data-theme="planetary-orbit"] {
+  --ship-light: #80d4d9; --ship-blue: #538794; --ship-warning: #e7c38b;
+  --ship-screen: #193d43; --ship-secondary: #32616c;
+  --surface-page: #f0f6f3; --surface-card: #fbfffc;
+  --card-border: #9db9b7; --frame-color: #3d636d; --frame-dark: #233e49;
+  --accent-ink: #326c71; --accent-wash: #e0eeeb;
 }
 
 * { box-sizing: border-box; }
@@ -84,18 +121,6 @@ button { color: inherit; }
 .room-focus-outline { display: none; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; color: #65c8ff; transform: translateY(-8.5px); }
 .exploration-map[data-depth-ready="true"] .world-room:not([href="#football"]):focus-visible .room-focus-outline { display: block; }
 .station-world { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
-.space-backdrop { overflow: hidden; pointer-events: none; }
-.space-backdrop::after { position: absolute; inset: 0; background: radial-gradient(ellipse at 82% 18%, rgb(178 54 47 / 18%), transparent 42%), radial-gradient(ellipse at 14% 82%, rgb(110 28 39 / 12%), transparent 42%); content: ""; opacity: var(--meteor-haze); mix-blend-mode: screen; transition: opacity 450ms ease; }
-/* Background layers move more slowly than the ship, with no idle animation. */
-.stars { position: absolute; inset: -120px; width: calc(100% + 240px); height: calc(100% + 240px); }
-.stars-far { transform: translate(calc(var(--parallax-x, 0px) * .018), calc(var(--parallax-y, 0px) * .018)); }
-.stars-mid { transform: translate(calc(var(--parallax-x, 0px) * .032), calc(var(--parallax-y, 0px) * .032)); }
-.stars-near { transform: translate(calc(var(--parallax-x, 0px) * .055), calc(var(--parallax-y, 0px) * .055)); }
-.distant-body { position: absolute; }
-.distant-moon { transform: translate(calc(var(--parallax-x, 0px) * .035), calc(var(--parallax-y, 0px) * .035)); width: 72px; top: 18%; left: 7%; }
-.distant-planet { transform: translate(calc(var(--parallax-x, 0px) * .07), calc(var(--parallax-y, 0px) * .07)); width: 168px; bottom: 17%; right: 4%; }
-.distant-asteroid { transform: translate(calc(var(--parallax-x, 0px) * .09), calc(var(--parallax-y, 0px) * .09)); width: 30px; top: 10%; right: 17%; }
-.distant-debris { transform: translate(calc(var(--parallax-x, 0px) * .025), calc(var(--parallax-y, 0px) * .025)); width: 96px; bottom: 25%; left: 8%; opacity: .7; }
 .station-foreground { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 .station-connections { position: absolute; inset: 0; pointer-events: none; }
 .world-room { position: absolute; display: block; color: inherit; text-decoration: none; outline-offset: -24px; }
@@ -279,45 +304,6 @@ button { color: inherit; }
 }
 
 
-/* Space moods: palettes, atmospheric layers and flight effects live here. */
-/* Theme variables affect only scenery outside the hull. Interior tokens
-   are fixed on :root, including all screens, lights, cards, and controls. */
-.exploration-map {
-  --space-background: #03050A;
-  --star-color: #DCE8FF;
-  --star-accent: #86BFFF;
-  --distant-planet: #17243A;
-  --planet-rim: #496978;
-  --rocket-outer: #65C8FF;
-  --rocket-core: #b8edff;
-  --nebula-opacity: 0;
-  --orbit-opacity: 0;
-  --nebula-purple: #28143E;
-  --nebula-teal: #10172F;
-  --meteor-trail: #A8E8FF;
-  --meteor-haze: 0;
-  background: var(--space-background);
-}
-.exploration-map[data-mood="nebula-drift"] {
-  --space-background: #04040A;
-  --star-color: #E5DDFF; --star-accent: #73D9D0; --nebula-opacity: .28;
-  --rocket-outer: #B68AFF; --rocket-core: #e7d6ff;
-}
-.exploration-map[data-mood="planetary-orbit"] {
-  --space-background: #050609;
-  --star-color: #EAF0FA; --star-accent: #FFD99A;
-  --distant-planet: #26364A; --planet-rim: #9BCBFF; --orbit-opacity: 1;
-  --rocket-outer: #FFC875; --rocket-core: #ffedbf;
-}
-.exploration-map[data-mood="meteor-shower"] {
-  --space-background: #080407;
-  --star-color: #ffe8dc; --star-accent: #ffc1a1;
-  --distant-planet: #291a25;
-  --planet-rim: #a34d45;
-  --meteor-trail: #ffd1a7;
-  --meteor-haze: 1;
-  --rocket-outer: #78D9FF; --rocket-core: #d1fbff;
-}
 .room-props rect { rx: 1.5px; }
 .station-connections path { stroke-linejoin: round; stroke-linecap: butt; }
 .console-status-light { transform-box: fill-box; transform-origin: center; animation: console-blink 3.8s steps(1, end) infinite; }
@@ -326,7 +312,7 @@ button { color: inherit; }
 @keyframes console-blink { 0%, 72%, 100% { opacity: 1; } 74%, 80% { opacity: .24; } 82% { opacity: .72; } }
 /* Hull depth is drawn inside the SVG and cut at entrances. A filter on the
    whole room would cast a shadow across the connected corridor floor. */
-.ship-flight { position: absolute; inset: 0; transform-origin: center; }
+.ship-flight { --rocket-outer: #65c8ff; --rocket-core: #b8edff; position: absolute; inset: 0; transform-origin: center; }
 .ship-flight .station-world { transition: transform 480ms cubic-bezier(.22,.61,.36,1); }
 /* Camera updates must stay immediate during normal exploration. */
 .ship-flight:not([data-flight]) .station-world { transition: none; }
@@ -339,39 +325,11 @@ button { color: inherit; }
 @keyframes ship-depart { 0%,35% { transform: translate(0,0); opacity: 1; } 100% { transform: translate(112vw,-12vh); opacity: 0; } }
 @keyframes ship-arrive { 0% { transform: translate(-112vw,12vh); opacity: 0; } 65%,100% { transform: translate(0,0); opacity: 1; } }
 @keyframes rocket-burn { 0% { transform: scaleY(.82); } 100% { transform: scaleY(1.08); } }
-.nebula-cloud { position: absolute; width: 65vw; height: 65vh; opacity: var(--nebula-opacity); transition: opacity 650ms ease; filter: blur(32px); pointer-events: none; }
-.nebula-purple { top: -12%; left: -16%; background: radial-gradient(ellipse, var(--nebula-purple), transparent 65%); transform: translate(calc(var(--parallax-x,0px) * .009),calc(var(--parallax-y,0px) * .009)); }
-.nebula-teal { bottom: -18%; right: -12%; background: radial-gradient(ellipse, var(--nebula-teal), transparent 65%); transform: translate(calc(var(--parallax-x,0px) * .014),calc(var(--parallax-y,0px) * .014)); }
-.orbit-planet { position: absolute; width: clamp(320px,46vw,680px); aspect-ratio: 1; bottom: -28%; left: -16%; border-radius: 50%; overflow: hidden; opacity: var(--orbit-opacity); transition: opacity 650ms ease; background: radial-gradient(circle at 68% 28%, var(--planet-rim) 0%, var(--distant-planet) 36%, #102232 65%, var(--space-background) 82%); box-shadow: inset -8px 10px 18px color-mix(in srgb, var(--planet-rim) 40%, transparent), 0 0 26px color-mix(in srgb, var(--planet-rim) 14%, transparent); transform: translate(calc(var(--parallax-x,0px) * .025),calc(var(--parallax-y,0px) * .025)); }
-.orbit-clouds { position: absolute; inset: 8%; border-radius: 50%; opacity: .2; background: repeating-linear-gradient(-24deg,transparent 0 16px,#a1bfc6 18px 22px,transparent 24px 48px); }
-.meteor-field { position: absolute; inset: 0; overflow: hidden; opacity: 0; transition: opacity 450ms ease; background: radial-gradient(ellipse at 82% 18%, rgb(103 27 29 / 28%), transparent 48%), radial-gradient(ellipse at 17% 84%, rgb(77 22 36 / 20%), transparent 44%); }
-[data-mood="meteor-shower"] .meteor-field { opacity: 1; }
-.meteor-world { position: absolute; top: -32%; right: -14%; width: clamp(320px, 44vw, 620px); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 34% 72%, #422431, #1d111b 48%, #0a070e 75%); box-shadow: -13px 12px 34px rgb(223 91 62 / 18%), inset 9px -8px 18px rgb(230 111 75 / 18%); opacity: .65; }
-.meteor { position: absolute; width: 84px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--meteor-trail)); box-shadow: 0 0 8px rgb(255 176 138 / 60%); opacity: 0; transform: rotate(-24deg); }
-[data-mood="meteor-shower"] .meteor { animation: meteor-pass 7s linear infinite; }
-.meteor-0 { top: 12%; left: 6%; animation-delay: -.4s !important; }
-.meteor-1 { top: 64%; left: 52%; animation-delay: -1.8s !important; width: 56px; }
-.meteor-2 { top: 38%; left: 72%; animation-delay: -3.2s !important; }
-.meteor-3 { top: 25%; left: 58%; animation-delay: -4.6s !important; width: 46px; }
-.meteor-4 { top: 82%; left: 22%; animation-delay: -6s !important; width: 64px; }
-.meteor-5 { top: 56%; left: 12%; animation-delay: -2.5s !important; width: 50px; }
-.meteor-6 { top: 8%; left: 80%; animation-delay: -5.3s !important; width: 72px; }
-[data-mood="meteor-shower"] .stars-near { animation: star-drift 26s linear infinite, meteor-star-twinkle 2.8s steps(2, end) infinite; }
-@keyframes meteor-pass { 0%,42%,100% { opacity: 0; transform: translate(0,0) rotate(-24deg); } 46% { opacity: .78; } 82% { opacity: 0; transform: translate(260px,146px) rotate(-24deg); } }
-@keyframes star-drift { to { transform: translate(calc(var(--parallax-x, 0px) * .055 - 12px), calc(var(--parallax-y, 0px) * .055 + 9px)); } }
-@keyframes meteor-star-twinkle { 0%,100% { filter: brightness(.72); } 50% { filter: brightness(1.55); } }
-.travel-streaks { position: absolute; inset: 0; opacity: 0; background: repeating-linear-gradient(-8deg,transparent 0 70px,rgb(134 186 208 / 15%) 71px 72px,transparent 73px 142px); }
-[data-travelling="true"] .travel-streaks { animation: travel-stars 450ms linear infinite; }
-@keyframes travel-stars { from { opacity: .3; transform: translateX(0); } to { opacity: .15; transform: translateX(-100px); } }
-@media (max-width: 700px) {
-  .orbit-planet { width: 380px; left: -58%; bottom: -15%; }
-  .nebula-cloud { width: 105vw; }
-}
 @media (prefers-reduced-motion: reduce) {
-  .ship-flight, .rocket-plume, .meteor, .travel-streaks { animation: none !important; }
-  .travel-streaks, .rocket-plume { display: none; }
-  .console-status-light, .radar-sweep, [data-mood="meteor-shower"] .stars-near, .football-streak { animation: none !important; }
-  .nebula-cloud, .orbit-planet, .station-world, .space-backdrop::after { transition: none !important; }
+  .ship-flight, .rocket-plume { animation: none !important; }
+  .rocket-plume { display: none; }
+  .console-status-light, .radar-sweep, .football-streak { animation: none !important; }
+  .station-world { transition: none !important; }
   .astronaut[data-remote="true"] { transition: none; }
 }
 
@@ -380,9 +338,6 @@ button { color: inherit; }
 .cockpit-world-console:hover, .cockpit-world-console:focus-visible { outline: 2px dashed var(--ship-light); outline-offset: 5px; }
 .cockpit-console-switch { position: absolute; left: 18%; top: 64%; width: 42%; height: 18%; border: 2px solid #8ba2ba; border-radius: 8px; background: #080f1b; }
 .cockpit-console-switch span { display: block; width: 23%; height: 100%; border-radius: 50%; background: var(--ship-light); box-shadow: 0 0 8px var(--ship-light); }
-[data-mood="nebula-drift"] .cockpit-console-switch span { margin-left: 25%; }
-[data-mood="planetary-orbit"] .cockpit-console-switch span { margin-left: 50%; }
-[data-mood="meteor-shower"] .cockpit-console-switch span { margin-left: 75%; }
 .cockpit-mood-dialog { position: fixed; inset: 0; margin: auto; width: min(360px, calc(100vw - 32px)); max-height: calc(100svh - 32px); overflow-y: auto; padding: 20px; border: 1px solid #57718c; border-radius: 10px; background: #101f30; color: #f7f2e7; box-shadow: 0 16px 60px #0008; }
 .cockpit-mood-dialog::backdrop { background: rgb(3 5 10 / 65%); }
 .cockpit-dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }

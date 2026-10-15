@@ -5,6 +5,8 @@ import { getSection, type SectionId } from "@/data/sections";
 import { StationMap } from "@/components/station-map";
 import { PortfolioPage, type InfoSectionId } from "@/components/portfolio-page";
 
+import { useSpaceMood } from "@/components/use-space-mood";
+
 const SECTION_URL_EVENT = "portfolio:sectionchange";
 
 function sectionFromLocation(): SectionId | null {
@@ -23,6 +25,7 @@ function subscribeToLocation(callback: () => void) {
 }
 
 export function StationShell() {
+  const { mood } = useSpaceMood();
   const activeId = useSyncExternalStore(subscribeToLocation, sectionFromLocation, () => null);
   const dialogRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -116,7 +119,7 @@ export function StationShell() {
   const activeSection = activeId === "football" ? undefined : getSection(activeId);
 
   return (
-    <main className="station-shell">
+    <main className="station-shell" data-theme={mood}>
       <section className="station-stage" aria-label="Space station map" inert={Boolean(activeSection)}>
         <h1 className="visually-hidden">Explore Gavin Soares’s portfolio space station</h1>
         <StationMap activeId={activeId} onOpen={openSection} onActivate={activateSection} onLeaveArena={closeSection} />

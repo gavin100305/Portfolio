@@ -1,54 +1,10 @@
-import type { RefObject } from "react";
 import type { CSSProperties } from "react";
 import { DeckPattern } from "@/components/deck-pattern";
 import { RoomBulkheads } from "@/components/room-artwork";
 import { airlocks, corridorPath, CORRIDOR_WIDTH, MAP_SCALE, rooms, ROOM_FLOOR_OUTLINE, WORLD } from "@/data/station-world";
 import { suitColors, type Direction, type SuitPalette } from "@/data/astronauts";
 
-export function SpaceBackdrop({ backdropRef }: { backdropRef: RefObject<HTMLDivElement | null> }) {
-  return (
-    <div ref={backdropRef} className="space-backdrop" aria-hidden="true">
-      <div className="nebula-cloud nebula-purple" /><div className="nebula-cloud nebula-teal" />
-      <div className="orbit-planet"><span className="orbit-clouds" /></div>
-      <div className="meteor-field"><span className="meteor-world" />{[0, 1, 2, 3, 4, 5, 6].map((i) => <span key={i} className={`meteor meteor-${i}`} />)}</div>
-      <div className="travel-streaks" />
-      <svg className="stars stars-far" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice" shapeRendering="crispEdges">
-        {Array.from({ length: 92 }, (_, i) => <rect key={i} x={(i * 137 + 29) % 1200} y={(i * 293 + 71) % 900} width={i % 8 === 0 ? 2 : 1} height={i % 8 === 0 ? 2 : 1} fill="var(--star-color, #DCE8FF)" opacity={.18 + (i % 5) * .08} />)}
-      </svg>
-      <svg className="stars stars-mid" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice" shapeRendering="crispEdges">
-        {Array.from({ length: 38 }, (_, i) => <rect key={i} x={(i * 197 + 281) % 1200} y={(i * 331 + 163) % 900} width="1" height="1" fill={i % 8 === 0 ? "var(--star-accent, #86BFFF)" : "var(--star-color, #DCE8FF)"} opacity={.25 + (i % 4) * .08} />)}
-      </svg>
-      <svg className="stars stars-near" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice" shapeRendering="crispEdges">
-        {Array.from({ length: 28 }, (_, i) => <path key={i} d={`M${(i * 239 + 131) % 1200} ${(i * 167 + 91) % 900}h2v2h-2z`} fill={i % 7 ? "var(--star-color, #DCE8FF)" : "var(--star-accent, #86BFFF)"} opacity={.35 + (i % 3) * .12} />)}
-      </svg>
-      <svg className="distant-body distant-moon" viewBox="0 0 64 64" shapeRendering="crispEdges">
-        <path d="M20 4h24v4h10v10h6v26h-6v10H44v6H20v-6H10V44H4V20h6V10h10z" fill="#181d24" />
-        <path d="M20 4h12v8H20v12H10v16H4V20h6V10h10z" fill="#46505d" />
-        <path d="M44 8h10v10h6v26h-6v10H44v6H32v-8h10V40h8V20h-6z" fill="#0c111b" />
-        <path d="M20 8h8v2h-8zM12 18h2v8h-2zM18 34h8v2h-8z" fill="#6a737c" />
-        <path d="M18 18h10v10H18zM38 38h12v10H38zM16 42h6v6h-6z" fill="#0c1016" />
-      </svg>
-      <svg className="distant-body distant-planet" viewBox="0 0 144 104" shapeRendering="crispEdges">
-        <path d="M10 48h16v-6h18v-6h64v6h18v6h10v8h-10v6h-18v6H44v-6H26v-6H10z" fill="#253342" />
-        <path d="M12 48h14v-4h18v-4h64v4h18v4h8v4h-12v-4h-18v-4H46v4H28v4H12z" fill="#63717a" />
-        <path d="M56 10h32v6h12v10h8v12h4v28h-4v12h-8v10H88v6H56v-6H44V78h-8V66h-4V38h4V26h8V16h12z" fill="var(--distant-planet, #17243A)" />
-        <path d="M56 10h24v6H58v6H46v12H38v22h-6V38h4V26h8V16h12z" fill="var(--planet-rim, #496978)" />
-        <path d="M46 28h46v4h12v6H38v-6h8zM36 48h66v6H36zM44 68h56v6H44zM56 82h32v4H56z" fill="#345363" />
-        <path d="M80 16h20v10h8v12h4v28h-4v12h-8v10H88v6H70v-8h10V74h8V60h4V38h-4V24h-8z" fill="#0e1c2b" />
-        <path d="M10 52h16v6h18v6h64v-6h18v-6h10v8h-10v6h-18v6H44v-6H26v-6H10z" fill="#526372" />
-        <path d="M28 58h16v4h64v-4h16v2h-14v6H42v-6H28z" fill="#879095" opacity=".6" />
-      </svg>
-      <svg className="distant-body distant-debris" viewBox="0 0 96 48" shapeRendering="crispEdges">
-        <path d="M8 22h6v4h4v8h-4v4H6v-4H2v-8h6zM52 6h6v4h4v8h-4v4h-8v-4h-4v-8h6zM80 32h6v4h4v6H78v-6h2z" fill="#25303b" />
-        <path d="M6 26h6v2H6zM50 10h6v2h-6zM80 36h6v2h-6z" fill="#53606a" />
-      </svg>
-      <svg className="distant-body distant-asteroid" viewBox="0 0 48 48" shapeRendering="crispEdges">
-        <path d="M16 4h16v8h10v12h-4v14H26v6H12V34H4V18h8v-6h4z" fill="#232328" />
-        <path d="M16 10h10v6H16zM26 26h8v8h-8z" fill="#38363b" />
-      </svg>
-    </div>
-  );
-}
+export { SpaceBackdrop } from "@/components/space-backdrop";
 
 // The corridors and solar arrays retain the original illustration's coordinates.
 export function StationConnections() {
