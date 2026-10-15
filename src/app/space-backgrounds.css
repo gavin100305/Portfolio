@@ -10,11 +10,11 @@
 .space-backdrop [data-sky="meteor-shower"] { background: #0A0505; color: #FFF1CF; }
 .space-backdrop [data-sky="planetary-orbit"] { background: #030911; color: #DCEBFF; }
 .space-backdrop .sky-stars { position: absolute; inset: -30px; width: calc(100% + 60px); height: calc(100% + 60px); }
-.space-backdrop .sky-stars-drifting { animation: sky-distant-drift 65s ease-in-out infinite alternate; }
-@keyframes sky-distant-drift { to { transform: translate(22px, -14px); } }
+.space-backdrop .sky-stars-drifting { animation: sky-distant-drift 38s linear -12s infinite alternate; }
+@keyframes sky-distant-drift { to { transform: translate(56px, -34px); } }
 .space-backdrop .sky-dark-planet { position: absolute; border-radius: 50%; }
-.space-backdrop .sky-dark-planet-one { width: clamp(70px, 10vw, 150px); aspect-ratio: 1; top: 12%; right: 4%; background: #101827; animation: sky-quiet-planet 38s ease-in-out infinite alternate; box-shadow: inset 3px 1px #18243A; opacity: .55; }
-.space-backdrop .sky-dark-planet-two { width: 32px; aspect-ratio: 1; bottom: 18%; left: 6%; background: #18243A; opacity: .4; animation: sky-quiet-planet 47s ease-in-out -12s infinite alternate-reverse; }
+.space-backdrop .sky-dark-planet-one { width: clamp(70px, 10vw, 150px); aspect-ratio: 1; top: 12%; right: 4%; background: #101827; animation: sky-quiet-planet 32s linear -8s infinite alternate; box-shadow: inset 3px 1px #18243A; opacity: .55; }
+.space-backdrop .sky-dark-planet-two { width: 32px; aspect-ratio: 1; bottom: 18%; left: 6%; background: #18243A; opacity: .4; animation: sky-quiet-planet 39s linear -12s infinite alternate-reverse; }
 @keyframes sky-quiet-planet { to { transform: translate(-28px, 18px); } }
 /* Separate camera parallax and idle drift so neither overrides the other. */
 .space-backdrop .sky-nebula-depth { position: absolute; inset: -22%; }
@@ -27,7 +27,7 @@
 .space-backdrop .sky-nebula-near .sky-nebula-cloud { background: radial-gradient(ellipse at 10% 30%, #e3a3d735, transparent 15%), radial-gradient(ellipse at 84% 72%, #b07bdb3d, transparent 18%), radial-gradient(ellipse at 30% 78%, #42799b2e, transparent 18%); animation-duration: 43s; }
 .space-backdrop .sky-nebula-rift { position: absolute; inset: -20%; background: radial-gradient(ellipse at 38% 48%, #05030cbf 6%, transparent 40%), radial-gradient(ellipse at 65% 38%, #05030c99 5%, transparent 30%); transform: rotate(-26deg); }
 @keyframes sky-cloud-drift { to { transform: translate(8%, -5%) scale(1.06); } }
-.space-backdrop .sky-nebula-planet-drift { position: absolute; left: 3%; top: 22%; width: clamp(210px, 24vw, 320px); animation: sky-planet-drift 30s ease-in-out infinite alternate; }
+.space-backdrop .sky-nebula-planet-drift { position: absolute; left: 3%; top: 22%; width: clamp(210px, 24vw, 320px); animation: sky-planet-drift 26s linear -5s infinite alternate; }
 .space-backdrop .sky-nebula-filaments { position: absolute; inset: -5%; width: 110%; height: 110%; animation: sky-cloud-drift 62s ease-in-out infinite alternate-reverse; }
 .space-backdrop .sky-nebula-planet { width: 100%; display: block; }
 @keyframes sky-planet-drift { to { transform: translate(38px, -30px) rotate(4deg); } }
@@ -35,9 +35,9 @@
 .space-backdrop .sky-spark { animation: sky-spark-breathe 9s ease-in-out infinite; }
 @keyframes sky-spark-breathe { 0%, 100% { opacity: .18; } 45% { opacity: .85; } 65% { opacity: .4; } }
 .space-backdrop [data-sky="nebula-drift"] .sky-stars-drifting,
-.space-backdrop [data-sky="planetary-orbit"] .sky-stars-drifting { animation: sky-lively-stars 55s ease-in-out infinite alternate; }
-@keyframes sky-lively-stars { to { transform: translate(38px, -24px); } }
-.space-backdrop .sky-sun-corona { position: absolute; width: clamp(300px, 48vw, 750px); aspect-ratio: 1; left: -18%; top: -23%; border-radius: 50%; animation: sky-sun-drift 38s ease-in-out infinite alternate; background: radial-gradient(circle, #E34A2366 32%, #E34A232e 49%, #E34A230a 64%, transparent 72%); }
+.space-backdrop [data-sky="planetary-orbit"] .sky-stars-drifting { animation: sky-lively-stars 32s linear -10s infinite alternate; }
+@keyframes sky-lively-stars { to { transform: translate(68px, -42px); } }
+.space-backdrop .sky-sun-corona { position: absolute; width: clamp(300px, 48vw, 750px); aspect-ratio: 1; left: -18%; top: -23%; border-radius: 50%; animation: sky-sun-drift 32s linear -6s infinite alternate; background: radial-gradient(circle, #E34A2366 32%, #E34A232e 49%, #E34A230a 64%, transparent 72%); }
 @keyframes sky-sun-drift { to { transform: translate(26px, 18px) rotate(5deg); } }
 .space-backdrop .sky-sun { position: absolute; inset: 19%; border-radius: 50%; background: radial-gradient(circle at 45% 44%, #FFD47A 0 32%, #FF8A24 68%, #E34A23 96%); box-shadow: 0 0 22px #FF8A2438, 0 0 64px #E34A2324; }
 .space-backdrop .sky-meteor-haze { position: absolute; inset: 0; background: radial-gradient(ellipse at 6% 12%, #E34A2333, transparent 62%); }
@@ -50,12 +50,12 @@
 @keyframes sky-meteor-pass { 0%, 2% { opacity: 0; transform: translateX(0); } 3% { opacity: 1; } 7% { opacity: .9; } 10% { opacity: 0; transform: translateX(var(--meteor-distance)); } 100% { opacity: 0; transform: translateX(var(--meteor-distance)); } }
 .space-backdrop .sky-orbit-haze { position: absolute; inset: 0; background: radial-gradient(ellipse at 0% 100%, #17495d4d, transparent 55%), radial-gradient(ellipse at 96% 12%, #29416c33, transparent 38%); }
 .space-backdrop .sky-orbit-system { position: absolute; inset: 0; transform: translate(calc(var(--parallax-x, 0px) * .015), calc(var(--parallax-y, 0px) * .015)); }
-.space-backdrop .sky-orbit-planet { position: absolute; width: clamp(380px, 50vw, 720px); height: auto; left: -16%; bottom: -18%; animation: sky-planet-drift 36s ease-in-out infinite alternate; }
+.space-backdrop .sky-orbit-planet { position: absolute; width: clamp(380px, 50vw, 720px); height: auto; left: -16%; bottom: -18%; animation: sky-planet-drift 30s linear -6s infinite alternate; }
 .space-backdrop .sky-cloud-bands { animation: sky-band-drift 30s ease-in-out infinite alternate; }
 @keyframes sky-band-drift { to { transform: translateX(28px); } }
 .space-backdrop .sky-ring { animation: sky-ring-drift 32s ease-in-out infinite alternate; transform-origin: 300px 300px; }
 @keyframes sky-ring-drift { to { opacity: .7; translate: 0 3px; } }
-.space-backdrop .sky-orbit-moon { position: absolute; width: 68px; aspect-ratio: 1; top: 9%; left: 9%; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 28% 25%, #c1d0d9, #728798 46%, #26374b 73%); box-shadow: inset 2px 1px #d1e9eb88; animation: sky-moon-drift 32s ease-in-out infinite alternate; }
+.space-backdrop .sky-orbit-moon { position: absolute; width: 68px; aspect-ratio: 1; top: 9%; left: 9%; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 28% 25%, #c1d0d9, #728798 46%, #26374b 73%); box-shadow: inset 2px 1px #d1e9eb88; animation: sky-moon-drift 28s linear -8s infinite alternate; }
 .space-backdrop .sky-orbit-moon span { position: absolute; width: 20%; height: 20%; border-radius: 50%; left: 25%; top: 25%; background: #344a6070; box-shadow: 18px 22px 0 3px #344a6066; }
 .space-backdrop .sky-orbit-moon i { position: absolute; inset: 0; border-radius: 50%; box-shadow: inset -15px -6px 14px #03091199; }
 .space-backdrop .sky-orbit-moon-small { width: 22px; left: auto; right: 7%; top: 24%; animation-duration: 46s; animation-direction: alternate-reverse; }

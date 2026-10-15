@@ -10,7 +10,7 @@ function seed(index: number, salt: number) {
 
 function Stars({ count, drifting = false }: { count: number; drifting?: boolean }) {
   return <svg className={`sky-stars${drifting ? " sky-stars-drifting" : ""}`} viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice" shapeRendering="crispEdges">
-    {Array.from({ length: count }, (_, i) => <rect key={i} x={Math.round(seed(i, 3) * 1200)} y={Math.round(seed(i, 7) * 900)} width={i % 13 === 0 ? 2 : 1} height={i % 13 === 0 ? 2 : 1} fill="currentColor" opacity={.3 + seed(i, 11) * .6} />)}
+    {Array.from({ length: count }, (_, i) => <rect key={i} x={Math.round(seed(i, drifting ? 61 : 3) * 1200)} y={Math.round(seed(i, drifting ? 67 : 7) * 900)} width={i % 13 === 0 ? 2 : 1} height={i % 13 === 0 ? 2 : 1} fill="currentColor" opacity={.3 + seed(i, 11) * .6} />)}
   </svg>;
 }
 
@@ -84,9 +84,9 @@ function MeteorSky() {
 export function SpaceBackdrop({ backdropRef, mood }: { backdropRef: RefObject<HTMLDivElement | null>; mood: SpaceMood }) {
   return <div ref={backdropRef} className="space-backdrop" aria-hidden="true">
     {moods.map(({ id }) => <div key={id} className="space-scene" data-sky={id} data-active={id === mood}>
-      {id === "deep-space" && <><div className="sky-dark-planet sky-dark-planet-one" /><div className="sky-dark-planet sky-dark-planet-two" /><Stars count={52} /><Stars count={6} drifting /></>}
+      {id === "deep-space" && <><div className="sky-dark-planet sky-dark-planet-one" /><div className="sky-dark-planet sky-dark-planet-two" /><Stars count={52} /><Stars count={14} drifting /></>}
       {id === "nebula-drift" && <><div className="sky-nebula-depth sky-nebula-far"><div className="sky-nebula-cloud" /></div><div className="sky-nebula-depth sky-nebula-middle"><div className="sky-nebula-cloud" /></div><div className="sky-nebula-depth sky-nebula-near"><div className="sky-nebula-cloud" /></div><div className="sky-nebula-rift" /><svg className="sky-nebula-filaments" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice"><defs><filter id="sky-cloud-soften"><feGaussianBlur stdDeviation="16" /></filter></defs><g fill="none" filter="url(#sky-cloud-soften)"><path d="M-120 390C60 430 66 202 216 240S378 58 540 96" stroke="#a864be" strokeWidth="45" opacity=".19" /><path d="M-80 370C90 386 94 228 210 250S356 100 500 102" stroke="#d79ac8" strokeWidth="12" opacity=".22" /><path d="M720 920C640 730 924 840 930 634S1140 632 1280 450" stroke="#8252b7" strokeWidth="64" opacity=".2" /></g></svg><NebulaPlanet /><Stars count={130} /><Stars count={26} drifting /><SpaceSparks /></>}
-      {id === "meteor-shower" && <><MeteorSky /><Stars count={95} /></>}
+      {id === "meteor-shower" && <><MeteorSky /><Stars count={95} /><Stars count={18} drifting /></>}
       {id === "planetary-orbit" && <><div className="sky-orbit-haze" /><OrbitPlanet /><Stars count={96} /><Stars count={24} drifting /><SpaceSparks /></>}
     </div>)}
   </div>;

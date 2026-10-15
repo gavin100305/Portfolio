@@ -134,7 +134,7 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
       {atCockpit && !footballActive && <button className="nearby-action" type="button" disabled={Boolean(flight)} onClick={openCockpit}>Change space mood <span aria-hidden="true">E</span></button>}
       {!activeId && <button className="ship-view-launch" type="button" ref={exteriorControlRef} disabled={Boolean(flight) || cockpitOpen} aria-haspopup="dialog" onClick={() => setExteriorOpen(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8v3h3v12h-3v3H8v-3H5V6h3zM2 9v6m20-6v6M9 8h6v8H9z" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>Station view</button>}
       </div>
-      {exteriorOpen && <ShipView worldRef={worldRef} mood={mood} onMoodChange={next => choose(next, false)} onClose={closeExterior} onSection={id => { setExteriorOpen(false); onActivate(id, exteriorControlRef.current); }} />}
+      {exteriorOpen && <ShipView worldRef={worldRef} mood={mood} onMoodChange={next => choose(next, false)} onClose={closeExterior} />}
     </div>
   );
 }

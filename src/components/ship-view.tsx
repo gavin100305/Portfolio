@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type RefObject, type KeyboardEvent } from "react";
-import { sections, type SectionId } from "@/data/sections";
+import { useEffect, useRef, useState, type RefObject, type KeyboardEvent, type CSSProperties } from "react";
 import { corridorPath, MAP_SCALE, rooms, WORLD } from "@/data/station-world";
 import { moduleOutline } from "@/data/ship-observation";
 import { moods, type SpaceMood } from "@/components/use-space-mood";
@@ -23,22 +22,48 @@ function ShipIllustration() {
   </svg>;
 }
 
+function ThemeSlider({ mood, onChange }: { mood: SpaceMood; onChange: (mood: SpaceMood) => void }) {
+  const [position, setPosition] = useState<number | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const selected = moods.findIndex(item => item.id === mood);
+  const value = position ?? selected;
+  const settle = () => { setDragging(false); setPosition(null); };
+  return <footer className="relative mx-auto w-full max-w-[540px] shrink-0 px-3 py-3 text-[#e2e9ef]">
+    <div className="mb-2 flex items-baseline justify-between gap-3 font-pixel text-sm tracking-wide">
+      <label htmlFor="observation-theme">Space mood</label>
+      <span aria-hidden="true">{moods[selected].label}</span>
+    </div>
+    <div className="relative">
+      <input id="observation-theme" className="station-theme-slider block w-full cursor-pointer" type="range" min="0" max={moods.length - 1} step="0.01" value={value} aria-valuetext={moods[selected].label}
+        onPointerDown={() => setDragging(true)} onPointerUp={settle} onPointerCancel={settle} onBlur={settle}
+        onChange={event => { const next = Number(event.target.value); setPosition(next); onChange(moods[Math.round(next)].id); }}
+        onKeyDown={event => {
+          const direction = event.key === "ArrowRight" || event.key === "ArrowUp" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowDown" ? -1 : 0;
+          if (!direction && event.key !== "Home" && event.key !== "End") return;
+          event.preventDefault();
+          const next = event.key === "Home" ? 0 : event.key === "End" ? moods.length - 1 : Math.max(0, Math.min(moods.length - 1, selected + direction));
+          setPosition(null); onChange(moods[next].id);
+        }} />
+      <span aria-hidden="true" data-dragging={dragging} className="station-slider-thumb" style={{ left: `calc(${value / (moods.length - 1) * 100}% + ${13 - value / (moods.length - 1) * 26}px)` } as CSSProperties} />
+    </div>
+    <div aria-hidden="true" className="mt-1 flex justify-between gap-2 font-pixel text-[10px] text-[#b7c4d3]"><span>Deep space</span><span>Nebula</span><span>Orbit</span><span>Meteors</span></div>
+  </footer>;
+}
+
 type ShipViewProps = {
   worldRef: RefObject<HTMLDivElement | null>;
   mood: SpaceMood;
   onMoodChange: (mood: SpaceMood) => void;
   onClose: () => void;
-  onSection: (id: SectionId) => void;
 };
 
 /** Lightweight dialog; the Three.js chunk is requested only after opening. */
-export function ShipView({ worldRef, mood, onMoodChange, onClose, onSection }: ShipViewProps) {
+export function ShipView({ worldRef, mood, onMoodChange, onClose }: ShipViewProps) {
   const dialogRef = useRef<HTMLElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const sceneRef = useRef<ReturnType<typeof createExteriorScene> | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "fallback">("loading");
-  const [peek, setPeek] = useState(false);
 
   useEffect(() => {
     closeRef.current?.focus();
@@ -63,50 +88,27 @@ export function ShipView({ worldRef, mood, onMoodChange, onClose, onSection }: S
 
   const handleKeys = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key === "Escape") { event.preventDefault(); onClose(); return; }
-    if (!(event.target instanceof HTMLSelectElement)) {
+    if (!(event.target instanceof HTMLInputElement)) {
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") { event.preventDefault(); sceneRef.current?.rotate(event.key === "ArrowLeft" ? -1 : 1); return; }
       if (event.key === "+" || event.key === "=" || event.key === "-") { event.preventDefault(); sceneRef.current?.zoom(event.key === "-" ? -1 : 1); return; }
       if (event.key === "Home") { event.preventDefault(); sceneRef.current?.reset(); return; }
     }
     if (event.key !== "Tab") return;
-    const controls = dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], select');
+    const controls = dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), [tabindex="0"]');
     const first = controls?.item(0), last = controls?.item(controls.length - 1);
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
   };
-  const changePeek = () => {
-    sceneRef.current?.setPeek(!peek);
-    setPeek(!peek);
-  };
-
   return <section className="ship-view" ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="ship-view-title" onKeyDown={handleKeys}>
     <header className="ship-view-heading">
       <div><span className="ship-view-eyebrow">EXTERIOR OBSERVATION</span><h2 id="ship-view-title">Station view</h2></div>
       <button ref={closeRef} className="ship-view-return" type="button" onClick={onClose}>Return to deck <span aria-hidden="true">↵</span></button>
     </header>
     <div className="ship-view-observation">
-      <div className="ship-view-canvas" ref={hostRef} role="img" tabIndex={status === "ready" ? 0 : -1} aria-describedby="ship-view-help" aria-label={`Interactive perspective view of the existing seven-deck space station${peek ? ", with the Command Deck and Project Hangar exposed" : ""}`} hidden={status === "fallback"} />
-      {status !== "ready" && <div className="ship-view-fallback"><ShipIllustration /><p role="status">{status === "loading" ? "Preparing observation view…" : "3D view unavailable. You can explore every deck below."}</p></div>}
-      <span className="ship-view-caption">{peek ? "COMMAND DECK + PROJECT HANGAR · DECK PEEK" : "SEVEN CONNECTED DECKS · ORIGINAL FLOOR PLAN"}</span>
+      <div className="ship-view-canvas" ref={hostRef} role="img" tabIndex={status === "ready" ? 0 : -1} aria-describedby="ship-view-help" aria-label="Interactive perspective view of the space station" hidden={status === "fallback"} />
+      {status !== "ready" && <div className="ship-view-fallback"><ShipIllustration /><p role="status">{status === "loading" ? "Preparing observation view…" : "3D view unavailable. Return to the deck to explore the station."}</p></div>}
+      <p id="ship-view-help" className="visually-hidden">Drag to rotate, scroll or pinch to zoom. Keyboard: left and right arrows rotate, plus and minus zoom, Home resets.</p>
     </div>
-    <footer className="ship-view-footer">
-      <div className="ship-view-camera" role="group" aria-label="Station camera controls">
-        <p id="ship-view-help">Drag to rotate · Scroll or pinch to zoom<span className="visually-hidden">. Keyboard: left and right arrows rotate, plus and minus zoom, Home resets.</span></p>
-        <button type="button" aria-label="Rotate station left" disabled={status !== "ready"} onClick={() => sceneRef.current?.rotate(-1)}>↶</button>
-        <button type="button" aria-label="Rotate station right" disabled={status !== "ready"} onClick={() => sceneRef.current?.rotate(1)}>↷</button>
-        <button type="button" aria-label="Zoom in" disabled={status !== "ready"} onClick={() => sceneRef.current?.zoom(1)}>+</button>
-        <button type="button" aria-label="Zoom out" disabled={status !== "ready"} onClick={() => sceneRef.current?.zoom(-1)}>−</button>
-        <button type="button" disabled={status !== "ready"} onClick={() => sceneRef.current?.reset()}>Reset view</button>
-      </div>
-      <div className="ship-view-settings">
-        <button type="button" className="ship-view-peek" disabled={status !== "ready"} aria-pressed={peek} onClick={changePeek}>{peek ? "Close deck peek" : "Peek inside"}</button>
-        <label className="ship-view-mood">Space mood<select value={mood} onChange={event => onMoodChange(event.target.value as SpaceMood)}>{moods.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></label>
-        <p>Your astronaut is waiting where you left them.</p>
-      </div>
-      <nav className="ship-view-directory" aria-label="Go to a portfolio deck">{sections.map(section => <a href={`#${section.id}`} key={section.id} onClick={event => {
-        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
-        event.preventDefault(); onSection(section.id);
-      }}>{section.label}<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3h7v7m0-7L10 14M10 4H4v16h16v-6" /></svg></a>)}</nav>
-    </footer>
+    <ThemeSlider mood={mood} onChange={onMoodChange} />
   </section>;
 }
