@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import type { SectionId } from "@/data/sections";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { createExteriorModel, type DeckSources } from "@/components/exterior-model";
 
@@ -22,7 +23,7 @@ export function frameShip(camera: THREE.PerspectiveCamera, bounds: THREE.Box3) {
   return { target, origin };
 }
 
-export function createExteriorScene(host: HTMLDivElement, sources: DeckSources, onFailure: () => void) {
+export function createExteriorScene(host: HTMLDivElement, sources: DeckSources, onFailure: () => void, onRoomPeek?: (id: SectionId, open: boolean) => void) {
   let disposed = false;
   let frame = 0;
   let lastTime = 0;
@@ -37,6 +38,49 @@ export function createExteriorScene(host: HTMLDivElement, sources: DeckSources, 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(35, 1, .05, 150);
   let framing = { target: new THREE.Vector3(), origin: new THREE.Vector3() };
+
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+  const gestures = new Map<number, { x: number; y: number; cancelled: boolean }>();
+  const openedRooms = new Set<SectionId>();
+  function toggleRoom(id: SectionId) {
+    if (!model || !renderer) return;
+    const open = model.toggleRoom(id);
+    if (open) openedRooms.add(id); else openedRooms.delete(id);
+    host.dataset.openRooms = [...openedRooms].join(",");
+    renderer.shadowMap.needsUpdate = true;
+    onRoomPeek?.(id, open);
+    invalidate();
+  }
+  function pointerDown(event: PointerEvent) {
+    if (event.button !== 0) return;
+    gestures.set(event.pointerId, { x: event.clientX, y: event.clientY, cancelled: false });
+    if (gestures.size > 1) gestures.forEach(gesture => { gesture.cancelled = true; });
+  }
+  function pointerMove(event: PointerEvent) {
+    const gesture = gestures.get(event.pointerId);
+    if (gesture && Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) > 7) gesture.cancelled = true;
+  }
+  function pointerCancel(event: PointerEvent) { gestures.delete(event.pointerId); }
+  function pointerUp(event: PointerEvent) {
+    const gesture = gestures.get(event.pointerId);
+    gestures.delete(event.pointerId);
+    if (!gesture || gesture.cancelled || !model || !renderer || Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) > 7) return;
+    const bounds = renderer.domElement.getBoundingClientRect();
+    pointer.set((event.clientX - bounds.left) / bounds.width * 2 - 1, -(event.clientY - bounds.top) / bounds.height * 2 + 1);
+    model.group.updateMatrixWorld(true);
+    camera.updateMatrixWorld(true);
+    raycaster.setFromCamera(pointer, camera);
+    // Hidden roofs must not intercept the next tap on an exposed floor.
+    const hit = raycaster.intersectObject(model.group, true).find(({ object }) => {
+      for (let node: THREE.Object3D | null = object; node; node = node.parent) if (!node.visible) return false;
+      return true;
+    });
+    for (let node: THREE.Object3D | null = hit?.object ?? null; node; node = node.parent) {
+      const id = node.userData.roomId as SectionId | undefined;
+      if (id) { toggleRoom(id); break; }
+    }
+  }
 
   function stop() { cancelAnimationFrame(frame); frame = 0; }
   function invalidate() {
@@ -91,6 +135,11 @@ export function createExteriorScene(host: HTMLDivElement, sources: DeckSources, 
     controls?.removeEventListener("change", invalidate);
     controls?.dispose();
     renderer?.domElement.removeEventListener("webglcontextlost", contextLost);
+    renderer?.domElement.removeEventListener("pointerdown", pointerDown);
+    renderer?.domElement.removeEventListener("pointermove", pointerMove);
+    renderer?.domElement.removeEventListener("pointerup", pointerUp);
+    renderer?.domElement.removeEventListener("pointercancel", pointerCancel);
+    gestures.clear();
     model?.dispose();
     scene.traverse(object => { if (object instanceof THREE.Light) object.dispose(); });
     renderer?.dispose(); renderer?.forceContextLoss(); renderer?.domElement.remove();
@@ -122,7 +171,7 @@ export function createExteriorScene(host: HTMLDivElement, sources: DeckSources, 
     key.shadow.normalBias = .015; key.shadow.bias = -.0002;
     const fill = new THREE.DirectionalLight("#a8d8ff", 1.5);
     fill.position.set(5, 3, -8); scene.add(fill);
-    model = createExteriorModel(sources, invalidate);
+    model = createExteriorModel(sources, () => { if (renderer) renderer.shadowMap.needsUpdate = true; invalidate(); });
     // Add vertical depth to the existing modules, keeping every X/Z position
     // and stepped room outline intact. There is no surrounding enclosure.
     model.group.scale.y = 2.2;
@@ -136,6 +185,10 @@ export function createExteriorScene(host: HTMLDivElement, sources: DeckSources, 
     controls.minPolarAngle = .25;
     controls.maxPolarAngle = Math.PI * .44;
     controls.addEventListener("change", invalidate);
+    renderer.domElement.addEventListener("pointerdown", pointerDown);
+    renderer.domElement.addEventListener("pointermove", pointerMove);
+    renderer.domElement.addEventListener("pointerup", pointerUp);
+    renderer.domElement.addEventListener("pointercancel", pointerCancel);
     resize = new ResizeObserver(measure); resize.observe(host);
     intersection = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
@@ -149,6 +202,7 @@ export function createExteriorScene(host: HTMLDivElement, sources: DeckSources, 
   } catch (error) { dispose(); throw error; }
   return {
     dispose,
+    toggleRoom,
     setPeek(value: boolean) { model?.setPeek(value); if (renderer) renderer.shadowMap.needsUpdate = true; invalidate(); },
     rotate(direction: number) {
       if (!controls) return;

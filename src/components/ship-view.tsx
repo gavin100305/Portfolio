@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type RefObject, type KeyboardEvent, type CSSProperties } from "react";
+import { sections, getSection } from "@/data/sections";
 import { corridorPath, MAP_SCALE, rooms, WORLD } from "@/data/station-world";
 import { moduleOutline } from "@/data/ship-observation";
 import { moods, type SpaceMood } from "@/components/use-space-mood";
@@ -63,6 +64,7 @@ export function ShipView({ worldRef, mood, onMoodChange, onClose }: ShipViewProp
   const hostRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const sceneRef = useRef<ReturnType<typeof createExteriorScene> | null>(null);
+  const [peekNotice, setPeekNotice] = useState("Tap a room to peek inside");
   const [status, setStatus] = useState<"loading" | "ready" | "fallback">("loading");
 
   useEffect(() => {
@@ -72,7 +74,7 @@ export function ShipView({ worldRef, mood, onMoodChange, onClose }: ShipViewProp
   useEffect(() => {
     let cancelled = false;
     const sources: DeckSources = {};
-    for (const id of ["about", "projects"] as const) {
+    for (const { id } of sections) {
       const element = worldRef.current?.querySelector<SVGSVGElement>(`a[href="#${id}"] .room-artwork`);
       if (element) sources[id] = element;
     }
@@ -80,7 +82,7 @@ export function ShipView({ worldRef, mood, onMoodChange, onClose }: ShipViewProp
     // portfolio available, with a small original SVG overview as fallback.
     void import("@/components/exterior-scene").then(({ createExteriorScene }) => {
       if (cancelled || !hostRef.current) return;
-      sceneRef.current = createExteriorScene(hostRef.current, sources, () => { if (!cancelled) setStatus("fallback"); });
+      sceneRef.current = createExteriorScene(hostRef.current, sources, () => { if (!cancelled) setStatus("fallback"); }, (id, open) => { if (!cancelled) setPeekNotice(`${getSection(id)?.roomName} ${open ? "open · tap again to close" : "closed"}`); });
       setStatus("ready");
     }).catch(() => { if (!cancelled) setStatus("fallback"); });
     return () => { cancelled = true; sceneRef.current?.dispose(); sceneRef.current = null; };
@@ -89,6 +91,8 @@ export function ShipView({ worldRef, mood, onMoodChange, onClose }: ShipViewProp
   const handleKeys = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key === "Escape") { event.preventDefault(); onClose(); return; }
     if (!(event.target instanceof HTMLInputElement)) {
+      const roomIndex = Number(event.key) - 1;
+      if (/^[1-7]$/.test(event.key)) { event.preventDefault(); sceneRef.current?.toggleRoom(sections[roomIndex].id); return; }
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") { event.preventDefault(); sceneRef.current?.rotate(event.key === "ArrowLeft" ? -1 : 1); return; }
       if (event.key === "+" || event.key === "=" || event.key === "-") { event.preventDefault(); sceneRef.current?.zoom(event.key === "-" ? -1 : 1); return; }
       if (event.key === "Home") { event.preventDefault(); sceneRef.current?.reset(); return; }
@@ -107,7 +111,8 @@ export function ShipView({ worldRef, mood, onMoodChange, onClose }: ShipViewProp
     <div className="ship-view-observation">
       <div className="ship-view-canvas" ref={hostRef} role="img" tabIndex={status === "ready" ? 0 : -1} aria-describedby="ship-view-help" aria-label="Interactive perspective view of the space station" hidden={status === "fallback"} />
       {status !== "ready" && <div className="ship-view-fallback"><ShipIllustration /><p role="status">{status === "loading" ? "Preparing observation view…" : "3D view unavailable. Return to the deck to explore the station."}</p></div>}
-      <p id="ship-view-help" className="visually-hidden">Drag to rotate, scroll or pinch to zoom. Keyboard: left and right arrows rotate, plus and minus zoom, Home resets.</p>
+      {status === "ready" && <p role="status" className="ship-view-notice pointer-events-none m-0 text-center font-pixel text-xs tracking-wide text-[#c8d5df]">{peekNotice}</p>}
+      <p id="ship-view-help" className="visually-hidden">Drag to rotate, scroll or pinch to zoom. Keyboard: left and right arrows rotate, plus and minus zoom, Home resets. Number keys 1 to 7 toggle room roofs, in Projects, Achievements, Tech Stack, Experience, About, Contact, and Orbital Training Deck order.</p>
     </div>
     <ThemeSlider mood={mood} onChange={onMoodChange} />
   </section>;

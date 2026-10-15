@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { airlocks, corridorRoutes, MAP_SCALE, rooms, WORLD, type Point } from "@/data/station-world";
 import type { SectionId } from "@/data/sections";
+import { equipmentPolygons } from "@/components/equipment-footprints";
 import { moduleOutline } from "@/data/ship-observation";
 
 const unit = MAP_SCALE * 100;
@@ -12,7 +13,7 @@ export type DeckSources = Partial<Record<SectionId, SVGSVGElement>>;
 /** Procedural observation model. No changes to the playable world or its data. */
 export function createExteriorModel(sources: DeckSources, invalidate: () => void) {
   const group = new THREE.Group();
-  const peekRoofs: THREE.Group[] = [];
+  const peekRoofs = new Map<SectionId, THREE.Group>();
   const geometry = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
   const textures = new Set<THREE.Texture>();
@@ -84,12 +85,20 @@ export function createExteriorModel(sources: DeckSources, invalidate: () => void
       box(group, x, .045, z, w, .035, d, edge);
       box(group, x, .075, z, horizontal ? w : .26, .03, horizontal ? .26 : d, frame);
       box(group, x, .095, z, horizontal ? w : .16, .012, horizontal ? .16 : d, cream);
+      // Covered pressure tunnels meet the room roof height at each doorway.
+      for (const offset of [-.15, .15]) {
+        box(group, x + (horizontal ? 0 : offset), .18, z + (horizontal ? offset : 0), horizontal ? w : .04, .16, horizontal ? .04 : d, frame);
+      }
+      box(group, x, .278, z, w, .055, d, roof);
+      box(group, x, .309, z, horizontal ? w : .22, .008, horizontal ? .22 : d, panel);
+
     }
   }
 
   for (const [id, room] of Object.entries(rooms) as [SectionId, typeof rooms[SectionId]][]) {
     const bay = new THREE.Group();
     bay.name = id;
+    bay.userData.roomId = id;
     bay.position.set(xAt(room.x + room.width / 2), 0, zAt(room.y + room.height / 2));
     group.add(bay);
     const scale = room.width / 240 / unit;
@@ -99,7 +108,7 @@ export function createExteriorModel(sources: DeckSources, invalidate: () => void
     const floor = box(bay, 0, .015, 0, w * .85, .025, d * .82, id === "football" ? inset : cream);
 
     // Perimeter wall segments are cut at the existing entrances. This also
-    // makes the two peek decks visibly connected to the real corridors.
+    // makes the peek decks visibly connected to the real corridors.
     const entrances = airlocks.filter(a => a.x * MAP_SCALE < room.x + room.width && (a.x + a.width) * MAP_SCALE > room.x && a.y * MAP_SCALE < room.y + room.height && (a.y + a.height) * MAP_SCALE > room.y)
       .map(a => ({ x: (a.x * MAP_SCALE - room.x - room.width / 2) / unit, z: (a.y * MAP_SCALE - room.y - room.height / 2) / unit, w: a.width * MAP_SCALE / unit, d: a.height * MAP_SCALE / unit }));
     moduleOutline.forEach((p, index) => {
@@ -125,7 +134,7 @@ export function createExteriorModel(sources: DeckSources, invalidate: () => void
 
     const lid = new THREE.Group();
     bay.add(lid);
-    if (id === "about" || id === "projects") peekRoofs.push(lid);
+    peekRoofs.set(id, lid);
     const roofOutline = moduleOutline.map(p => ({ x: 120 + (p.x - 120) * .94, y: 88 + (p.y - 88) * .94 }));
     slab(lid, roofOutline, scale, .055, .25, roof);
     box(lid, 0, .323, -.05, w * .58, .036, d * .55, panel);
@@ -188,7 +197,7 @@ export function createExteriorModel(sources: DeckSources, invalidate: () => void
       }
     }
 
-    if ((id === "about" || id === "projects") && sources[id]) {
+    if (sources[id]) {
       // Reuse only our own SVG art for the decorative preview. The actual
       // interactive rooms, labels and content remain accessible HTML/SVG.
       const source = sources[id]!;
@@ -205,22 +214,67 @@ export function createExteriorModel(sources: DeckSources, invalidate: () => void
       clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
       clone.setAttribute("width", "720"); clone.setAttribute("height", "528");
       clone.removeAttribute("class");
-      const image = new Image();
-      const texture = new THREE.Texture(image);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.anisotropy = 2;
-      textures.add(texture);
-      const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false });
-      materials.add(material);
-      const deck = mesh(bay, new THREE.PlaneGeometry(w, d), material);
-      deck.rotation.x = -Math.PI / 2;
-      deck.position.y = .035;
-      deck.visible = false;
-      image.onload = () => {
-        if (disposed) return;
-        texture.needsUpdate = true; deck.visible = true; floor.visible = false; invalidate();
-      };
-      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(clone))}`;
+      const solids = equipmentPolygons(id);
+      const equipmentHeight = id === "projects" || id === "contact" ? .12 : .10;
+      const svgNS = "http://www.w3.org/2000/svg";
+      function maskEquipment(svg: SVGSVGElement, inverse: boolean) {
+        const mask = document.createElementNS(svgNS, "mask");
+        mask.id = `observation-equipment-${id}-${inverse ? "floor" : "top"}`;
+        mask.setAttribute("maskUnits", "userSpaceOnUse");
+        mask.setAttribute("x", "0"); mask.setAttribute("y", "0");
+        mask.setAttribute("width", "240"); mask.setAttribute("height", "176");
+        const base = document.createElementNS(svgNS, "rect");
+        base.setAttribute("width", "240"); base.setAttribute("height", "176"); base.setAttribute("fill", inverse ? "white" : "black");
+        mask.appendChild(base);
+        for (const points of solids) {
+          const polygon = document.createElementNS(svgNS, "polygon");
+          polygon.setAttribute("points", points.map(p => `${p.x},${p.y}`).join(" "));
+          polygon.setAttribute("fill", inverse ? "black" : "white"); mask.appendChild(polygon);
+        }
+        svg.querySelector("defs")!.appendChild(mask);
+        svg.querySelector(".room-props")?.setAttribute("mask", `url(#${mask.id})`);
+      }
+      function texturedPlane(svg: SVGSVGElement, height: number, loaded?: () => void) {
+        const image = new Image();
+        const texture = new THREE.Texture(image);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.magFilter = THREE.NearestFilter;
+        texture.anisotropy = 2; textures.add(texture);
+        const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, alphaTest: .02, depthWrite: false });
+        materials.add(material);
+        const drawing = mesh(bay, new THREE.PlaneGeometry(w, d), material);
+        drawing.rotation.x = -Math.PI / 2;
+        drawing.position.y = height;
+        drawing.visible = false;
+        image.onload = () => {
+          if (disposed) return;
+          texture.needsUpdate = true; drawing.visible = true; loaded?.(); invalidate();
+        };
+        image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(svg))}`;
+      }
+      const floorDrawing = clone.cloneNode(true) as SVGSVGElement;
+      maskEquipment(floorDrawing, true);
+      texturedPlane(floorDrawing, .035, () => { floor.visible = false; });
+      if (solids.length) {
+        const equipmentDrawing = clone.cloneNode(true) as SVGSVGElement;
+        equipmentDrawing.querySelectorAll(":scope > g:not(.room-props)").forEach(node => node.remove());
+        maskEquipment(equipmentDrawing, false);
+        const furniture = new THREE.Group(); bay.add(furniture);
+        furniture.visible = false;
+        for (const points of solids) {
+          const shape = new THREE.Shape(points.map(p => new THREE.Vector2((p.x - 120) * scale, -(p.y - 88) * scale)));
+          const body = mesh(furniture, new THREE.ExtrudeGeometry(shape, { depth: equipmentHeight, bevelEnabled: false }), frame);
+          body.rotation.x = -Math.PI / 2;
+          body.position.y = .036;
+          body.castShadow = true; body.receiveShadow = true;
+        }
+        texturedPlane(equipmentDrawing, .037 + equipmentHeight, () => { furniture.visible = true; });
+        const shadowMaterial = new THREE.ShadowMaterial({ opacity: .26, depthWrite: false });
+        shadowMaterial.side = THREE.DoubleSide; materials.add(shadowMaterial);
+        const receiver = mesh(bay, new THREE.PlaneGeometry(w * .82, d * .78), shadowMaterial);
+        receiver.rotation.x = -Math.PI / 2; receiver.position.y = .036;
+        receiver.receiveShadow = true;
+      }
     }
   }
 
@@ -284,6 +338,12 @@ export function createExteriorModel(sources: DeckSources, invalidate: () => void
   return {
     group,
     setPeek(value: boolean) { peekRoofs.forEach(lid => { lid.visible = !value; }); },
+    toggleRoom(id: SectionId) {
+      const lid = peekRoofs.get(id);
+      if (!lid) return false;
+      lid.visible = !lid.visible;
+      return !lid.visible;
+    },
     animate(time: number, reduced: boolean) {
       group.position.y = reduced ? 0 : Math.sin(time / 6000) * .012;
       engineGlow.opacity = reduced ? .65 : .65 + Math.sin(time / 1400) * .09;

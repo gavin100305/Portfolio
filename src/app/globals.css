@@ -466,14 +466,19 @@ button, input, textarea, select { font-family: inherit; }
 .ship-view-launch:hover { border-color: #65c8ff; }
 .ship-view-launch:disabled { opacity: .5; cursor: default; }
 .ship-view { position: absolute; inset: 0; z-index: 12; display: flex; flex-direction: column; padding: clamp(16px, 3vw, 44px); color: #f2f5fa; animation: observation-enter 220ms ease-out both; }
-.ship-view-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-shrink: 0; }
+.ship-view-heading { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-shrink: 0; }
 .ship-view-eyebrow { font: 10px var(--font-manrope); color: #a7b0c0; letter-spacing: .18em; }
 .ship-view-heading h2 { margin: 6px 0 0; font: 36px/1 var(--font-pixel); letter-spacing: .02em; }
 .ship-view-return { display: flex; align-items: center; gap: 18px; min-height: 44px; padding: 10px 16px; border: 1px solid #7e94a8; border-radius: 5px; background: #dce2dd; color: #172033; cursor: pointer; font-size: 12px; font-weight: 700; box-shadow: inset 0 2px #f2f5fa, 0 3px #283746; }
 .ship-view-return span { font-size: 20px; }
 .ship-view-return:hover { background: #f2f5fa; }
-.ship-view-observation { position: relative; flex: 1; min-height: 160px; margin: 12px 0 24px; }
-.ship-view-canvas { position: absolute; inset: 0; }
+.ship-view-observation { position: static; flex: 1; min-height: 160px; margin: 12px 0 24px; }
+/* Full-view renderer: no inner rectangle to crop the station when zooming. */
+.ship-view-canvas { position: absolute; inset: 0; z-index: 0; }
+.ship-view-canvas:focus-visible { outline: none; }
+.ship-view:has(.ship-view-canvas:focus-visible) .ship-view-heading h2 { text-decoration: underline; text-decoration-color: var(--ship-light); text-underline-offset: 6px; text-decoration-thickness: 2px; }
+.ship-view > footer { z-index: 1; }
+.ship-view-notice { position: absolute; z-index: 1; left: 0; right: 0; bottom: calc(clamp(16px, 3vw, 44px) + 112px); }
 .ship-view-canvas canvas { display: block; width: 100%; height: 100%; }
 .ship-view-canvas { touch-action: none; cursor: grab; }
 .ship-view-canvas:active { cursor: grabbing; }
