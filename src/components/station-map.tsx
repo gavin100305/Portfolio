@@ -129,10 +129,10 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
       </div>
       <MoodControl open={cockpitOpen} onClose={() => setCockpitOpen(false)} mood={mood} controlRef={controlRef} onChoose={(next) => { setCockpitOpen(false); choose(next); }} />
       {footballActive && <FootballArenaControls game={game} onExit={onLeaveArena} />}
-      <p hidden={footballActive} id="movement-instructions" className="movement-instructions"><span className="desktop-instructions">Move: WASD · Enter: open room</span><span className="touch-instructions">Touch: drag to steer.<br />Tap a room to open.</span></p>
+      <p hidden={footballActive} id="movement-instructions" className="movement-instructions"><span className="desktop-instructions"><span className="inline-flex items-center gap-2"><span>Move</span><kbd>WASD</kbd><span className="mx-1 opacity-40" aria-hidden="true">/</span><kbd>Enter</kbd><span>open room</span></span></span><span className="touch-instructions">Drag to move<br />Tap a room to open</span></p>
       {atFootball && !footballActive && <button className="nearby-action" type="button" onClick={(event) => onActivate("football", event.currentTarget)}>Play penalties <span aria-hidden="true">E</span></button>}
       {atCockpit && !footballActive && <button className="nearby-action" type="button" disabled={Boolean(flight)} onClick={openCockpit}>Change space mood <span aria-hidden="true">E</span></button>}
-      {!activeId && <button className="ship-view-launch" type="button" ref={exteriorControlRef} disabled={Boolean(flight) || cockpitOpen} aria-haspopup="dialog" onClick={() => setExteriorOpen(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8v3h3v12h-3v3H8v-3H5V6h3zM2 9v6m20-6v6M9 8h6v8H9z" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>Station view</button>}
+      {!activeId && <button className="ship-view-launch" type="button" ref={exteriorControlRef} disabled={Boolean(flight) || cockpitOpen} aria-haspopup="dialog" onClick={() => setExteriorOpen(true)}><span className="grid size-7 shrink-0 place-items-center rounded border border-card-edge bg-station-wash" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 3h8v3h3v12h-3v3H8v-3H5V6h3zM2 9v6m20-6v6M9 8h6v8H9z" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg></span><span>Station view</span></button>}
       </div>
       {exteriorOpen && <ShipView worldRef={worldRef} mood={mood} onMoodChange={next => choose(next, false)} onClose={closeExterior} />}
     </div>

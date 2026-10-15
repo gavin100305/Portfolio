@@ -113,7 +113,7 @@ button { color: inherit; }
 .exploration-map, .map-viewport, .space-backdrop { position: absolute; inset: 0; }
 .exploration-map { background: #000; }
 .map-viewport { overflow: clip; outline-offset: -4px; touch-action: none; }
-.map-viewport:focus-visible { outline: 2px solid var(--teal); }
+.map-viewport:focus-visible { outline: none; }
 .interior-experience { position: absolute; inset: 0; }
 .exploration-map[data-exterior="true"] .interior-experience { visibility: hidden; }
 .interior-depth-canvas { position: absolute; inset: 0; pointer-events: none; }
@@ -162,7 +162,7 @@ button { color: inherit; }
 }
 .touch-instructions { display: none; }
 /* Small movement hint; location HUD and directional pad are intentionally absent. */
-.movement-instructions { position: absolute; z-index: 3; left: 20px; bottom: 16px; margin: 0; padding: 8px 10px; border: 1px solid #253244; border-radius: 4px; background: rgb(6 10 16 / 82%); color: #a6b8cd; font-size: 11px; line-height: 1.6; pointer-events: none; }
+.movement-instructions { position: absolute; z-index: 3; left: 20px; bottom: 16px; display: flex; align-items: center; margin: 0; font-size: 11px; line-height: 1.6; pointer-events: none; }
 .open-room-button { min-height: 44px; padding: 8px 10px; border: 1px solid #53687a; background: #182636; color: var(--cream); cursor: pointer; font-size: 12px; }
 .nearby-action { position: absolute; z-index: 4; left: 20px; bottom: 72px; min-height: 44px; padding: 8px 12px; border: 1px solid #53687a; border-radius: 4px; background: #15283b; color: var(--cream); cursor: pointer; }
 .nearby-action:disabled { opacity: .7; }
@@ -339,17 +339,8 @@ button { color: inherit; }
 .cockpit-world-console:hover, .cockpit-world-console:focus-visible { outline: 2px dashed var(--ship-light); outline-offset: 5px; }
 .cockpit-console-switch { position: absolute; left: 18%; top: 64%; width: 42%; height: 18%; border: 2px solid #8ba2ba; border-radius: 8px; background: #080f1b; }
 .cockpit-console-switch span { display: block; width: 23%; height: 100%; border-radius: 50%; background: var(--ship-light); box-shadow: 0 0 8px var(--ship-light); }
-.cockpit-mood-dialog { position: fixed; inset: 0; margin: auto; width: min(360px, calc(100vw - 32px)); max-height: calc(100svh - 32px); overflow-y: auto; padding: 20px; border: 1px solid #57718c; border-radius: 10px; background: #101f30; color: #f7f2e7; box-shadow: 0 16px 60px #0008; }
+.cockpit-mood-dialog { position: fixed; inset: 0; margin: auto; width: min(460px, calc(100vw - 32px)); max-height: calc(100svh - 32px); overflow-y: auto; padding: 24px; border: 4px solid var(--frame-color); border-radius: 10px; background: var(--surface-card); color: var(--ink); color-scheme: light; box-shadow: inset 0 0 0 1px var(--card-border), 0 6px 0 var(--frame-dark), 0 20px 60px #0006; }
 .cockpit-mood-dialog::backdrop { background: rgb(3 5 10 / 65%); }
-.cockpit-dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.cockpit-dialog-heading h2 { margin: 0; font-size: 18px; font-weight: 500; }
-.cockpit-mood-dialog p { margin: 8px 0 18px; color: #a7b0c0; font-size: 13px; }
-.cockpit-mood-dialog button { min-height: 44px; color: inherit; cursor: pointer; }
-.cockpit-close { width: 44px; border: 1px solid #57718c; border-radius: 5px; background: transparent; font-size: 24px; }
-.cockpit-mood-options { display: grid; gap: 8px; }
-.cockpit-mood-options button { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid #57718c; border-radius: 5px; background: #15283b; text-align: left; }
-.cockpit-mood-options button:hover, .cockpit-mood-options button[aria-pressed="true"] { background: #29405a; border-color: #b8cadc; }
-.cockpit-return { margin-top: 16px; padding: 8px 12px; border: 1px solid #57718c; border-radius: 5px; background: transparent; }
 
 /* Ship typography: long-form UI uses Manrope; spatial signs use Pixelify Sans. */
 button, input, textarea, select { font-family: inherit; }
@@ -461,9 +452,14 @@ button, input, textarea, select { font-family: inherit; }
 }
 
 /* Optional observation view. The playable interior and its styles stay intact. */
-.ship-view-launch { position: absolute; right: 20px; bottom: 16px; z-index: 5; display: flex; gap: 8px; align-items: center; min-height: 44px; padding: 8px 14px; border: 1px solid #61738b; border-radius: 5px; background: rgb(17 24 36 / 94%); color: #f2f5fa; font-size: 12px; cursor: pointer; }
-.ship-view-launch svg { width: 20px; height: 20px; color: #a6c9dc; }
-.ship-view-launch:hover { border-color: #65c8ff; }
+.movement-instructions, .ship-view-launch { min-height: 48px; padding: 8px 12px; border: 2px solid var(--frame-color); border-radius: 6px; background: var(--surface-card); color: var(--accent-ink); box-shadow: inset 0 1px #fff, 0 3px 0 var(--frame-dark), 0 5px 12px #0002; }
+.movement-instructions[hidden] { display: none; }
+.movement-instructions kbd { display: inline-block; padding: 2px 5px; border: 1px solid var(--card-border); border-radius: 3px; background: var(--accent-wash); color: var(--accent-ink); box-shadow: 0 2px 0 var(--card-border); font: 11px var(--font-pixel); }
+.ship-view-launch { position: absolute; right: 20px; bottom: 16px; z-index: 5; display: flex; gap: 9px; align-items: center; font: 14px var(--font-pixel); cursor: pointer; transition: transform 180ms ease, box-shadow 180ms ease; }
+.ship-view-launch svg { width: 20px; height: 20px; }
+.ship-view-launch:hover:not(:disabled) { transform: translateY(-2px); box-shadow: inset 0 1px #fff, 0 5px 0 var(--frame-dark), 0 7px 14px #0002; }
+.ship-view-launch:active:not(:disabled) { transform: translateY(1px); box-shadow: inset 0 1px #fff, 0 2px 0 var(--frame-dark); }
+@media (prefers-reduced-motion: reduce) { .ship-view-launch { transition: none; } .ship-view-launch:hover:not(:disabled), .ship-view-launch:active:not(:disabled) { transform: none; } }
 .ship-view-launch:disabled { opacity: .5; cursor: default; }
 .ship-view { position: absolute; inset: 0; z-index: 12; display: flex; flex-direction: column; padding: clamp(16px, 3vw, 44px); color: #f2f5fa; animation: observation-enter 220ms ease-out both; }
 .ship-view-heading { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-shrink: 0; }
@@ -488,6 +484,7 @@ button, input, textarea, select { font-family: inherit; }
 @keyframes observation-enter { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 700px) {
   .ship-view-launch { right: 10px; bottom: 10px; }
+  .movement-instructions, .ship-view-launch { min-height: 44px; padding: 6px 9px; }
   .ship-view-heading h2 { font-size: 28px; }
   .ship-view-return { padding: 8px 10px; gap: 8px; font-size: 11px; }
 }
@@ -509,3 +506,6 @@ button, input, textarea, select { font-family: inherit; }
 .station-slider-thumb[data-dragging="true"] { transition: background-color 300ms ease; }
 @media (prefers-reduced-motion: reduce) { .station-slider-thumb { transition: none; } }
 .station-theme-slider:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 4px; border-radius: 4px; }
+
+.station-theme-slider[data-tone="light"]::-webkit-slider-runnable-track { background: var(--accent-wash); border-color: var(--card-border); box-shadow: inset 0 2px 2px #17203322; }
+.station-theme-slider[data-tone="light"]::-moz-range-track { background: var(--accent-wash); border-color: var(--card-border); box-shadow: inset 0 2px 2px #17203322; }

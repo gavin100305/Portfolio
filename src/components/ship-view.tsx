@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, type RefObject, type KeyboardEvent, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type RefObject, type KeyboardEvent } from "react";
 import { sections, getSection } from "@/data/sections";
 import { corridorPath, MAP_SCALE, rooms, WORLD } from "@/data/station-world";
 import { moduleOutline } from "@/data/ship-observation";
-import { moods, type SpaceMood } from "@/components/use-space-mood";
+import { type SpaceMood } from "@/components/use-space-mood";
+import { ThemeSlider } from "@/components/theme-slider";
 import type { createExteriorScene } from "@/components/exterior-scene";
 import type { DeckSources } from "@/components/exterior-model";
 
@@ -21,34 +22,6 @@ function ShipIllustration() {
     </g>)}
     <path d="M0 392h48v168H0zM1584 408h48v168h-48z" fill="#182e4c" stroke="#8ba2ba" strokeWidth="3" />
   </svg>;
-}
-
-function ThemeSlider({ mood, onChange }: { mood: SpaceMood; onChange: (mood: SpaceMood) => void }) {
-  const [position, setPosition] = useState<number | null>(null);
-  const [dragging, setDragging] = useState(false);
-  const selected = moods.findIndex(item => item.id === mood);
-  const value = position ?? selected;
-  const settle = () => { setDragging(false); setPosition(null); };
-  return <footer className="relative mx-auto w-full max-w-[540px] shrink-0 px-3 py-3 text-[#e2e9ef]">
-    <div className="mb-2 flex items-baseline justify-between gap-3 font-pixel text-sm tracking-wide">
-      <label htmlFor="observation-theme">Space mood</label>
-      <span aria-hidden="true">{moods[selected].label}</span>
-    </div>
-    <div className="relative">
-      <input id="observation-theme" className="station-theme-slider block w-full cursor-pointer" type="range" min="0" max={moods.length - 1} step="0.01" value={value} aria-valuetext={moods[selected].label}
-        onPointerDown={() => setDragging(true)} onPointerUp={settle} onPointerCancel={settle} onBlur={settle}
-        onChange={event => { const next = Number(event.target.value); setPosition(next); onChange(moods[Math.round(next)].id); }}
-        onKeyDown={event => {
-          const direction = event.key === "ArrowRight" || event.key === "ArrowUp" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowDown" ? -1 : 0;
-          if (!direction && event.key !== "Home" && event.key !== "End") return;
-          event.preventDefault();
-          const next = event.key === "Home" ? 0 : event.key === "End" ? moods.length - 1 : Math.max(0, Math.min(moods.length - 1, selected + direction));
-          setPosition(null); onChange(moods[next].id);
-        }} />
-      <span aria-hidden="true" data-dragging={dragging} className="station-slider-thumb" style={{ left: `calc(${value / (moods.length - 1) * 100}% + ${13 - value / (moods.length - 1) * 26}px)` } as CSSProperties} />
-    </div>
-    <div aria-hidden="true" className="mt-1 flex justify-between gap-2 font-pixel text-[10px] text-[#b7c4d3]"><span>Deep space</span><span>Nebula</span><span>Orbit</span><span>Meteors</span></div>
-  </footer>;
 }
 
 type ShipViewProps = {
@@ -114,6 +87,6 @@ export function ShipView({ worldRef, mood, onMoodChange, onClose }: ShipViewProp
       {status === "ready" && <p role="status" className="ship-view-notice pointer-events-none m-0 text-center font-pixel text-xs tracking-wide text-[#c8d5df]">{peekNotice}</p>}
       <p id="ship-view-help" className="visually-hidden">Drag to rotate, scroll or pinch to zoom. Keyboard: left and right arrows rotate, plus and minus zoom, Home resets. Number keys 1 to 7 toggle room roofs, in Projects, Achievements, Tech Stack, Experience, About, Contact, and Orbital Training Deck order.</p>
     </div>
-    <ThemeSlider mood={mood} onChange={onMoodChange} />
+    <footer className="relative mx-auto w-full max-w-[540px] shrink-0 px-3 py-3"><ThemeSlider mood={mood} onChange={onMoodChange} /></footer>
   </section>;
 }
