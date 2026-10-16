@@ -1,6 +1,12 @@
 # Gavin Soares Portfolio
 
-An explorable pixel-art space station portfolio. The original six-room illustration, with its stepped hulls, room props, corridors, and solar arrays, is enlarged uniformly, with a new east wing extending the world to 4968 × 2400. The ship is larger than the viewport: an astronaut and following camera reveal its rooms as you explore. The latest exploration direction overrides the PRD's earlier whole-map fit requirement.
+A professional homepage at `/` and an explorable pixel-art space station at `/space`.
+
+The homepage begins with an original stippled dot scene: a retro computer and desk beside a recessed window into space. Dots gather into place over roughly five seconds, with restrained cobalt details on the screen and stars. Replay and reduced-motion support are included. The settled artwork uses a cached canvas. DM Sans, Instrument Serif, and Geist Mono are bundled locally with their licenses. Light/dark preferences are stored separately from station moods; a 420ms crossfade reveals the new palette, with a color-fade fallback in older browsers.
+
+Professional colors are defined once in `src/app/professional.css` and exposed as `folio-*` Tailwind v4 tokens in `globals.css`. `src/components/professional/ascii-scene.ts` defines the original scene, and `ascii-desk.tsx` handles sampling, animation, resizing, and cleanup. Station-specific page styles load from the `/space` route.
+
+The station's original six-room illustration, with its stepped hulls, room props, corridors, and solar arrays, is enlarged uniformly, with a new east wing extending the world to 4968 × 2400. An astronaut and following camera reveal its rooms as you explore.
 
 ## Run locally
 
@@ -11,7 +17,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open the [professional homepage](http://localhost:3000) or the [space station](http://localhost:3000/space).
 
 ## Checks
 
@@ -46,7 +52,7 @@ A mood change briefly pulls back to show the ship and firing engines, travels to
 
 ## Update content and world
 
-`src/data/sections.ts` contains the six original portfolio destinations and Orbital Training Deck. URL fragments are `#projects`, `#achievements`, `#stack`, `#experience`, `#about`, `#contact`, and `#football`; direct loads and Back/Forward remain supported.
+`src/data/sections.ts` contains the six original portfolio destinations and Orbital Training Deck. Station URLs use `/space#projects`, `/space#achievements`, `/space#stack`, `/space#experience`, `/space#about`, `/space#contact`, and `/space#football`; direct loads and Back/Forward remain supported.
 
 `src/data/station-world.ts` defines world dimensions, spawn, the original room placements, airlocks, walkable areas, furniture collisions, and camera clamping. Keep these shared coordinates aligned with the artwork when editing the ship. `src/components/ship-artwork.tsx` renders the original corridor network, solar arrays, foreground wall lips, and space backdrop. `room-artwork.tsx` draws the room hulls, connected floor outlines, and room-specific equipment. All text and controls remain HTML; no map labels or text are flattened into artwork.
 

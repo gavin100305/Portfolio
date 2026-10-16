@@ -29,6 +29,17 @@
 }
 
 @theme inline {
+  --color-folio-background: var(--folio-background);
+  --color-folio-foreground: var(--folio-foreground);
+  --color-folio-muted: var(--folio-muted);
+  --color-folio-subtle: var(--folio-subtle);
+  --color-folio-border: var(--folio-border);
+  --color-folio-surface: var(--folio-surface);
+  --color-folio-accent: var(--folio-accent);
+  --color-folio-accent-ink: var(--folio-accent-ink);
+  --font-mono: var(--font-geist-mono), monospace;
+  --font-folio-sans: var(--font-dm-sans), sans-serif;
+  --font-folio-display: var(--font-instrument-serif), serif;
   --font-pixel: var(--font-pixelify), monospace;
   --color-background: var(--space);
   --color-foreground: var(--cream);
@@ -79,9 +90,8 @@ body {
 
 body.dialog-open { overflow: hidden; }
 
-button, a { font: inherit; }
-a { color: inherit; }
-button { color: inherit; }
+/* Preserve the station's legacy controls while professional UI uses Tailwind. */
+:where(.station-shell) :is(button, a) { font: inherit; color: inherit; }
 
 :focus-visible {
   outline: 2px solid var(--teal);
@@ -343,7 +353,7 @@ button { color: inherit; }
 .cockpit-mood-dialog::backdrop { background: rgb(3 5 10 / 65%); }
 
 /* Ship typography: long-form UI uses Manrope; spatial signs use Pixelify Sans. */
-button, input, textarea, select { font-family: inherit; }
+:where(.station-shell) :is(button, input, textarea, select) { font-family: inherit; }
 .dialog-content h1, .cockpit-dialog-heading h2, .location-name { font-family: var(--font-pixel); letter-spacing: .02em; }
 
 /* Sliding leaves live at the ten original room airlocks. */
