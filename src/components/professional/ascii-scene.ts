@@ -1,6 +1,6 @@
 export type AsciiCell = {
   x: number; y: number; strength: number; accent: boolean;
-  seed: number; delay: number; kind?: "cursor" | "star";
+  seed: number; delay: number; kind?: "background";
 };
 
 export const DESK_WIDTH = 1000;
@@ -135,7 +135,42 @@ export function createDeskCells(columns: number): AsciiCell[] {
     brightness /= 1275; blue /= 1275;
     if (brightness < .025 && blue < .08) continue;
     const seed = random(row * columns + col);
-    cells.push({ x: col, y: row, strength: blue > .08 ? Math.max(.4,blue) : brightness, accent: blue > .08, kind: blue > .08 && x > 600 ? "star" : undefined, seed, delay: blue > .08 ? 1700 : y > 385 ? 0 : x < 560 ? 420 : 850 });
+    cells.push({ x: col, y: row, strength: blue > .08 ? Math.max(.4,blue) : brightness, accent: blue > .08, seed, delay: blue > .08 ? 1700 : y > 385 ? 0 : x < 560 ? 420 : 850 });
+  }
+  // Small dot lettering shares the illustration's assembly and replay timeline.
+  const name = [
+    ["01110","10000","10000","10111","10001","10001","01110"],
+    ["00000","00000","01110","00001","01111","10001","01111"],
+    ["00000","00000","10001","10001","10001","01010","00100"],
+    ["00100","00000","01100","00100","00100","00100","01110"],
+    ["00000","00000","11110","10001","10001","10001","10001"],
+    ["00000","00000","00000","00000","00000","00000","00000"],
+    ["01111","10000","10000","01110","00001","00001","11110"],
+    ["00000","00000","01110","10001","10001","10001","01110"],
+    ["00000","00000","01110","00001","01111","10001","01111"],
+    ["00000","00000","10110","11001","10000","10000","10000"],
+    ["00000","00000","01110","10001","11111","10000","01110"],
+    ["00000","00000","01111","10000","01110","00001","11110"],
+  ];
+  name.forEach((letter, letterIndex) => letter.forEach((row, y) => [...row].forEach((dot, x) => {
+    if (dot !== "1") return;
+    cells.push({ x: 10 + (letterIndex * 6 + x) * .95, y: 10 + y * .95,
+      strength: .65, accent: false, seed: random(90000 + letterIndex * 35 + y * 5 + x), delay: 420 });
+  })));
+  // Sparse ambient dots occupy only negative space, away from the artwork/name.
+  const occupied = [...cells];
+  let added = 0;
+  for (let attempt = 0; attempt < 2400 && added < 88; attempt++) {
+    const x = 3 + random(attempt + 200000) * (columns - 6);
+    const y = 3 + random(attempt + 300000) * (rows - 6);
+    const px = (x + .5) * cellWidth, py = (y + .5) * cellHeight;
+    if ((px > 210 && px < 530 && py > 140 && py < 405) ||
+        (px > 580 && px < 905 && py > 40 && py < 355) ||
+        (px > 105 && px < 935 && py > 380) ||
+        (px > 105 && px < 210 && py > 260 && py < 405)) continue;
+    if (occupied.some(cell => Math.hypot(cell.x - x, cell.y - y) < 3)) continue;
+    cells.push({ x, y, strength: .3, accent: added % 4 === 0, seed: random(attempt + 400000), delay: 0, kind: "background" });
+    added++;
   }
   return cells;
 }

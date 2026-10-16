@@ -17,6 +17,7 @@ export function ThemeToggle() {
       media.removeEventListener("change", followSystem);
       transitionRef.current?.skipTransition();
       delete document.documentElement.dataset.professionalTransition;
+      document.documentElement.style.removeProperty("--folio-transition-radius");
     };
   }, []);
   const toggle = async () => {
@@ -29,7 +30,9 @@ export function ThemeToggle() {
     };
     if (!document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { apply(); return; }
     busy.current = true; setChanging(true);
-    root.dataset.professionalTransition = "active";
+    // Cover the farthest corner at every viewport size, including portrait phones.
+    root.style.setProperty("--folio-transition-radius", `${Math.hypot(window.innerWidth, window.innerHeight) + 2}px`);
+    root.dataset.professionalTransition = next;
     try {
       // Synchronous palette update avoids waiting for a suspended animation frame.
       const transition = document.startViewTransition(apply);
@@ -38,6 +41,7 @@ export function ThemeToggle() {
     } catch { apply(); transitionRef.current?.skipTransition(); }
     finally {
       delete root.dataset.professionalTransition;
+      root.style.removeProperty("--folio-transition-radius");
       transitionRef.current = null; busy.current = false; setChanging(false);
     }
   };
