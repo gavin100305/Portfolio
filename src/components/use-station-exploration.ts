@@ -8,7 +8,7 @@ export type Direction = "up" | "down" | "left" | "right";
 const keys: Record<string, Direction> = { w: "up", arrowup: "up", s: "down", arrowdown: "down", a: "left", arrowleft: "left", d: "right", arrowright: "right" };
 const vectors: Record<Direction, Point> = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
 
-export function useStationExploration(activeId: SectionId | null, onActivate: (id: SectionId, opener: HTMLElement | null) => void, travelling = false, onCockpit?: () => void, onInteract?: (point: Point) => boolean) {
+export function useStationExploration(activeId: SectionId | null, onActivate: (id: SectionId, opener: HTMLElement | null) => void, travelling = false, onCockpit?: () => void, onInteract?: (point: Point) => boolean, getRobotPosition?: () => Point | null) {
   const backdropRef = useRef<HTMLDivElement>(null);
   const depthFrameRef = useRef<((time: number) => void) | null>(null);
   const doorProgress = useRef(stationDoors.map(() => 0));
@@ -78,10 +78,15 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
       const delta = previousTime ? Math.min((time - previousTime) / 1000, .04) : 0;
       previousTime = time;
       closedDoors.current = [];
+      const robotPosition = getRobotPosition?.();
       stationDoors.forEach((door, index) => {
         const x = Math.max(door.x, Math.min(door.x + door.width, position.current.x));
         const y = Math.max(door.y, Math.min(door.y + door.height, position.current.y));
-        const target = Math.hypot(position.current.x - x, position.current.y - y) < DOOR_APPROACH_RADIUS ? 1 : 0;
+        const playerApproaching = Math.hypot(position.current.x - x, position.current.y - y) < DOOR_APPROACH_RADIUS;
+        const robotX = robotPosition ? Math.max(door.x, Math.min(door.x + door.width, robotPosition.x)) : 0;
+        const robotY = robotPosition ? Math.max(door.y, Math.min(door.y + door.height, robotPosition.y)) : 0;
+        const robotApproaching = robotPosition && Math.hypot(robotPosition.x - robotX, robotPosition.y - robotY) < DOOR_APPROACH_RADIUS;
+        const target = playerApproaching || robotApproaching ? 1 : 0;
         const previous = doorProgress.current[index];
         const progress = motion.matches ? target : previous + Math.sign(target - previous) * Math.min(Math.abs(target - previous), delta * 4);
         doorProgress.current[index] = progress;
@@ -184,7 +189,7 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
       window.removeEventListener("keydown", keyDown); window.removeEventListener("keyup", keyUp);
       window.removeEventListener("blur", clear); document.removeEventListener("visibilitychange", clear);
     };
-  }, [activeId, onActivate, travelling, onCockpit, onInteract]);
+  }, [activeId, onActivate, travelling, onCockpit, onInteract, getRobotPosition]);
 
   const press = useCallback((direction: Direction) => {
     if (activeId || travelling) return;

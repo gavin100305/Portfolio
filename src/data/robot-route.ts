@@ -1,17 +1,43 @@
-import { canWalkSegment, rooms, type Point } from "./station-world";
+import { canWalkSegment, WORLD, type Point } from "./station-world";
 
-/** Short floor-only routes inside Engineering; no collision bypass or teleport. */
+/** Find a floor-only route anywhere in the station; walls and furniture stay solid. */
 export function robotRoute(from: Point, to: Point): Point[] {
   if (canWalkSegment(from, to)) return [to];
-  const bounds = rooms.stack, step = 20;
+  const step = 24;
   type Node = Point & { cost: number; score: number; parent: Node | null; gx: number; gy: number };
   const first: Node = { ...from, cost: 0, score: 0, parent: null, gx: 0, gy: 0 };
-  const pending = [first], visited = new Set<string>();
+  const pending: Node[] = [];
+  const push = (node: Node) => {
+    pending.push(node);
+    let index = pending.length - 1;
+    while (index > 0) {
+      const parent = Math.floor((index - 1) / 2);
+      if (pending[parent].score <= node.score) break;
+      pending[index] = pending[parent]; index = parent;
+    }
+    pending[index] = node;
+  };
+  const pop = () => {
+    const first = pending[0], last = pending.pop()!;
+    if (pending.length) {
+      let index = 0;
+      while (true) {
+        const left = index * 2 + 1, right = left + 1;
+        if (left >= pending.length) break;
+        const child = right < pending.length && pending[right].score < pending[left].score ? right : left;
+        if (pending[child].score >= last.score) break;
+        pending[index] = pending[child]; index = child;
+      }
+      pending[index] = last;
+    }
+    return first;
+  };
+  const visited = new Set<string>();
   const costs = new Map<string, number>([["0,0", 0]]);
   let attempts = 0;
-  while (pending.length && attempts++ < 1800) {
-    pending.sort((a, b) => b.score - a.score);
-    const current = pending.pop()!;
+  push(first);
+  while (pending.length && attempts++ < 12000) {
+    const current = pop();
     const key = `${current.gx},${current.gy}`;
     if (visited.has(key)) continue;
     visited.add(key);
@@ -24,11 +50,11 @@ export function robotRoute(from: Point, to: Point): Point[] {
       const gx = current.gx + dx, gy = current.gy + dy;
       const nextKey = `${gx},${gy}`;
       const next = { x: from.x + gx * step, y: from.y + gy * step };
-      if (visited.has(nextKey) || next.x < bounds.x || next.y < bounds.y || next.x > bounds.x + bounds.width || next.y > bounds.y + bounds.height || !canWalkSegment(current, next)) continue;
+      if (visited.has(nextKey) || next.x < WORLD.radius || next.y < WORLD.radius || next.x > WORLD.width - WORLD.radius || next.y > WORLD.height - WORLD.radius || !canWalkSegment(current, next)) continue;
       const cost = current.cost + Math.hypot(dx, dy) * step;
       if ((costs.get(nextKey) ?? Infinity) <= cost) continue;
       costs.set(nextKey, cost);
-      pending.push({ ...next, gx, gy, cost, score: cost + Math.hypot(next.x - to.x, next.y - to.y), parent: current });
+      push({ ...next, gx, gy, cost, score: cost + Math.hypot(next.x - to.x, next.y - to.y), parent: current });
     }
   }
   return [];

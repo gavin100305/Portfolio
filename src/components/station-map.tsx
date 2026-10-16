@@ -32,6 +32,7 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
   const [exteriorOpen, setExteriorOpen] = useState(false);
   const [discovery, setDiscovery] = useState<Exclude<DiscoveryId, "robot"> | null>(null);
   const [robotAwake, setRobotAwake] = useState(false);
+  const robotPosition = useRef<Point | null>(null);
   const discoveryOpener = useRef<HTMLElement | null>(null);
   const openDiscovery = useCallback((id: DiscoveryId) => {
     if (id === "robot") { setRobotAwake(true); return; }
@@ -42,8 +43,9 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
     setDiscovery(null);
     requestAnimationFrame(() => requestAnimationFrame(() => discoveryOpener.current?.focus({ preventScroll: true })));
   }, []);
-  const robotSleep = useCallback(() => setRobotAwake(false), []);
   const interact = useCallback((point: Point) => { const id = discoveryNear(point); if (!id) return false; openDiscovery(id); return true; }, [openDiscovery]);
+  const getRobotPosition = useCallback(() => robotAwake ? robotPosition.current : null, [robotAwake]);
+  const reportRobotMovement = useCallback((point: Point) => { robotPosition.current = point; }, []);
   const discoveryModal = discovery === "airlock" || discovery === "signal";
   const [depthReady, setDepthReady] = useState(false);
   const exteriorControlRef = useRef<HTMLButtonElement>(null);
@@ -56,7 +58,7 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
   if (activeId && exteriorOpen) setExteriorOpen(false);
   const openCockpit = useCallback(() => setCockpitOpen(true), []);
   const { controlRef, mood, flight, choose, advance } = useSpaceMood();
-  const { backdropRef, depthFrameRef, viewportRef, worldRef, characterRef, location, atCockpit, atFootball, focusCockpit, focusDiscovery, press, release, focusRoom, releaseFocus, getMovementSnapshot } = useStationExploration(activeId, onActivate, Boolean(flight) || cockpitOpen || exteriorOpen || discoveryModal, openCockpit, interact);
+  const { backdropRef, depthFrameRef, viewportRef, worldRef, characterRef, location, atCockpit, atFootball, focusCockpit, focusDiscovery, press, release, focusRoom, releaseFocus, getMovementSnapshot } = useStationExploration(activeId, onActivate, Boolean(flight) || cockpitOpen || exteriorOpen || discoveryModal, openCockpit, interact, getRobotPosition);
   const remoteVisitors = useShipPresence((!activeId || footballActive) && !flight && !cockpitOpen, getMovementSnapshot);
   const current = getSection(location);
   const dragMoved = useRef(false);
@@ -125,7 +127,7 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
             <span className="cockpit-console-switch" aria-hidden="true"><span /></span>
             <span className="visually-hidden">Change space mood</span>
           </button>
-          <StationDiscoveries robotAwake={robotAwake} enabled={!activeId && !flight && !cockpitOpen && !exteriorOpen && !discoveryModal} onDiscover={openDiscovery} onSleep={robotSleep} getMovement={getMovementSnapshot} onFocus={focusDiscovery} onBlur={releaseFocus} />
+          <StationDiscoveries robotAwake={robotAwake} enabled={!activeId && !flight && !cockpitOpen && !exteriorOpen && !discoveryModal} onDiscover={openDiscovery} getMovement={getMovementSnapshot} onRobotMovement={reportRobotMovement} onFocus={focusDiscovery} onBlur={releaseFocus} />
           <FootballArenaScene active={footballActive} game={game} />
           {!footballActive && <button className="football-ball-control" type="button" aria-label="Play penalties on the Orbital Training Deck pitch" style={{ left: footballBall.x - 24, top: footballBall.y - 24 }} onFocus={() => focusRoom("football")} onBlur={releaseFocus} onClick={(event) => onActivate("football", event.currentTarget)} />}
           {stationDoors.map((door) => <div key={door.id} className="station-door" data-door-id={door.id} data-axis={door.axis} data-state="closed" role="img" aria-label="Room door — closed"
