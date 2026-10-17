@@ -170,6 +170,22 @@ html[data-professional-theme="dark"] .folio-moon { display: none; }
 .folio-raised-control:hover { transform: translateY(-1px); }
 .folio-raised-control:active { transform: translateY(2px); box-shadow: inset 0 1px 0 var(--folio-key-highlight), 0 1px 0 var(--folio-key-edge); }
 .folio-raised-control-primary { background: var(--folio-key-cobalt-face); border-color: var(--folio-key-cobalt-edge); color: #ffffff; box-shadow: inset 0 1px 0 var(--folio-key-cobalt-highlight), 0 2px 0 var(--folio-key-cobalt-base), 0 3px 0 var(--folio-key-cobalt-edge); }
+.folio-theme-toggle {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid var(--folio-key-edge);
+  border-radius: 50%;
+  background: var(--folio-key-face);
+  color: var(--folio-muted);
+  box-shadow: inset 0 1px 0 var(--folio-key-highlight), 0 2px 0 var(--folio-key-base), 0 3px 0 var(--folio-key-edge);
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, color .15s ease, background-color .15s ease;
+}
+.folio-theme-toggle:hover:not(:disabled) { color: var(--folio-foreground); transform: translateY(-1px); }
+.folio-theme-toggle:active:not(:disabled) { transform: translateY(2px); box-shadow: inset 0 1px 0 var(--folio-key-highlight), 0 1px 0 var(--folio-key-edge); }
+.folio-theme-toggle:disabled { cursor: wait; opacity: .68; }
 /* Tactile cover, inset image well, and a pressed-in notes panel. */
 .folio-project-dialog {
   position: fixed;

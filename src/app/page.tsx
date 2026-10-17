@@ -4,6 +4,7 @@ import { ThemeToggle } from "@/components/professional/theme-toggle";
 import { TechStack } from "@/components/professional/tech-stack";
 import { ProjectGallery } from "@/components/professional/project-gallery";
 import { profile } from "@/data/portfolio-content";
+import { ButtonSoundEffects } from "@/components/professional/button-sound-effects";
 import "./professional.css";
 
 const themeScript = `(function(){try{var t=localStorage.getItem('gavin:professional-theme');document.documentElement.dataset.professionalTheme=t==='light'||t==='dark'?t:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}catch{document.documentElement.dataset.professionalTheme='light'}})()`;
@@ -25,6 +26,7 @@ function DotMonogram() {
 
 export default function Home() {
   return <div className="professional-shell min-h-svh bg-folio-background font-folio-sans text-folio-foreground antialiased">
+    <ButtonSoundEffects />
     <script dangerouslySetInnerHTML={{ __html: themeScript }} />
     <a href="#main" className="folio-skip">Skip to content</a>
     <div className="relative mx-auto bg-transparent max-w-[800px] px-6 sm:px-8">
