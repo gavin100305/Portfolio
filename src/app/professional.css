@@ -17,6 +17,11 @@
   --folio-key-cobalt-base: #17399b;
   --folio-key-cobalt-edge: #1744bd;
   --folio-key-cobalt-highlight: #789aff;
+  --folio-frame-surface: #f4f4f3;
+  --folio-frame-edge: #c5c5c3;
+  --folio-frame-highlight: #ffffff;
+  --folio-frame-lower: #d5d5d2;
+  --folio-frame-recess: #00000020;
   position: relative;
   isolation: isolate;
   color-scheme: light;
@@ -36,6 +41,11 @@ html[data-professional-theme="dark"] .professional-shell {
   --folio-key-base: #121212;
   --folio-key-edge: #393939;
   --folio-key-highlight: #454545;
+  --folio-frame-surface: #171717;
+  --folio-frame-edge: #393939;
+  --folio-frame-highlight: #454545;
+  --folio-frame-lower: #090909;
+  --folio-frame-recess: #000000b3;
   color-scheme: dark;
 }
 body:has(.professional-shell) { background: #ffffff; }
@@ -186,11 +196,11 @@ html[data-professional-transition]::view-transition-new(root) {
   z-index: 2;
 }
 html[data-professional-transition="dark"]::view-transition-new(root) {
-  animation: folio-theme-expand 1150ms cubic-bezier(.45,0,.2,1) both;
+  animation: folio-theme-expand 1600ms cubic-bezier(.45,0,.35,1) both;
 }
 html[data-professional-transition="light"]::view-transition-old(root) {
   z-index: 2;
-  animation: folio-theme-retract 1150ms cubic-bezier(.45,0,.2,1) both;
+  animation: folio-theme-retract 1600ms cubic-bezier(.45,0,.35,1) both;
 }
 html[data-professional-transition="light"]::view-transition-new(root) {
   z-index: 1;
@@ -209,15 +219,21 @@ html:not([data-professional-transition]) .professional-shell { transition: backg
 .ascii-art-frame {
   position: relative;
   padding: var(--folio-art-inset);
-  border: 1px solid color-mix(in srgb, var(--folio-foreground) 24%, var(--folio-background));
+  border: 1px solid var(--folio-frame-edge);
   border-radius: 9px;
-  background: color-mix(in srgb, var(--folio-background) 94%, var(--folio-surface));
-  box-shadow: 0 2px 7px color-mix(in srgb, var(--folio-foreground) 8%, transparent);
+  background: var(--folio-frame-surface);
+  box-shadow:
+    inset 0 1px 0 var(--folio-frame-highlight),
+    inset 0 -2px 0 var(--folio-frame-lower),
+    0 3px 0 var(--folio-frame-lower),
+    0 4px 0 var(--folio-frame-edge),
+    0 9px 16px #00000018;
 }
 .ascii-art-frame .ascii-stage {
   border-radius: 3px;
   background: var(--folio-background);
-  outline: 1px solid color-mix(in srgb, var(--folio-foreground) 13%, var(--folio-background));
+  outline: 1px solid var(--folio-frame-lower);
+  box-shadow: inset 0 2px 5px var(--folio-frame-recess), 0 1px 0 var(--folio-frame-highlight);
 }
 .folio-space-note {
   margin-inline: calc(var(--folio-art-inset) + 1px);
