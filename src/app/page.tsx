@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AsciiDesk } from "@/components/professional/ascii-desk";
 import { ThemeToggle } from "@/components/professional/theme-toggle";
 import { TechStack } from "@/components/professional/tech-stack";
+import { ProjectGallery } from "@/components/professional/project-gallery";
 import { profile } from "@/data/portfolio-content";
 import "./professional.css";
 
@@ -26,7 +27,7 @@ export default function Home() {
   return <div className="professional-shell min-h-svh bg-folio-background font-folio-sans text-folio-foreground antialiased">
     <script dangerouslySetInnerHTML={{ __html: themeScript }} />
     <a href="#main" className="folio-skip">Skip to content</a>
-    <div className="relative mx-auto max-w-[800px] px-6 sm:px-8">
+    <div className="relative mx-auto bg-transparent max-w-[800px] px-6 sm:px-8">
       <header className="flex h-20 items-center justify-between sm:h-24">
         <Link href="/" className="folio-home-mark" aria-label="Home" title="Home">
           <DotMonogram />
@@ -39,6 +40,7 @@ export default function Home() {
           <p className="mx-auto max-w-[700px] text-base leading-[1.85] text-folio-muted sm:text-[17px]">I’m a Computer Engineering student in Mumbai. I build full-stack applications, work with AI, and enjoy getting involved in both how a product works and how it looks.</p>
         </section>
         <TechStack />
+        <ProjectGallery />
         <aside className="folio-space-note mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-folio-border pt-6 sm:mt-16">
           <p className="max-w-[360px] text-xs leading-6 text-folio-muted">There’s another side to this portfolio.<br /><span className="text-folio-foreground">A space station you can actually explore.</span></p>
           <Link href="/space" className="folio-text-link gap-3 font-mono text-[11px] text-folio-accent">Enter the station <Arrow diagonal /></Link>
