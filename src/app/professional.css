@@ -106,6 +106,7 @@ html[data-professional-theme="dark"] .folio-moon { display: none; }
 .folio-key-row { min-width: 0; }
 .folio-key-track { display: flex; width: max-content; animation: folio-tools-scroll 48s linear infinite; }
 .folio-key-row:nth-child(2) .folio-key-track { animation-direction: reverse; animation-duration: 54s; }
+.folio-key-row[data-double="true"] .folio-key-track { animation-duration: 108s; }
 .folio-key-group { display: flex; gap: 12px; flex-shrink: 0; margin: 0; padding: 0 12px 5px 0; list-style: none; }
 .folio-keycap {
   width: 142px;
@@ -138,10 +139,8 @@ html[data-professional-theme="dark"] .folio-moon { display: none; }
 }
 .folio-tool-socket { display: grid; place-items: center; width: 27px; height: 27px; flex-shrink: 0; }
 .folio-tool-icon { width: 21px; height: 21px; object-fit: contain; }
-html[data-professional-theme="dark"] .folio-keycap[data-tone="neutral"] .folio-tool-icon[src*="express"],
-html[data-professional-theme="dark"] .folio-keycap[data-tone="neutral"] .folio-tool-icon[src*="amazonwebservices"] { filter: brightness(0) invert(1); }
-.folio-keycap[data-tone="cobalt"] .folio-tool-icon[src*="express"],
-.folio-keycap[data-tone="cobalt"] .folio-tool-icon[src*="amazonwebservices"] { filter: brightness(0) invert(1); }
+html[data-professional-theme="dark"] .folio-keycap[data-tone="neutral"] .folio-tool-icon:is([src*="express"], [src*="amazonwebservices"], [src*="expo"], [src*="nextjs"]),
+.folio-keycap[data-tone="cobalt"] .folio-tool-icon:is([src*="express"], [src*="amazonwebservices"], [src*="expo"], [src*="nextjs"]) { filter: brightness(0) invert(1); }
 .folio-keycap[data-tone="cobalt"] {
   --folio-key-face: var(--folio-key-cobalt-face);
   --folio-key-base: var(--folio-key-cobalt-base);
@@ -228,3 +227,6 @@ html:not([data-professional-transition]) .professional-shell { transition: backg
   html[data-professional-transition]::view-transition-old(root),
   html[data-professional-transition]::view-transition-new(root) { animation: none; }
 }
+
+html[data-professional-theme="dark"] .folio-keycap[data-tone="neutral"] .folio-tool-icon[src*="nextjs"],
+.folio-keycap[data-tone="cobalt"] .folio-tool-icon[src*="nextjs"] { filter: invert(1); }
