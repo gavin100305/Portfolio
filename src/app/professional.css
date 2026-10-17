@@ -9,6 +9,14 @@
   --folio-accent: #2457e6;
   --folio-accent-ink: #ffffff;
   --folio-pattern-opacity: .16;
+  --folio-key-face: #fafafa;
+  --folio-key-base: #e2e2e2;
+  --folio-key-edge: #c5c5c5;
+  --folio-key-highlight: #ffffff;
+  --folio-key-cobalt-face: #2457e6;
+  --folio-key-cobalt-base: #17399b;
+  --folio-key-cobalt-edge: #1744bd;
+  --folio-key-cobalt-highlight: #789aff;
   position: relative;
   isolation: isolate;
   color-scheme: light;
@@ -24,6 +32,10 @@ html[data-professional-theme="dark"] .professional-shell {
   --folio-accent: #7297ff;
   --folio-accent-ink: #000000;
   --folio-pattern-opacity: .19;
+  --folio-key-face: #222222;
+  --folio-key-base: #121212;
+  --folio-key-edge: #393939;
+  --folio-key-highlight: #454545;
   color-scheme: dark;
 }
 body:has(.professional-shell) { background: #ffffff; }
@@ -84,6 +96,80 @@ html[data-professional-theme="dark"] .folio-moon { display: none; }
 .ascii-replay:hover { color: var(--folio-accent); }
 .ascii-replay svg { width: 12px; height: 12px; }
 .folio-introduction { animation: folio-copy-in .85s .15s both; }
+.folio-keyboard {
+  display: grid;
+  gap: 12px;
+  padding-block: 4px 8px;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, #000 20px, #000 calc(100% - 20px), transparent);
+}
+.folio-key-row { min-width: 0; }
+.folio-key-track { display: flex; width: max-content; animation: folio-tools-scroll 48s linear infinite; }
+.folio-key-row:nth-child(2) .folio-key-track { animation-direction: reverse; animation-duration: 54s; }
+.folio-key-group { display: flex; gap: 12px; flex-shrink: 0; margin: 0; padding: 0 12px 5px 0; list-style: none; }
+.folio-keycap {
+  width: 142px;
+  height: 60px;
+  flex-shrink: 0;
+  padding: 4px 4px 9px;
+  border: 1px solid var(--folio-key-edge);
+  border-radius: 10px;
+  background: var(--folio-key-base);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--folio-foreground) 25%, var(--folio-background)), 0 4px 5px #00000012;
+}
+.folio-keycap-face {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding-inline: 8px;
+  border: 1px solid var(--folio-key-edge);
+  border-radius: 6px;
+  background: var(--folio-key-face);
+  box-shadow: inset 0 1px 0 var(--folio-key-highlight), 0 2px 2px #00000012;
+  color: var(--folio-foreground);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, color .18s ease;
+}
+.folio-tool-socket { display: grid; place-items: center; width: 27px; height: 27px; flex-shrink: 0; }
+.folio-tool-icon { width: 21px; height: 21px; object-fit: contain; }
+html[data-professional-theme="dark"] .folio-keycap[data-tone="neutral"] .folio-tool-icon[src*="express"],
+html[data-professional-theme="dark"] .folio-keycap[data-tone="neutral"] .folio-tool-icon[src*="amazonwebservices"] { filter: brightness(0) invert(1); }
+.folio-keycap[data-tone="cobalt"] .folio-tool-icon[src*="express"],
+.folio-keycap[data-tone="cobalt"] .folio-tool-icon[src*="amazonwebservices"] { filter: brightness(0) invert(1); }
+.folio-keycap[data-tone="cobalt"] {
+  --folio-key-face: var(--folio-key-cobalt-face);
+  --folio-key-base: var(--folio-key-cobalt-base);
+  --folio-key-edge: var(--folio-key-cobalt-edge);
+  --folio-key-highlight: var(--folio-key-cobalt-highlight);
+}
+.folio-keycap[data-tone="cobalt"] .folio-keycap-face { color: #ffffff; }
+.folio-keycap:hover .folio-keycap-face {
+  transform: translateY(1px);
+}
+.folio-keycap .folio-keycap-face:active {
+  transform: translateY(4px);
+  box-shadow: inset 0 1px 0 var(--folio-key-highlight);
+}
+.folio-tech:has(:focus-visible) .folio-key-track,
+.folio-keyboard:hover .folio-key-track { animation-play-state: paused; }
+@keyframes folio-tools-scroll { to { transform: translateX(-50%); } }
+@media (max-width: 639px) {
+  .folio-keycap { width: 130px; height: 58px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .folio-keyboard { overflow: visible; mask-image: none; }
+  .folio-key-track { width: 100%; animation: none; }
+  .folio-key-group { width: 100%; flex-wrap: wrap; justify-content: center; padding-right: 0; }
+  .folio-key-group[aria-hidden="true"] { display: none; }
+  .folio-keycap { width: auto; flex: 1 0 125px; }
+  .folio-keycap:hover .folio-keycap-face { transform: none; }
+}
 @keyframes folio-copy-in { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
   .professional-shell, .professional-shell *, .professional-shell *::before { animation: none !important; transition: none !important; }

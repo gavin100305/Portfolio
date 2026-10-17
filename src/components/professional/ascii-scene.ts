@@ -114,8 +114,7 @@ export function createDeskCells(columns: number): AsciiCell[] {
   accentCanvas.width = DESK_WIDTH; accentCanvas.height = DESK_HEIGHT;
   const ink = accentCanvas.getContext("2d");
   if (!ink) return [];
-  ink.fillStyle = "white"; ink.font = "bold 16px monospace";
-  ink.fillText("> build", 279, 252); ink.fillText("ready_", 279, 280);
+  ink.fillStyle = "white";
   ink.beginPath(); ink.arc(420, 351, 4, 0, Math.PI * 2); ink.fill();
   for (const [x,y] of [[657,110],[831,248],[672,268]]) {
     ink.fillRect(x-4,y-1.5,8,3); ink.fillRect(x-1.5,y-4,3,8);
@@ -137,6 +136,23 @@ export function createDeskCells(columns: number): AsciiCell[] {
     const seed = random(row * columns + col);
     cells.push({ x: col, y: row, strength: blue > .08 ? Math.max(.4,blue) : brightness, accent: blue > .08, seed, delay: blue > .08 ? 1700 : y > 385 ? 0 : x < 560 ? 420 : 850 });
   }
+  // Draw the greeting as explicit dot glyphs so sampling cannot erase the letters.
+  const greeting = [
+    ["10000", "10000", "10110", "11001", "10001", "10001", "10001"],
+    ["00000", "00000", "01110", "10001", "11111", "10000", "01111"],
+    ["01100", "00100", "00100", "00100", "00100", "00100", "01110"],
+    ["01100", "00100", "00100", "00100", "00100", "00100", "01110"],
+    ["00000", "00000", "01110", "10001", "10001", "10001", "01110"],
+  ];
+  const greetingStep = Math.min(.95, 120 / (29 * cellWidth));
+  const greetingX = 346.5 / cellWidth - .5 - 14 * greetingStep;
+  const greetingY = 268 / cellHeight - .5 - 3 * greetingStep;
+  greeting.forEach((letter, letterIndex) => letter.forEach((row, y) => [...row].forEach((dot, x) => {
+    if (dot !== "1") return;
+    cells.push({ x: greetingX + (letterIndex * 6 + x) * greetingStep,
+      y: greetingY + y * greetingStep, strength: 1, accent: true,
+      seed: random(80000 + letterIndex * 35 + y * 5 + x), delay: 1700 });
+  })));
   // Small dot lettering shares the illustration's assembly and replay timeline.
   const name = [
     ["01110","10000","10000","10111","10001","10001","01110"],
