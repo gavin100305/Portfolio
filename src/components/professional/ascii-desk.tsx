@@ -120,6 +120,5 @@ export function AsciiDesk() {
       <pre className="ascii-fallback" aria-hidden="true">{fallback}</pre>
       <canvas ref={canvasRef} role="img" aria-label="Dot art with Gavin Soares written in dots in the upper-left corner beside a retro computer on a desk, with a keyboard, coffee, and a window overlooking a ringed planet. Cobalt blue lights up the terminal and a few stars." />
     </div></div>
-    <figcaption className="ascii-caption"><span>A LITTLE SPACE TO MAKE THINGS.</span><button type="button" onClick={() => replayRef.current?.()} className="ascii-replay" aria-label="Replay dot scene reveal"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true"><path d="M3 5a5 5 0 1 1 0 6M3 1v4h4" /></svg>Replay</button></figcaption>
   </figure>;
 }
