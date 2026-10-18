@@ -6,16 +6,13 @@ import { ProjectGallery } from "@/components/professional/project-gallery";
 import { Achievements } from "@/components/professional/achievements";
 import { GitHubCalendar } from "@/components/professional/github-calendar";
 import { Experience } from "@/components/professional/experience";
+import { ContactSection } from "@/components/professional/contact-section";
 import { profile } from "@/data/portfolio-content";
 import { ButtonSoundEffects } from "@/components/professional/button-sound-effects";
 import { ScrollReveals } from "@/components/professional/scroll-reveals";
 import "./professional.css";
 
 const themeScript = `(function(){try{var t=localStorage.getItem('gavin:professional-theme');document.documentElement.dataset.professionalTheme=t==='light'||t==='dark'?t:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}catch{document.documentElement.dataset.professionalTheme='light'}})()`;
-
-function Arrow({ diagonal = false }: { diagonal?: boolean }) {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-4" aria-hidden="true">{diagonal ? <path d="M6 18 18 6M6 6h12v12" /> : <path d="M4 12h15m-6-6 6 6-6 6" />}</svg>;
-}
 
 function DotMonogram() {
   const letters = [
@@ -51,10 +48,7 @@ export default function Home() {
         <Experience />
         <Achievements />
         <GitHubCalendar />
-        <aside className="folio-space-note mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-folio-border pt-6 sm:mt-16">
-          <p className="max-w-[360px] text-xs leading-6 text-folio-muted">There’s another side to this portfolio.<br /><span className="text-folio-foreground">A space station you can actually explore.</span></p>
-          <Link href="/space" className="folio-text-link gap-3 font-mono text-[11px] text-folio-accent">Enter the station <Arrow diagonal /></Link>
-        </aside>
+        <ContactSection />
       </main>
       <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-folio-border py-6 font-mono text-[10px] text-folio-muted">
         <a href={`mailto:${profile.email}`} className="folio-text-link">Email</a>

@@ -55,7 +55,7 @@ export function ScrollReveals() {
     const selectors = [
       ".folio-introduction", ".folio-tech", ".folio-gallery > :first-child",
       ".folio-project-board", ".folio-experience", ".folio-awards > :first-child",
-      ".folio-album-stage", ".folio-album-caption", ".folio-github > :first-child", ".folio-space-note", "footer",
+      ".folio-album-stage", ".folio-album-caption", ".folio-github > :first-child", ".folio-contact", "footer",
     ];
     shell.querySelectorAll<HTMLElement>(selectors.join(",")).forEach(element => {
       // Already visible content stays visible when hydrating or returning with scroll restoration.

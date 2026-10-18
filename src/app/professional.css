@@ -746,8 +746,9 @@ html[data-professional-theme="dark"] .folio-github {
     background: var(--folio-frame-lower); box-shadow: inset 0 3px 7px var(--folio-frame-recess), inset 0 1px 2px #00000030, 0 1px 0 var(--folio-frame-highlight);
   }
   .folio-contribution-month-keys .folio-contribution-key { border-radius: 3px; }
-  .folio-contribution-bottom { margin-top: 17px; gap: 9px; }
-  .folio-contribution-readout { width: 100%; min-height: 18px; }
+  .folio-contribution-bottom { margin-top: 17px; gap: 9px; flex-wrap: nowrap; }
+  .folio-contribution-readout { flex: 1; min-width: 0; min-height: 18px; }
+  .folio-contribution-legend { flex-shrink: 0; margin-left: auto; }
 }
 @media (prefers-reduced-motion: reduce) {
   .folio-github *, .folio-github *::before { animation: none !important; transition: none !important; }
@@ -757,4 +758,71 @@ html[data-professional-theme="dark"] .folio-github {
 .folio-contribution-history [data-reveal="pending"] .folio-contribution-key { opacity: 0; }
 @media (prefers-reduced-motion: reduce) {
   .folio-contribution-history [data-reveal="pending"] .folio-contribution-key { opacity: 1; }
+}
+
+/* A shallow raised rim surrounds the recessed writing surface. */
+.folio-contact-panel {
+  position: relative;
+  padding: 0;
+  border: 1px solid var(--folio-frame-edge);
+  border-radius: 14px;
+  background: linear-gradient(150deg, var(--folio-key-face), var(--folio-frame-surface));
+  box-shadow: inset 0 1px 0 var(--folio-frame-highlight), inset 0 -1px 0 var(--folio-frame-lower), 0 3px 0 var(--folio-frame-lower), 0 4px 0 var(--folio-frame-edge), 0 10px 15px var(--folio-frame-recess), 0 18px 28px var(--folio-frame-recess);
+}
+.folio-contact-panel::after { content: ""; position: absolute; inset: 3px; z-index: 1; border: 1px solid color-mix(in srgb, var(--folio-key-highlight), transparent 48%); border-radius: 10px; box-shadow: inset 0 1px 2px var(--folio-frame-recess); pointer-events: none; }
+.folio-contact-form {
+  position: relative;
+  padding: 30px 28px 0;
+  border-radius: inherit;
+  overflow: hidden;
+  background: transparent;
+  box-shadow: inset 0 4px 9px var(--folio-frame-recess), inset 2px 0 5px var(--folio-frame-recess), inset -2px 0 5px var(--folio-frame-recess);
+}
+.folio-contact-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 23px 20px; }
+.folio-contact-field { display: grid; align-content: start; gap: 10px; min-width: 0; }
+.folio-contact-field > span { color: var(--folio-foreground); font: 11px/1.5 var(--font-geist-mono), monospace; }
+.folio-contact-message { grid-column: 1 / -1; }
+.folio-contact-field input, .folio-contact-field textarea {
+  display: block;
+  width: 100%; min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid var(--folio-key-edge);
+  border-top-color: color-mix(in srgb, var(--folio-key-edge), var(--folio-foreground) 12%);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--folio-background), var(--folio-surface) 45%);
+  color: var(--folio-foreground);
+  font: 13px/1.7 var(--font-dm-sans), sans-serif;
+  box-shadow: inset 0 3px 6px var(--folio-frame-recess), inset 1px 1px 2px var(--folio-frame-recess), inset 0 -1px 0 var(--folio-key-base), 0 1px 0 var(--folio-key-highlight);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.folio-contact-field textarea { min-height: 151px; resize: vertical; }
+.folio-contact-field input::placeholder, .folio-contact-field textarea::placeholder { color: var(--folio-subtle); opacity: 1; }
+.folio-contact-field input:focus, .folio-contact-field textarea:focus {
+  outline: 2px solid color-mix(in srgb, var(--folio-accent), transparent 75%);
+  outline-offset: 2px;
+  border-color: var(--folio-accent);
+  box-shadow: inset 0 3px 6px var(--folio-frame-recess), inset 1px 1px 2px var(--folio-frame-recess), 0 1px 0 var(--folio-key-highlight);
+}
+.folio-contact-actions { display: flex; align-items: center; gap: 20px; margin: 26px -28px 0; padding: 21px 28px 25px; border-top: 1px solid var(--folio-key-base); background: linear-gradient(160deg, var(--folio-frame-surface), var(--folio-key-base)); box-shadow: inset 0 4px 7px var(--folio-frame-recess), inset 2px 0 5px var(--folio-frame-recess), inset -2px 0 5px var(--folio-frame-recess), inset 0 -2px 4px var(--folio-frame-recess), 0 -1px 0 var(--folio-key-highlight); }
+.folio-contact-send { flex-shrink: 0; min-height: 42px; padding: 11px 16px; gap: 17px; font-size: 11px; }
+.folio-contact-send:disabled { opacity: .7; cursor: wait; transform: translateY(2px); box-shadow: inset 0 2px 3px var(--folio-key-cobalt-base), 0 1px 0 var(--folio-key-cobalt-edge); }
+.folio-contact-feedback { margin: 0; color: var(--folio-muted); font-size: 11px; line-height: 1.8; overflow-wrap: anywhere; }
+.folio-contact-feedback a { color: var(--folio-foreground); text-underline-offset: 4px; }
+.folio-contact-feedback a:hover { color: var(--folio-accent); text-decoration: underline; }
+.folio-contact-feedback[data-state="success"] { color: var(--folio-accent); }
+.folio-contact-feedback[data-state="error"] { color: var(--folio-foreground); }
+.folio-contact-trap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 639px) {
+  .folio-contact-panel { padding: 0; border-radius: 12px; }
+  .folio-contact-panel::after { border-radius: 8px; }
+  .folio-contact-form { padding: 23px 20px 0; }
+  .folio-contact-fields { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .folio-contact-field input, .folio-contact-field textarea { font-size: 16px; padding: 11px 12px; }
+  .folio-contact-field textarea { min-height: 150px; }
+  .folio-contact-actions { align-items: start; flex-direction: column; gap: 17px; margin: 22px -20px 0; padding: 20px 20px 24px; }
+  .folio-contact-send { width: 100%; justify-content: space-between; padding-inline: 15px; }
+  .folio-contact-feedback { min-height: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .folio-contact *, .folio-contact *::before { transition: none !important; }
 }
