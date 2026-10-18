@@ -4,17 +4,30 @@ import { useEffect, useRef, useState } from "react";
 
 export function ThemeToggle() {
   const busy = useRef(false);
+  const manuallyChanged = useRef(false);
   const transitionRef = useRef<ViewTransition | null>(null);
   const [changing, setChanging] = useState(false);
   useEffect(() => {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const followSystem = () => {
-      try { if (localStorage.getItem("gavin:professional-theme")) return; } catch {}
+      if (manuallyChanged.current) return;
+      try {
+        const saved = localStorage.getItem("gavin:professional-theme");
+        if (saved === "light" || saved === "dark") return;
+      } catch {}
       document.documentElement.dataset.professionalTheme = media.matches ? "dark" : "light";
     };
+    const syncSavedTheme = (event: StorageEvent) => {
+      if (event.key !== "gavin:professional-theme" && event.key !== null) return;
+      const saved = event.newValue;
+      manuallyChanged.current = saved === "light" || saved === "dark";
+      document.documentElement.dataset.professionalTheme = manuallyChanged.current ? saved! : media.matches ? "dark" : "light";
+    };
     media.addEventListener("change", followSystem);
+    window.addEventListener("storage", syncSavedTheme);
     return () => {
       media.removeEventListener("change", followSystem);
+      window.removeEventListener("storage", syncSavedTheme);
       transitionRef.current?.skipTransition();
       delete document.documentElement.dataset.professionalTransition;
       document.documentElement.style.removeProperty("--folio-transition-radius");
@@ -26,6 +39,7 @@ export function ThemeToggle() {
     const next = root.dataset.professionalTheme === "dark" ? "light" : "dark";
     const apply = () => {
       root.dataset.professionalTheme = next;
+      manuallyChanged.current = true;
       try { localStorage.setItem("gavin:professional-theme", next); } catch {}
     };
     if (!document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { apply(); return; }

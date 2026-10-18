@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { OpeningIntro } from "@/components/professional/opening-intro";
 import { AsciiDesk } from "@/components/professional/ascii-desk";
 import { ThemeToggle } from "@/components/professional/theme-toggle";
 import { TechStack } from "@/components/professional/tech-stack";
@@ -14,7 +15,7 @@ import { ButtonSoundEffects } from "@/components/professional/button-sound-effec
 import { ScrollReveals } from "@/components/professional/scroll-reveals";
 import "./professional.css";
 
-const themeScript = `(function(){try{var t=localStorage.getItem('gavin:professional-theme');document.documentElement.dataset.professionalTheme=t==='light'||t==='dark'?t:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}catch{document.documentElement.dataset.professionalTheme='light'}})()`;
+const themeScript = `(function(){var r=document.documentElement;var t;try{t=localStorage.getItem('gavin:professional-theme')}catch{}r.dataset.professionalTheme=t==='light'||t==='dark'?t:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{r.dataset.folioIntro=sessionStorage.getItem('gavin:opening-seen')==='1'?'done':'pending'}catch{r.dataset.folioIntro='pending'}})()`;
 
 function DotMonogram() {
   const letters = [
@@ -32,6 +33,7 @@ export default function Home() {
     <ButtonSoundEffects />
     <ScrollReveals />
     <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+    <OpeningIntro />
     <a href="#main" className="folio-skip">Skip to content</a>
     <SectionDock />
     <div className="relative mx-auto bg-transparent max-w-[800px] px-6 sm:px-8">

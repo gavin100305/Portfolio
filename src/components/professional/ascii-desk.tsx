@@ -35,7 +35,7 @@ export function AsciiDesk() {
     if (!base) return;
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let frame = 0, previousFrame = 0, start = 0, width = 0, height = 0, columns = 160;
-    let cells: AsciiCell[] = [], animatedCells: AsciiCell[] = [], visible = true, mounted = true, initialized = false, finished = false;
+    let cells: AsciiCell[] = [], animatedCells: AsciiCell[] = [], visible = true, mounted = true, initialized = false, finished = false, playing = false;
     let foreground = "#171717", accent = "#2457e6";
     const rowCount = () => Math.round(columns * DESK_HEIGHT / DESK_WIDTH);
 
@@ -86,6 +86,7 @@ export function AsciiDesk() {
       const elapsed = motion.matches ? 10000 : time - start;
       context.clearRect(0, 0, width, height);
       if (elapsed >= 4900) {
+        if (!finished) figure.dataset.revealState = "complete";
         finished = true;
         context.globalAlpha = 1; context.drawImage(still, 0, 0, width, height);
         paintActivity(time);
@@ -103,16 +104,34 @@ export function AsciiDesk() {
       }
       context.globalAlpha = 1;
     };
+    function beginReveal() {
+      if (!mounted || !initialized || playing || document.documentElement.dataset.folioIntro === "pending") return;
+      playing = true;
+      start = performance.now();
+      previousFrame = 0;
+      figure!.dataset.revealState = "revealing";
+      frame = requestAnimationFrame(tick);
+    }
+    figure.dataset.revealState = "waiting";
+    const opening = new MutationObserver(beginReveal);
+    opening.observe(document.documentElement, { attributes: true, attributeFilter: ["data-folio-intro"] });
     const observer = new ResizeObserver(() => { if (initialized) resize(); }); observer.observe(canvas);
     const theme = new MutationObserver(palette); theme.observe(document.documentElement, { attributes: true, attributeFilter: ["data-professional-theme"] });
     const viewport = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; }, { rootMargin: "100px" }); viewport.observe(canvas);
     document.fonts.ready.then(() => {
       if (!mounted) return;
-      initialized = true; resize(); start = performance.now();
-      setReady(true); frame = requestAnimationFrame(tick);
+      initialized = true;
+      resize();
+      // Preparation can finish behind the intro; its animation clock starts only
+      // after the overlay has finished fading and marks the opening as done.
+      setReady(true);
+      beginReveal();
     });
-    replayRef.current = () => { start = performance.now(); finished = false; };
-    return () => { mounted = false; cancelAnimationFrame(frame); observer.disconnect(); theme.disconnect(); viewport.disconnect(); replayRef.current = null; };
+    replayRef.current = () => {
+      if (!playing) { beginReveal(); return; }
+      start = performance.now(); finished = false; figure.dataset.revealState = "revealing";
+    };
+    return () => { mounted = false; cancelAnimationFrame(frame); observer.disconnect(); theme.disconnect(); viewport.disconnect(); opening.disconnect(); replayRef.current = null; };
   }, []);
 
   return <figure ref={figureRef} className="ascii-desk" data-ready={ready}>

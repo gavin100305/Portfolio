@@ -4,7 +4,7 @@ import Link from "next/link";
 export function SpaceInvitation() {
   return <section className="folio-space-invitation mt-16 sm:mt-20" aria-labelledby="space-invitation-title">
     <div className="folio-space-card">
-      <div className="folio-space-id-stage" role="img" aria-label="Gavin Soares space explorer identification card with a pixel astronaut on a cobalt background">
+      <div className="folio-space-id-stage" role="img" aria-label="Gavin Soares space explorer identification card with a pixel astronaut on a recessed neutral background">
         <div className="folio-space-id">
           <div className="folio-space-id-slot" />
           <div className="folio-space-id-heading"><span>GS / 01</span><span>STATION ACCESS</span></div>
