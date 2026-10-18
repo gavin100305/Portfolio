@@ -3,6 +3,7 @@ import { AsciiDesk } from "@/components/professional/ascii-desk";
 import { ThemeToggle } from "@/components/professional/theme-toggle";
 import { TechStack } from "@/components/professional/tech-stack";
 import { ProjectGallery } from "@/components/professional/project-gallery";
+import { Experience } from "@/components/professional/experience";
 import { profile } from "@/data/portfolio-content";
 import { ButtonSoundEffects } from "@/components/professional/button-sound-effects";
 import "./professional.css";
@@ -43,6 +44,7 @@ export default function Home() {
         </section>
         <TechStack />
         <ProjectGallery />
+        <Experience />
         <aside className="folio-space-note mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-folio-border pt-6 sm:mt-16">
           <p className="max-w-[360px] text-xs leading-6 text-folio-muted">There’s another side to this portfolio.<br /><span className="text-folio-foreground">A space station you can actually explore.</span></p>
           <Link href="/space" className="folio-text-link gap-3 font-mono text-[11px] text-folio-accent">Enter the station <Arrow diagonal /></Link>

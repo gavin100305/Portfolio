@@ -186,6 +186,142 @@ html[data-professional-theme="dark"] .folio-moon { display: none; }
 .folio-theme-toggle:hover:not(:disabled) { color: var(--folio-foreground); transform: translateY(-1px); }
 .folio-theme-toggle:active:not(:disabled) { transform: translateY(2px); box-shadow: inset 0 1px 0 var(--folio-key-highlight), 0 1px 0 var(--folio-key-edge); }
 .folio-theme-toggle:disabled { cursor: wait; opacity: .68; }
+/* Physical selectors and a quietly recessed information card. */
+.folio-career-tabs { display: flex; gap: 12px; margin-bottom: 26px; }
+.folio-career-tabs button {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  min-height: 66px;
+  padding: 12px 15px;
+  text-align: left;
+  border: 1px solid var(--folio-key-edge);
+  border-radius: 6px;
+  background: var(--folio-key-face);
+  color: var(--folio-muted);
+  box-shadow: inset 0 1px 0 var(--folio-key-highlight), inset 0 -2px 0 var(--folio-key-base), 0 4px 0 var(--folio-key-base), 0 5px 0 var(--folio-key-edge), 0 9px 10px var(--folio-frame-recess);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease, color 150ms ease;
+}
+.folio-career-tabs button::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid color-mix(in srgb, var(--folio-key-edge) 55%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--folio-key-highlight) 75%, transparent);
+  border-radius: 3px;
+  box-shadow: inset 0 3px 5px #00000020, inset 2px 0 4px #00000012;
+  pointer-events: none;
+}
+.folio-career-tabs button:hover { color: var(--folio-foreground); }
+.folio-career-tabs button[data-tone="cobalt"] {
+  --folio-key-face: var(--folio-key-cobalt-face);
+  --folio-key-edge: var(--folio-key-cobalt-edge);
+  --folio-key-base: var(--folio-key-cobalt-base);
+  --folio-key-highlight: var(--folio-key-cobalt-highlight);
+  --folio-surface: #214ccb;
+  --folio-foreground: #ffffff;
+  --folio-muted: #ffffff;
+  --folio-subtle: #d4dfff;
+  --folio-accent: #ffffff;
+}
+.folio-career-tabs button[data-tone="cobalt"] .folio-career-tab-kind { color: #d4dfff; }
+.folio-career-tabs button[data-tone="neutral"] {
+  --folio-key-face: #ffffff;
+  --folio-surface: #fafafa;
+}
+html[data-professional-theme="dark"] .folio-career-tabs button[data-tone="neutral"] {
+  --folio-key-face: #292a2d;
+  --folio-key-edge: #494a50;
+  --folio-key-base: #111214;
+  --folio-key-highlight: #5a5b60;
+  --folio-surface: #191a1c;
+  --folio-foreground: #ffffff;
+  --folio-muted: #e9e9ec;
+  --folio-subtle: #b0b1b9;
+  --folio-accent: #92b0ff;
+}
+.folio-career-autoplay { display: grid; place-items: center; width: 29px; height: 29px; border: 1px solid var(--folio-key-edge); border-radius: 5px; background: var(--folio-key-face); color: var(--folio-muted); box-shadow: inset 0 1px 0 var(--folio-key-highlight), 0 2px 0 var(--folio-key-base); cursor: pointer; }
+.folio-career-autoplay:active { transform: translateY(1px); box-shadow: inset 0 1px 2px var(--folio-frame-recess); }
+.folio-career-tabs button[aria-selected="true"], .folio-career-tabs button:active {
+  transform: translateY(3px);
+  color: var(--folio-foreground);
+  background: var(--folio-surface);
+  box-shadow: inset 0 3px 5px var(--folio-frame-recess), inset 0 -1px 0 var(--folio-key-highlight), 0 1px 0 var(--folio-key-base), 0 2px 0 var(--folio-key-edge), 0 4px 5px var(--folio-frame-recess);
+}
+.folio-career-mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: 1px solid var(--folio-key-edge);
+  border-radius: 5px;
+  background: var(--folio-surface);
+  color: var(--folio-subtle);
+  font: 10px/1 var(--font-geist-mono), monospace;
+  box-shadow: inset 0 2px 3px var(--folio-frame-recess), 0 1px 0 var(--folio-key-highlight);
+}
+.folio-career-tabs button[aria-selected="true"] .folio-career-mark { color: var(--folio-accent); background: color-mix(in srgb, var(--folio-surface) 92%, var(--folio-accent)); border-color: color-mix(in srgb, var(--folio-key-edge) 70%, var(--folio-accent)); }
+.folio-career-tab-copy { display: grid; gap: 4px; }
+.folio-career-tab-kind { font: 9px/1.4 var(--font-geist-mono), monospace; color: var(--folio-subtle); }
+.folio-career-details {
+  position: relative;
+  overflow: hidden;
+  padding: 7px;
+  border: 1px solid var(--folio-frame-edge);
+  border-radius: 12px;
+  background: linear-gradient(var(--folio-frame-highlight), var(--folio-frame-surface) 7px, var(--folio-frame-lower));
+  box-shadow: inset 0 1px 0 var(--folio-frame-highlight), inset 0 -2px 0 var(--folio-key-base), 0 4px 0 var(--folio-key-base), 0 5px 0 var(--folio-frame-edge), 0 12px 18px var(--folio-frame-recess);
+}
+.folio-career-details::after { content: ""; position: absolute; bottom: 2px; right: 22px; width: 29px; height: 2px; border-radius: 2px; background: var(--folio-accent); opacity: .75; }
+.folio-career-page {
+  display: none;
+  min-width: 0;
+  padding: 26px 27px 22px;
+  border: 1px solid var(--folio-key-edge);
+  border-bottom-color: var(--folio-key-highlight);
+  border-radius: 6px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--folio-key-face) 95%, var(--folio-accent)), var(--folio-key-face) 70%);
+  box-shadow: inset 0 5px 8px var(--folio-frame-recess), inset 3px 0 6px var(--folio-frame-recess), inset 0 -1px 0 var(--folio-key-highlight);
+}
+.folio-career-card-header { padding-bottom: 18px; border-bottom: 1px solid color-mix(in srgb, var(--folio-border) 85%, var(--folio-accent)); }
+.folio-career-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-top: 24px; padding-top: 15px; border-top: 1px solid var(--folio-border); color: var(--folio-subtle); font-size: 10px; line-height: 1.6; }
+.folio-career-category { padding: 3px 8px; flex-shrink: 0; border: 1px solid color-mix(in srgb, var(--folio-border) 80%, var(--folio-accent)); border-radius: 4px; color: var(--folio-accent); background: color-mix(in srgb, var(--folio-key-face) 95%, var(--folio-accent)); font: 9px/1.5 var(--font-geist-mono), monospace; }
+.folio-career-date {
+  color: var(--folio-accent);
+  padding: 3px 8px;
+  border: 1px solid var(--folio-border);
+  border-radius: 4px;
+  background: var(--folio-surface);
+  box-shadow: inset 0 1px 2px var(--folio-frame-recess), 0 1px 0 var(--folio-key-highlight);
+}
+.folio-career-brand { display: flex; align-items: center; gap: 11px; margin-bottom: 20px; }
+.folio-career-logo { display: grid; place-items: center; width: 44px; height: 44px; padding: 5px; border: 1px solid var(--folio-key-edge); border-radius: 6px; background: #fafafa; box-shadow: inset 0 2px 3px #00000018, 0 1px 0 var(--folio-key-highlight); }
+.folio-career-logo-wordmark { width: 139px; }
+.folio-career-logo img { display: block; max-width: 100%; height: auto; max-height: 34px; object-fit: contain; }
+.folio-career-logo-rayeva { position: relative; overflow: hidden; background: #ffffff; }
+.folio-career-logo-rayeva img { position: absolute; top: 50%; left: 50%; width: 150px; height: 150px; max-width: none; max-height: none; transform: translate(-50%, -50%); }
+.folio-career-stack { display: flex; flex-wrap: wrap; gap: 7px; }
+.folio-career-stack span { padding: 5px 9px; border: 1px solid color-mix(in srgb, var(--folio-key-edge) 85%, var(--folio-accent)); border-radius: 4px; background: color-mix(in srgb, var(--folio-surface) 96%, var(--folio-accent)); color: var(--folio-foreground); box-shadow: inset 0 1px 2px var(--folio-frame-recess), 0 1px 0 var(--folio-key-highlight); font: 10px/1.4 var(--font-geist-mono), monospace; }
+.folio-career-page[data-active="true"] { display: block; animation: folio-career-reveal 420ms cubic-bezier(.22,.65,.3,1) both; }
+.folio-career-page[data-active="true"] .folio-career-body { animation: folio-career-reveal 480ms 50ms cubic-bezier(.22,.65,.3,1) both; }
+.folio-career-page[data-active="true"] .folio-career-stack { animation: folio-career-reveal 500ms 90ms cubic-bezier(.22,.65,.3,1) both; }
+@keyframes folio-career-reveal { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 639px) {
+  .folio-career-tabs { gap: 8px; margin-bottom: 25px; }
+  .folio-career-tabs button { flex: 1; min-width: 0; justify-content: center; padding: 11px 8px; font-size: 11px; gap: 7px; min-height: 46px; text-align: center; }
+  .folio-career-mark, .folio-career-tab-kind { display: none; }
+  .folio-career-page { padding: 21px 18px 20px; }
+  .folio-career-card-footer { font-size: 9px; gap: 8px; }
+}
 /* Tactile cover, inset image well, and a pressed-in notes panel. */
 .folio-project-dialog {
   position: fixed;
