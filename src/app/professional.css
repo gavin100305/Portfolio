@@ -1010,3 +1010,5 @@ html[data-professional-theme="dark"] .folio-opening-signature { color: #a9aaa2; 
   .folio-contact-send[data-send-state="success"] .folio-contact-send-arrow { animation: none; opacity: 0; }
   .folio-contact-send-check, .folio-contact-feedback[data-state="success"] { animation: none; }
 }
+
+.folio-project-board[data-layout-ready="false"] > .folio-project-print { transition: none; }

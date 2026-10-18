@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ProjectIllustration } from "@/components/portfolio-illustrations";
-import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from "react";
+import { useLayoutEffect, useRef, useState, type PointerEvent } from "react";
 import { allProjects, galleryProjects, type GalleryProject } from "@/data/professional-projects";
 
 type PreviewOrigin = { x: number; y: number; width: number; height: number; rotation: number; thumbnail?: string };
@@ -152,13 +152,29 @@ export function ProjectGallery() {
   const [dragging, setDragging] = useState<number | null>(null);
   const [selected, setSelected] = useState<{ project: GalleryProject; origin: PreviewOrigin; source: HTMLButtonElement } | null>(null);
 
-  useEffect(() => {
-    const observer = new ResizeObserver(() => {
-      const next = window.matchMedia("(max-width: 639px)").matches;
-      if (next !== mobile.current) { mobile.current = next; setPoses(layout(next)); }
+  useLayoutEffect(() => {
+    const element = board.current;
+    const media = window.matchMedia("(max-width: 639px)");
+    // Resolve the viewport before paint, including client-side back navigation.
+    // Suppress the desktop-to-mobile transform transition during initialization.
+    if (element) element.dataset.layoutReady = "false";
+    const syncLayout = () => {
+      if (media.matches !== mobile.current) {
+        mobile.current = media.matches;
+        setPoses(layout(media.matches));
+      }
+    };
+    syncLayout();
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => {
+        if (element) element.dataset.layoutReady = "true";
+      });
     });
-    if (board.current) observer.observe(board.current);
-    return () => observer.disconnect();
+    media.addEventListener("change", syncLayout);
+    return () => {
+      cancelAnimationFrame(frame);
+      media.removeEventListener("change", syncLayout);
+    };
   }, []);
 
   function bringForward(index: number) {
