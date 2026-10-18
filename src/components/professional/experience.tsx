@@ -98,6 +98,7 @@ export function Experience() {
     </div>
     <div className="folio-career-tabs" role="tablist" aria-label="Work experience">
       {experience.map((item, index) => <button key={item.label} ref={node => { tabs.current[index] = node; }} type="button" role="tab" data-tone={index === 1 ? "neutral" : "cobalt"} id={`work-tab-${index}`} aria-controls={`work-panel-${index}`} aria-selected={active === index} tabIndex={active === index ? 0 : -1} onKeyDown={event => navigate(event, index)} onClick={event => handleSelect(index, event.timeStamp)}><span className="folio-career-mark" aria-hidden="true">{item.initials}</span><span className="folio-career-tab-copy"><span>{item.label}</span><span className="folio-career-tab-kind">{item.kind}</span></span></button>)}
+      <button type="button" role="tab" aria-selected="false" tabIndex={0} data-tone="neutral" className="folio-career-coming-soon"><span className="folio-career-mark" aria-hidden="true">···</span><span className="folio-career-tab-copy"><span>Coming soon</span><span className="folio-career-tab-kind">Next chapter</span></span></button>
     </div>
     <div ref={card} className="folio-career-details">
       {experience.map((item, index) => <article key={item.label} id={`work-panel-${index}`} role="tabpanel" aria-labelledby={`work-tab-${index}`} aria-hidden={active !== index} inert={active !== index} tabIndex={active === index ? 0 : -1} data-active={active === index} className="folio-career-page">

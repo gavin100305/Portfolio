@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { ProjectIllustration } from "@/components/portfolio-illustrations";
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from "react";
-import { galleryProjects, type GalleryProject } from "@/data/professional-projects";
+import { allProjects, galleryProjects, type GalleryProject } from "@/data/professional-projects";
 
 type PreviewOrigin = { x: number; y: number; width: number; height: number; rotation: number; thumbnail?: string };
 
@@ -34,6 +36,7 @@ function layout(mobile: boolean): Pose[] {
 // Show the opposite website theme for contrast against the portfolio frame.
 function ProjectScreenshot({ project, preview = false }: { project: GalleryProject; preview?: boolean }) {
   const [decoded, setDecoded] = useState({ dark: false, light: false });
+  if (!project.image) return <span className="folio-project-placeholder" role="img" aria-label={`${project.name} project illustration`}><ProjectIllustration kind={project.visual} /></span>;
   const alt = preview ? `${project.name} live homepage` : "";
   const sizes = preview ? "(max-width: 700px) 90vw, 700px" : "(max-width: 639px) 80vw, 280px";
   const lightSrc = typeof project.lightImage === "string" && project.lightImage.trim()
@@ -45,9 +48,9 @@ function ProjectScreenshot({ project, preview = false }: { project: GalleryProje
   </>;
 }
 
-function ProjectPrintFace({ project, index }: { project: GalleryProject; index: number }) {
+function ProjectPrintFace({ project, index, draggable = true }: { project: GalleryProject; index: number; draggable?: boolean }) {
   return <>
-    <span className="folio-project-handle" data-drag-handle><span className="folio-print-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span><span>{project.name}</span><svg viewBox="0 0 12 16" width="10" height="14" fill="currentColor" aria-hidden="true"><circle cx="3" cy="4" r="1"/><circle cx="8" cy="4" r="1"/><circle cx="3" cy="8" r="1"/><circle cx="8" cy="8" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="8" cy="12" r="1"/></svg></span>
+    <span className="folio-project-handle" data-drag-handle><span className="folio-print-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span><span>{project.name}</span>{draggable ? <svg viewBox="0 0 12 16" width="10" height="14" fill="currentColor" aria-hidden="true"><circle cx="3" cy="4" r="1"/><circle cx="8" cy="4" r="1"/><circle cx="3" cy="8" r="1"/><circle cx="8" cy="8" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="8" cy="12" r="1"/></svg> : <span className="folio-project-open-mark" aria-hidden="true">↗</span>}</span>
     <span className="folio-print-image"><ProjectScreenshot project={project} /></span>
   </>;
 }
@@ -114,7 +117,7 @@ function ProjectPreview({ project, origin, source, onClose }: { project: Gallery
   }
 
   return <dialog ref={dialog} className="folio-project-dialog" data-entered={isEntered} data-closing={isClosing} aria-labelledby="project-preview-title" onTransitionEnd={event => { if (event.target === event.currentTarget && event.propertyName === "width" && isClosing) finishClose(); }} onCancel={event => { event.preventDefault(); dismiss(); }} onClick={event => { if (event.target === event.currentTarget) dismiss(); }}>
-    <div className="folio-project-print folio-preview-cover" aria-hidden="true"><ProjectPrintFace project={project} index={galleryProjects.indexOf(project)} /></div>
+    <div className="folio-project-print folio-preview-cover" aria-hidden="true"><ProjectPrintFace project={project} index={allProjects.findIndex(item => item.id === project.id)} /></div>
     <div ref={content} className="folio-preview-content">
       <div className="folio-preview-toolbar flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <span className="text-[11px] text-folio-muted">{project.category}</span>
@@ -128,7 +131,7 @@ function ProjectPreview({ project, origin, source, onClose }: { project: Gallery
         <ul className="folio-preview-notes mt-5 space-y-3 text-sm leading-6 text-folio-muted">{project.highlights.map(item => <li key={item}>{item}</li>)}</ul>
         <ul aria-label="Technologies" className="my-6 flex flex-wrap gap-x-4 gap-y-2 font-mono text-[10px] text-folio-muted">{project.technologies.map(tool => <li key={tool}>{tool}</li>)}</ul>
         <div className="flex flex-wrap gap-3 border-t border-folio-border pt-5">
-          <a className="folio-raised-control folio-raised-control-primary folio-preview-link" href={project.deployment} target="_blank" rel="noreferrer">Open live demo <span aria-hidden="true">↗</span></a>
+          {project.deployment && <a className="folio-raised-control folio-raised-control-primary folio-preview-link" href={project.deployment} target="_blank" rel="noreferrer">Open live demo <span aria-hidden="true">↗</span></a>}
           {project.repository && <a className="folio-raised-control folio-preview-link" href={project.repository} target="_blank" rel="noreferrer">Source code <span aria-hidden="true">↗</span></a>}
         </div>
         </div>
@@ -196,7 +199,7 @@ export function ProjectGallery() {
   }
 
   return <section id="projects" className="folio-gallery mt-16 sm:mt-20" aria-labelledby="projects-title">
-    <h2 id="projects-title" className="mb-3 text-xl font-medium tracking-tight">Selected projects</h2>
+    <h2 id="projects-title" className="mb-3 text-xl font-medium tracking-tight">Project Gallery</h2>
     <p className="text-xs leading-6 text-folio-muted">Drag to rearrange. Click a project to explore.</p>
     <p id="gallery-keyboard-help" className="sr-only">On a touch screen, drag using a card’s title strip. With a keyboard, use Tab to choose a project, arrow keys to move it, and Enter to open its preview.</p>
     <div ref={board} className="folio-project-board" aria-label="Draggable project gallery">
@@ -218,6 +221,30 @@ export function ProjectGallery() {
         </button>;
       })}
     </div>
+    <div className="folio-gallery-more"><Link href="/projects" className="folio-raised-control folio-raised-control-primary">Show more <span aria-hidden="true">↗</span></Link></div>
     {selected && <ProjectPreview project={selected.project} origin={selected.origin} source={selected.source} onClose={() => { restoringFocus.current = true; setSelected(null); requestAnimationFrame(() => { opener.current?.focus({ preventScroll: true }); restoringFocus.current = false; }); }} />}
   </section>;
+}
+
+/** The archive keeps the same physical card and dialog, without drag handlers. */
+export function ProjectGrid() {
+  const [selected, setSelected] = useState<{ project: GalleryProject; origin: PreviewOrigin; source: HTMLButtonElement } | null>(null);
+  const opener = useRef<HTMLButtonElement | null>(null);
+  return <>
+    <ul className="folio-all-projects-grid" aria-label="All projects">
+      {allProjects.map((project, index) => <li key={project.id}>
+        <button type="button" className="folio-project-print folio-grid-project" aria-label={`Explore ${project.name}`} aria-haspopup="dialog" data-preview={selected?.project.id === project.id} onClick={event => {
+          opener.current = event.currentTarget;
+          setSelected({ project, origin: cardOrigin(event.currentTarget), source: event.currentTarget });
+        }}>
+          <ProjectPrintFace project={project} index={index} draggable={false} />
+        </button>
+        <p className="folio-grid-project-category">{project.category}</p>
+      </li>)}
+    </ul>
+    {selected && <ProjectPreview project={selected.project} origin={selected.origin} source={selected.source} onClose={() => {
+      setSelected(null);
+      requestAnimationFrame(() => opener.current?.focus({ preventScroll: true }));
+    }} />}
+  </>;
 }

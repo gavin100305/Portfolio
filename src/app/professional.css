@@ -969,3 +969,25 @@ html[data-professional-theme="dark"] .folio-opening-signature { color: #a9aaa2; 
 @keyframes folio-opening-safety { to { visibility: hidden; pointer-events: none; } }
 @media (max-width: 639px) { .folio-opening-plate { width: calc(100vw - 44px); padding: 7px; border-radius: 12px; } .folio-opening-inset { min-height: 0; padding: 12px 6px; border-radius: 6px; } }
 @media (prefers-reduced-motion: reduce) { .folio-opening, .folio-opening-plate { transition: none; } .folio-signature-outline { animation: none !important; stroke-dashoffset: 0; opacity: 1; } .folio-signature-fill { animation: none !important; opacity: 1; } }
+
+/* The complete collection uses the same prints in a stationary grid. */
+.folio-gallery-more { display: flex; justify-content: center; margin-top: 32px; }
+.folio-all-projects-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin: 35px 0 12px; }
+.folio-all-projects-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 27px 25px; margin: 0; padding: 0; list-style: none; }
+.folio-all-projects-grid > li { min-width: 0; }
+.folio-grid-project.folio-project-print { position: relative; width: 100%; cursor: pointer; transform: none; will-change: auto; transition: box-shadow .25s ease; }
+.folio-grid-project .folio-project-handle { height: 38px; touch-action: auto; font-size: 11px; }
+.folio-project-open-mark { margin-left: auto; color: var(--folio-accent); }
+.folio-grid-project-category { margin-top: 16px; color: var(--folio-muted); font-size: 10px; line-height: 1.6; }
+.folio-project-placeholder { display: grid; place-items: center; width: 100%; aspect-ratio: 16 / 10; background: var(--folio-surface); color: var(--folio-accent); }
+.folio-project-placeholder > svg { display: block; width: 90%; height: 90%; }
+.folio-preview-image > .folio-project-placeholder { aspect-ratio: 16 / 9; }
+@media (max-width: 639px) { .folio-all-projects-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
+
+.folio-career-tabs button.folio-career-coming-soon { cursor: pointer; color: var(--folio-subtle); }
+.folio-career-tabs button.folio-career-coming-soon:active { transform: none; }
+@media (max-width: 639px) {
+  .folio-career-tabs { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; padding: 3px 3px 14px; margin-inline: -3px; scroll-padding-inline: 3px; scrollbar-width: none; }
+  .folio-career-tabs::-webkit-scrollbar { display: none; }
+  .folio-career-tabs button { flex: 0 0 auto; min-width: 112px; padding-inline: 16px; white-space: nowrap; }
+}

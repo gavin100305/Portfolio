@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DotMonogram } from "@/components/professional/brand";
 import { OpeningIntro } from "@/components/professional/opening-intro";
 import { AsciiDesk } from "@/components/professional/ascii-desk";
 import { ThemeToggle } from "@/components/professional/theme-toggle";
@@ -15,24 +16,11 @@ import { ButtonSoundEffects } from "@/components/professional/button-sound-effec
 import { ScrollReveals } from "@/components/professional/scroll-reveals";
 import "./professional.css";
 
-const themeScript = `(function(){var r=document.documentElement;var t;try{t=localStorage.getItem('gavin:professional-theme')}catch{}r.dataset.professionalTheme=t==='light'||t==='dark'?t:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{r.dataset.folioIntro=sessionStorage.getItem('gavin:opening-seen')==='1'?'done':'pending'}catch{r.dataset.folioIntro='pending'}})()`;
-
-function DotMonogram() {
-  const letters = [
-    ["01110", "10001", "10000", "10111", "10001", "10001", "01110"],
-    ["01111", "10000", "10000", "01110", "00001", "00001", "11110"],
-  ];
-  return <svg viewBox="0 0 40 26" className="h-4 w-6" aria-hidden="true">
-    {letters.flatMap((letter, index) => letter.flatMap((row, y) => [...row].map((dot, x) => dot === "1" ?
-      <circle key={`${index}-${x}-${y}`} cx={3 + (index * 6 + x) * 3.4} cy={3 + y * 3.4} r="1.1" fill={index === 0 && y === 3 && x === 4 ? "var(--folio-accent)" : "currentColor"} /> : null)))}
-  </svg>;
-}
 
 export default function Home() {
   return <div className="professional-shell min-h-svh bg-folio-background font-folio-sans text-folio-foreground antialiased">
     <ButtonSoundEffects />
     <ScrollReveals />
-    <script dangerouslySetInnerHTML={{ __html: themeScript }} />
     <OpeningIntro />
     <a href="#main" className="folio-skip">Skip to content</a>
     <SectionDock />
