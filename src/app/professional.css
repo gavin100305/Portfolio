@@ -322,6 +322,77 @@ html[data-professional-theme="dark"] .folio-career-tabs button[data-tone="neutra
   .folio-career-page { padding: 21px 18px 20px; }
   .folio-career-card-footer { font-size: 9px; gap: 8px; }
 }
+/* Overlapping photographic prints, with depth between the paper layers. */
+.folio-album { --album-paper: #faf9f5; --album-ink: #45423b; --album-edge: #c4c2ba; --album-base: #d6d4ca; }
+html[data-professional-theme="dark"] .folio-album { --album-paper: #272728; --album-ink: #d0cfca; --album-edge: #555456; --album-base: #111214; }
+.folio-album-stage { position: relative; height: clamp(330px, 54vw, 455px); touch-action: pan-y; perspective: 1500px; }
+.folio-album-print {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 70%;
+  padding: 11px 11px 0;
+  border: 1px solid var(--album-edge);
+  border-radius: 5px;
+  background: var(--album-paper);
+  color: var(--album-ink);
+  box-shadow: inset 0 1px 0 var(--folio-key-highlight), inset 0 -2px 0 var(--album-base), 0 3px 0 var(--album-base), 0 4px 0 var(--album-edge), 0 14px 22px #00000038;
+  transform: translate(calc(-50% + var(--album-offset)), -50%) rotate(var(--album-rotation)) scale(var(--album-scale));
+  transform-origin: 50% 70%;
+  transition: transform 650ms cubic-bezier(.22,.65,.3,1), box-shadow 500ms ease;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.folio-album-print[data-active="true"] { box-shadow: inset 0 1px 0 var(--folio-key-highlight), inset 0 -2px 0 var(--album-base), 0 3px 0 var(--album-base), 0 4px 0 var(--album-edge), 0 24px 34px #00000055; }
+.folio-album-image { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; border: 1px solid var(--album-edge); border-bottom-color: var(--folio-key-highlight); border-radius: 2px; background: var(--folio-surface); }
+.folio-album-image img { object-fit: cover; pointer-events: none; }
+.folio-album-image[data-certificate="true"] { background: white; }
+.folio-album-image[data-certificate="true"] img { object-fit: contain; }
+.folio-album-image::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 4px 7px #00000055, inset 0 -1px 0 #ffffff20; }
+.folio-album-print-footer { display: flex; justify-content: space-between; gap: 12px; padding: 13px 4px 15px; font: 10px/1.5 var(--font-geist-mono), monospace; }
+.folio-album-print[data-active="true"] .folio-album-print-footer > :first-child { color: var(--folio-accent); }
+.folio-album-caption { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 15px 7px 0; }
+.folio-album-caption-copy { animation: folio-album-caption 380ms ease both; }
+@keyframes folio-album-caption { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+.folio-award-more { display: inline-flex; flex-shrink: 0; justify-content: center; align-items: center; gap: 10px; min-height: 38px; padding: 9px 12px; border: 1px solid var(--folio-key-edge); border-radius: 5px; background: var(--folio-key-face); color: var(--folio-foreground); box-shadow: inset 0 1px 0 var(--folio-key-highlight), inset 0 -1px 0 var(--folio-key-base), 0 2px 0 var(--folio-key-base), 0 3px 0 var(--folio-key-edge); font: 10px/1.5 var(--font-geist-mono), monospace; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.folio-award-more:active { transform: translateY(2px); box-shadow: inset 0 2px 3px var(--folio-frame-recess), 0 1px 0 var(--folio-key-edge); }
+.folio-album-controls { display: flex; align-items: center; justify-content: center; gap: 17px; margin-top: 25px; }
+.folio-album-arrow { display: grid; place-items: center; width: 35px; height: 35px; border: 1px solid var(--folio-key-edge); border-radius: 50%; background: var(--folio-key-face); color: var(--folio-foreground); box-shadow: inset 0 1px 0 var(--folio-key-highlight), 0 2px 0 var(--folio-key-base), 0 3px 0 var(--folio-key-edge); cursor: pointer; }
+.folio-album-arrow:active { transform: translateY(2px); box-shadow: inset 0 2px 3px var(--folio-frame-recess); }
+.folio-album-index { display: flex; gap: 2px; }
+.folio-album-index button { display: grid; place-items: center; width: 27px; height: 35px; cursor: pointer; border: 0; background: transparent; transition: width .4s ease; }
+.folio-album-index button span { width: 7px; height: 7px; border-radius: 999px; background: var(--folio-key-edge); box-shadow: inset 0 1px 2px var(--folio-frame-recess), 0 1px 0 var(--folio-key-highlight); transition: background-color .35s, width .4s cubic-bezier(.22,.65,.3,1); }
+.folio-album-index button[aria-current="true"] { width: 43px; }
+.folio-album-index button[aria-current="true"] span { width: 26px; background: var(--folio-accent); }
+/* The opened achievement is a printed record, with an inset evidence image. */
+.folio-award-dialog { width: min(850px, calc(100vw - 28px)); max-width: none; max-height: calc(100svh - 28px); padding: 6px; margin: auto; overflow: visible; border: 1px solid var(--folio-frame-edge); border-radius: 11px; background: var(--folio-frame-surface); color: var(--folio-foreground); box-shadow: inset 0 1px 0 var(--folio-frame-highlight), 0 3px 0 var(--folio-frame-lower), 0 4px 0 var(--folio-frame-edge), 0 25px 65px #00000066; opacity: 0; transform: translateY(18px) scale(.965); transition: opacity 300ms ease, transform 430ms cubic-bezier(.22,.65,.3,1); }
+.folio-award-dialog[data-entered="true"] { opacity: 1; transform: translateY(0) scale(1); }
+.folio-award-dialog[data-entered="false"] { transition-duration: 280ms; }
+.folio-award-dialog::backdrop { background: #00000000; transition: background-color 300ms ease; }
+.folio-award-dialog[data-entered="true"]::backdrop { background: #000000a3; }
+.folio-award-record { max-height: calc(100svh - 44px); overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--folio-key-edge); border-radius: 6px; background: var(--folio-key-face); box-shadow: inset 0 1px 0 var(--folio-key-highlight), inset 0 -1px 0 var(--folio-key-base); }
+.folio-award-record-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 19px 23px; border-bottom: 1px solid var(--folio-border); }
+.folio-award-record-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 25px; padding: 24px; }
+.folio-award-record-layout[data-academic="true"] { grid-template-columns: minmax(0, 1fr); }
+.folio-award-record-image { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border: 5px solid var(--folio-frame-surface); outline: 1px solid var(--folio-frame-edge); border-radius: 3px; background: var(--folio-surface); box-shadow: 0 2px 0 var(--folio-frame-lower), 0 5px 9px var(--folio-frame-recess); }
+.folio-award-record-image img { object-fit: contain; }
+.folio-award-record-image::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 3px 5px #00000040; }
+.folio-award-record-layout[data-academic="true"] .folio-award-record-image { max-height: 400px; }
+.folio-award-stack { display: flex; flex-wrap: wrap; gap: 6px; }
+.folio-award-stack li { padding: 4px 7px; border: 1px solid var(--folio-key-edge); border-radius: 4px; background: var(--folio-surface); box-shadow: inset 0 1px 2px var(--folio-frame-recess), 0 1px 0 var(--folio-key-highlight); color: var(--folio-muted); font: 9px/1.5 var(--font-geist-mono), monospace; }
+.folio-award-team { display: flex; flex-wrap: wrap; gap: 5px 15px; color: var(--folio-muted); font-size: 11px; line-height: 1.7; }
+@media (max-width: 639px) {
+  .folio-album-stage { height: clamp(300px, 82vw, 410px); }
+  .folio-album-print { width: 88%; padding: 8px 8px 0; transform: translate(calc(-50% + var(--album-offset-mobile)), -50%) rotate(var(--album-rotation)) scale(var(--album-scale)); }
+  .folio-album-print-footer { padding: 11px 3px 13px; font-size: 9px; }
+  .folio-album-caption { padding: 12px 0 0; gap: 12px; }
+  .folio-album-caption h3 { font-size: 18px; }
+  .folio-award-more { min-height: 40px; padding: 9px 10px; font-size: 9px; }
+  .folio-award-dialog { width: calc(100vw - 20px); padding: 5px; }
+  .folio-award-record-header { padding: 15px; gap: 12px; }
+  .folio-award-record-layout { grid-template-columns: minmax(0, 1fr); padding: 18px 16px 23px; gap: 25px; }
+}
 /* Tactile cover, inset image well, and a pressed-in notes panel. */
 .folio-project-dialog {
   position: fixed;
@@ -554,3 +625,11 @@ html:not([data-professional-transition]) .professional-shell { transition: backg
 
 html[data-professional-theme="dark"] .folio-keycap[data-tone="neutral"] .folio-tool-icon[src*="nextjs"],
 .folio-keycap[data-tone="cobalt"] .folio-tool-icon[src*="nextjs"] { filter: invert(1); }
+
+/* Small cobalt keycaps inside the achievement record. */
+.folio-award-stack li {
+  border-color: var(--folio-key-cobalt-edge);
+  background: var(--folio-key-cobalt-face);
+  color: #fff;
+  box-shadow: inset 0 1px 0 var(--folio-key-cobalt-highlight), inset 0 -2px 3px var(--folio-key-cobalt-base), 0 2px 0 var(--folio-key-cobalt-base);
+}

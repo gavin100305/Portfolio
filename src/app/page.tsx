@@ -3,9 +3,11 @@ import { AsciiDesk } from "@/components/professional/ascii-desk";
 import { ThemeToggle } from "@/components/professional/theme-toggle";
 import { TechStack } from "@/components/professional/tech-stack";
 import { ProjectGallery } from "@/components/professional/project-gallery";
+import { Achievements } from "@/components/professional/achievements";
 import { Experience } from "@/components/professional/experience";
 import { profile } from "@/data/portfolio-content";
 import { ButtonSoundEffects } from "@/components/professional/button-sound-effects";
+import { ScrollReveals } from "@/components/professional/scroll-reveals";
 import "./professional.css";
 
 const themeScript = `(function(){try{var t=localStorage.getItem('gavin:professional-theme');document.documentElement.dataset.professionalTheme=t==='light'||t==='dark'?t:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}catch{document.documentElement.dataset.professionalTheme='light'}})()`;
@@ -28,6 +30,7 @@ function DotMonogram() {
 export default function Home() {
   return <div className="professional-shell min-h-svh bg-folio-background font-folio-sans text-folio-foreground antialiased">
     <ButtonSoundEffects />
+    <ScrollReveals />
     <script dangerouslySetInnerHTML={{ __html: themeScript }} />
     <a href="#main" className="folio-skip">Skip to content</a>
     <div className="relative mx-auto bg-transparent max-w-[800px] px-6 sm:px-8">
@@ -45,6 +48,7 @@ export default function Home() {
         <TechStack />
         <ProjectGallery />
         <Experience />
+        <Achievements />
         <aside className="folio-space-note mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-folio-border pt-6 sm:mt-16">
           <p className="max-w-[360px] text-xs leading-6 text-folio-muted">There’s another side to this portfolio.<br /><span className="text-folio-foreground">A space station you can actually explore.</span></p>
           <Link href="/space" className="folio-text-link gap-3 font-mono text-[11px] text-folio-accent">Enter the station <Arrow diagonal /></Link>

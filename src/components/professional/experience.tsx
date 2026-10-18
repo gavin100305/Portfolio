@@ -6,7 +6,6 @@ import { professionalExperience as experience } from "@/data/professional-experi
 
 export function Experience() {
   const [active, setActive] = useState(0);
-  const [userPaused, setUserPaused] = useState(false);
   const root = useRef<HTMLElement>(null);
   const card = useRef<HTMLDivElement>(null);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -25,7 +24,7 @@ export function Experience() {
     let timeout: ReturnType<typeof setTimeout> | undefined;
     function schedule() {
       clearTimeout(timeout);
-      if (userPaused || hovered.current || focused.current || document.hidden || motion.matches || !inView) return;
+      if (hovered.current || focused.current || document.hidden || motion.matches || !inView) return;
       timeout = setTimeout(() => {
         setActive(index => (index + 1) % experience.length);
         schedule();
@@ -46,7 +45,7 @@ export function Experience() {
       motion.removeEventListener("change", schedule);
       restart.current = () => {};
     };
-  }, [userPaused]);
+  }, []);
 
   useLayoutEffect(() => {
     const element = card.current;
@@ -95,9 +94,7 @@ export function Experience() {
     onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) { focused.current = false; resumeAfterReading(event.timeStamp); } }}>
     <div className="mb-6 flex items-center justify-between gap-4">
       <h2 id="experience-title" className="text-xl font-medium tracking-tight">Experience</h2>
-      <button type="button" className="folio-career-autoplay" aria-label={userPaused ? "Resume automatic experience switching" : "Pause automatic experience switching"} title={userPaused ? "Resume automatic switching" : "Pause automatic switching"} onClick={() => setUserPaused(value => !value)}>
-        <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" aria-hidden="true">{userPaused ? <path d="m5 3 8 5-8 5z" /> : <path d="M4 3h3v10H4zm5 0h3v10H9z" />}</svg>
-      </button>
+
     </div>
     <div className="folio-career-tabs" role="tablist" aria-label="Work experience">
       {experience.map((item, index) => <button key={item.label} ref={node => { tabs.current[index] = node; }} type="button" role="tab" data-tone={index === 1 ? "neutral" : "cobalt"} id={`work-tab-${index}`} aria-controls={`work-panel-${index}`} aria-selected={active === index} tabIndex={active === index ? 0 : -1} onKeyDown={event => navigate(event, index)} onClick={event => handleSelect(index, event.timeStamp)}><span className="folio-career-mark" aria-hidden="true">{item.initials}</span><span className="folio-career-tab-copy"><span>{item.label}</span><span className="folio-career-tab-kind">{item.kind}</span></span></button>)}
