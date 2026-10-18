@@ -64,6 +64,11 @@ html[data-professional-theme="dark"] .professional-shell {
 }
 body:has(.professional-shell) { background: #ffffff; }
 html[data-professional-theme="dark"] body:has(.professional-shell) { background: #000000; }
+/* Keep wheel, touch, and keyboard scrolling while hiding the chrome. */
+html:has(.professional-shell), body:has(.professional-shell), .professional-shell * { scrollbar-width: none; }
+html:has(.professional-shell)::-webkit-scrollbar,
+body:has(.professional-shell)::-webkit-scrollbar,
+.professional-shell *::-webkit-scrollbar { display: none; }
 /* Continuous orbital contours sit in the margins as a deliberate graphic. */
 .professional-shell::before,
 .professional-shell::after {
