@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { playButtonSound, preloadButtonSound } from "@/lib/button-sound";
 
-const buttonSelector = "button, [role='button'], a.folio-raised-control";
+const buttonSelector = "button, [role='button'], a.folio-raised-control, a.folio-section-link";
 
 function getSoundButton(target: EventTarget | null) {
   if (!(target instanceof Element)) return null;

@@ -130,7 +130,7 @@ export function Achievements() {
     resetClickTimer.current = setTimeout(() => { suppressClick.current = false; }, 0);
   }
 
-  return <section ref={root} className="folio-awards mt-16 sm:mt-20" aria-labelledby="achievements-title"
+  return <section id="achievements" ref={root} className="folio-awards mt-16 sm:mt-20" aria-labelledby="achievements-title"
     onPointerEnter={event => { if (event.pointerType !== "touch") { hovered.current = true; restart.current(); } }}
     onPointerLeave={event => { hovered.current = false; reading(event.timeStamp, 8000); }}
     onPointerDownCapture={event => reading(event.timeStamp, event.pointerType === "touch" ? 20000 : 12000)}

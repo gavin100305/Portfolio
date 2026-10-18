@@ -195,7 +195,7 @@ export function ProjectGallery() {
     setDragging(null);
   }
 
-  return <section className="folio-gallery mt-16 sm:mt-20" aria-labelledby="projects-title">
+  return <section id="projects" className="folio-gallery mt-16 sm:mt-20" aria-labelledby="projects-title">
     <h2 id="projects-title" className="mb-3 text-xl font-medium tracking-tight">Selected projects</h2>
     <p className="text-xs leading-6 text-folio-muted">Drag to rearrange. Click a project to explore.</p>
     <p id="gallery-keyboard-help" className="sr-only">On a touch screen, drag using a card’s title strip. With a keyboard, use Tab to choose a project, arrow keys to move it, and Enter to open its preview.</p>

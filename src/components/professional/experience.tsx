@@ -86,7 +86,7 @@ export function Experience() {
     handleSelect(next, event.timeStamp);
   }
 
-  return <section ref={root} aria-labelledby="experience-title" className="folio-experience mt-16 sm:mt-20"
+  return <section id="experience" ref={root} aria-labelledby="experience-title" className="folio-experience mt-16 sm:mt-20"
     onPointerEnter={event => { if (event.pointerType === "mouse" || event.pointerType === "pen") { hovered.current = true; restart.current(); } }}
     onPointerLeave={event => { hovered.current = false; resumeAfterReading(event.timeStamp); }}
     onPointerDown={event => { if (event.pointerType === "touch") { readingUntil.current = event.timeStamp + 20000; restart.current(); } }}

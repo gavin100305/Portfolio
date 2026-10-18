@@ -7,6 +7,7 @@ import { Achievements } from "@/components/professional/achievements";
 import { GitHubCalendar } from "@/components/professional/github-calendar";
 import { Experience } from "@/components/professional/experience";
 import { ContactSection } from "@/components/professional/contact-section";
+import { SectionDock } from "@/components/professional/section-dock";
 import { profile } from "@/data/portfolio-content";
 import { ButtonSoundEffects } from "@/components/professional/button-sound-effects";
 import { ScrollReveals } from "@/components/professional/scroll-reveals";
@@ -31,8 +32,9 @@ export default function Home() {
     <ScrollReveals />
     <script dangerouslySetInnerHTML={{ __html: themeScript }} />
     <a href="#main" className="folio-skip">Skip to content</a>
+    <SectionDock />
     <div className="relative mx-auto bg-transparent max-w-[800px] px-6 sm:px-8">
-      <header className="flex h-20 items-center justify-between sm:h-24">
+      <header id="home" className="flex h-20 items-center justify-between sm:h-24">
         <Link href="/" className="folio-home-mark" aria-label="Home" title="Home">
           <DotMonogram />
         </Link>
