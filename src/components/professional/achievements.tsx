@@ -47,9 +47,9 @@ function AchievementRecord({ award, onClose }: { award: ProfessionalAchievement;
         <div><p className="font-mono text-[10px] text-folio-accent">{award.result} · {award.year}</p><h3 id="achievement-record-title" className="mt-1 text-lg font-medium tracking-tight">{award.event}</h3></div>
         <button type="button" autoFocus className="folio-award-more" onClick={dismiss} aria-label="Close achievement details">Close <span aria-hidden="true">×</span></button>
       </header>
-      <div className="folio-award-record-layout" data-academic={!award.project}>
+      <div className="folio-award-record-layout">
         <div>
-          <div className="folio-award-record-image"><Image src={award.image} alt={award.imageAlt} fill sizes="(max-width: 639px) 85vw, 420px" /></div>
+          <div className="folio-award-record-image"><Image src={award.image} alt={award.imageAlt} fill sizes="(max-width: 639px) 85vw, (max-width: 900px) 45vw, 380px" /></div>
           <a className="folio-text-link mt-4 font-mono text-[10px] text-folio-accent" href={award.image} target="_blank" rel="noreferrer">View full image <span aria-hidden="true">↗</span></a>
         </div>
         <div className="folio-award-record-copy">
