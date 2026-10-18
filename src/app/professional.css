@@ -991,3 +991,22 @@ html[data-professional-theme="dark"] .folio-opening-signature { color: #a9aaa2; 
   .folio-career-tabs::-webkit-scrollbar { display: none; }
   .folio-career-tabs button { flex: 0 0 auto; min-width: 112px; padding-inline: 16px; white-space: nowrap; }
 }
+
+/* A single quiet dispatch confirmation after the service accepts the message. */
+.folio-contact-actions { position: relative; isolation: isolate; overflow: hidden; }
+.folio-contact-actions::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: -1; opacity: 0; background: linear-gradient(105deg, transparent 15%, color-mix(in srgb, var(--folio-accent) 13%, transparent) 50%, transparent 85%); }
+.folio-contact-actions[data-send-state="success"]::after { animation: folio-message-sheen 1300ms cubic-bezier(.2,.65,.3,1) both; }
+.folio-contact-send-icon { position: relative; display: grid; place-items: center; width: 16px; height: 16px; }
+.folio-contact-send-icon svg { grid-area: 1 / 1; }
+.folio-contact-send[data-send-state="success"] .folio-contact-send-arrow { animation: folio-message-arrow 320ms ease-in both; }
+.folio-contact-send-check { filter: drop-shadow(0 1px 0 rgb(0 0 0 / .3)); animation: folio-message-check 550ms 170ms cubic-bezier(.16,1,.3,1) both; }
+.folio-contact-feedback[data-state="success"] { animation: folio-message-feedback 600ms ease-out both; }
+@keyframes folio-message-sheen { 0% { opacity: 0; transform: translateX(-85%); } 35% { opacity: 1; } 100% { opacity: 0; transform: translateX(85%); } }
+@keyframes folio-message-arrow { to { opacity: 0; transform: translate(7px, -7px); } }
+@keyframes folio-message-check { from { opacity: 0; transform: translateY(3px) scale(.85); } to { opacity: 1; transform: none; } }
+@keyframes folio-message-feedback { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .folio-contact-actions[data-send-state="success"]::after { animation: none; }
+  .folio-contact-send[data-send-state="success"] .folio-contact-send-arrow { animation: none; opacity: 0; }
+  .folio-contact-send-check, .folio-contact-feedback[data-state="success"] { animation: none; }
+}

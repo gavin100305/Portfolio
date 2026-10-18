@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { profile } from "@/data/portfolio-content";
 
 type SendState = "idle" | "sending" | "success" | "error";
@@ -9,6 +9,15 @@ export function ContactSection() {
   const [state, setState] = useState<SendState>("idle");
   const [feedback, setFeedback] = useState("");
   const inFlight = useRef(false);
+
+  useEffect(() => {
+    if (state !== "success") return;
+    const timeout = setTimeout(() => {
+      setState("idle");
+      setFeedback("");
+    }, 4500);
+    return () => clearTimeout(timeout);
+  }, [state]);
 
   async function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -60,7 +69,7 @@ export function ContactSection() {
       }
       form.reset();
       setState("success");
-      setFeedback("Message sent. Thanks for getting in touch.");
+      setFeedback("Message sent. Thanks for reaching out!");
     } catch {
       setState("error");
       setFeedback("Couldn’t confirm delivery. Please check your connection, or email me directly.");
@@ -97,10 +106,13 @@ export function ContactSection() {
           <label htmlFor="contact-website">Leave this field empty</label>
           <input id="contact-website" name="website" tabIndex={-1} autoComplete="off" />
         </div>
-        <div className="folio-contact-actions">
-          <button type="submit" disabled={state === "sending"} className="folio-raised-control folio-raised-control-primary folio-contact-send">
-            {state === "sending" ? "Sending…" : "Send message"}
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12" /></svg>
+        <div className="folio-contact-actions" data-send-state={state}>
+          <button type="submit" disabled={state === "sending"} data-send-state={state} className="folio-raised-control folio-raised-control-primary folio-contact-send">
+            {state === "sending" ? "Sending…" : state === "success" ? "Message sent" : "Send message"}
+            <span className="folio-contact-send-icon" aria-hidden="true">
+              <svg className="folio-contact-send-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 18 18 6M6 6h12v12" /></svg>
+              {state === "success" && <svg className="folio-contact-send-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 4 4L19 6" /></svg>}
+            </span>
           </button>
           <p className="folio-contact-feedback" data-state={state} role="status" aria-live="polite" aria-atomic="true">{feedback || <>Prefer email? <a href={`mailto:${profile.email}`}>Write directly ↗</a></>}</p>
         </div>
