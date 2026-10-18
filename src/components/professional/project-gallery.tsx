@@ -4,17 +4,21 @@ import Image from "next/image";
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from "react";
 import { galleryProjects, type GalleryProject } from "@/data/professional-projects";
 
-type PreviewOrigin = { x: number; y: number; width: number; height: number; rotation: number };
+type PreviewOrigin = { x: number; y: number; width: number; height: number; rotation: number; thumbnail?: string };
 
 function cardOrigin(element: HTMLButtonElement): PreviewOrigin {
   const bounds = element.getBoundingClientRect();
   const matrix = new DOMMatrixReadOnly(getComputedStyle(element).transform);
+  // Reuse the decoded gallery image while the larger modal image loads.
+  const screenshot = [...element.querySelectorAll<HTMLImageElement>("img")]
+    .find(image => getComputedStyle(image).display !== "none" && image.complete && image.naturalWidth > 0);
   return {
     x: bounds.x + bounds.width / 2,
     y: bounds.y + bounds.height / 2,
     width: element.offsetWidth,
     height: element.offsetHeight,
     rotation: Math.atan2(matrix.b, matrix.a) * 180 / Math.PI,
+    thumbnail: screenshot?.currentSrc || screenshot?.src,
   };
 }
 
@@ -29,14 +33,15 @@ function layout(mobile: boolean): Pose[] {
 
 // Show the opposite website theme for contrast against the portfolio frame.
 function ProjectScreenshot({ project, preview = false }: { project: GalleryProject; preview?: boolean }) {
+  const [decoded, setDecoded] = useState({ dark: false, light: false });
   const alt = preview ? `${project.name} live homepage` : "";
   const sizes = preview ? "(max-width: 700px) 90vw, 700px" : "(max-width: 639px) 80vw, 280px";
   const lightSrc = typeof project.lightImage === "string" && project.lightImage.trim()
     ? project.lightImage
     : project.image;
   return <>
-    <Image className="folio-shot-dark" src={project.image} width={1200} height={750} alt={alt} sizes={sizes} draggable={false} />
-    <Image className="folio-shot-light" src={lightSrc} width={1200} height={750} alt={alt} sizes={sizes} draggable={false} />
+    <Image className="folio-shot-dark" src={project.image} width={1200} height={750} alt={alt} sizes={sizes} draggable={false} loading={preview ? "eager" : "lazy"} data-ready={!preview || decoded.dark} onLoad={preview ? () => setDecoded(previous => ({ ...previous, dark: true })) : undefined} />
+    <Image className="folio-shot-light" src={lightSrc} width={1200} height={750} alt={alt} sizes={sizes} draggable={false} loading={preview ? "eager" : "lazy"} data-ready={!preview || decoded.light} onLoad={preview ? () => setDecoded(previous => ({ ...previous, light: true })) : undefined} />
   </>;
 }
 
@@ -116,7 +121,7 @@ function ProjectPreview({ project, origin, source, onClose }: { project: Gallery
         <button type="button" className="folio-preview-close" onClick={dismiss} aria-label="Close project preview">Close <span aria-hidden="true">×</span></button>
       </div>
       <div>
-        <div className="folio-preview-image"><ProjectScreenshot project={project} preview /></div>
+        <div className="folio-preview-image" style={origin.thumbnail ? { backgroundImage: `url(${JSON.stringify(origin.thumbnail)})` } : undefined}><ProjectScreenshot project={project} preview /></div>
         <div className="folio-preview-details p-5 sm:p-7">
         <h3 id="project-preview-title" className="text-2xl font-semibold tracking-tight">{project.name}</h3>
         <p className="mt-3 text-sm leading-7 text-folio-muted">{project.summary}</p>
