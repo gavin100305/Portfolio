@@ -122,7 +122,6 @@ html:has(.professional-shell) { scroll-behavior: smooth; }
 @media (max-width: 1279px) {
   .professional-shell { padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
   .folio-section-dock { left: 50%; top: auto; bottom: calc(17px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); border-radius: 21px; transition: transform 260ms cubic-bezier(.22,.7,.25,1), opacity 200ms ease; }
-  .folio-section-dock[data-hidden="true"] { transform: translate(-50%, calc(100% + 32px + env(safe-area-inset-bottom, 0px))); opacity: 0; pointer-events: none; }
   .folio-section-track { flex-direction: row; border-radius: 15px; }
   .folio-section-indicator { transform: translateX(calc(var(--dock-index) * 50px)); }
   .folio-section-tooltip { left: 50%; top: auto; bottom: calc(100% + 18px); transform: translate(-50%, 4px); }
@@ -873,4 +872,74 @@ html[data-professional-theme="dark"] .folio-github {
 }
 @media (prefers-reduced-motion: reduce) {
   .folio-contact *, .folio-contact *::before { transition: none !important; }
+}
+
+/* Quiet header controls and a compact closing invitation. */
+.folio-header-actions { display: flex; align-items: center; gap: 9px; }
+.folio-space-card { display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 27px; padding: 22px; border: 1px solid var(--folio-frame-edge); border-radius: 15px; background: linear-gradient(145deg, var(--folio-frame-surface), var(--folio-key-face)); box-shadow: inset 0 1px 0 var(--folio-frame-highlight), inset 0 -1px 0 var(--folio-frame-recess), 0 4px 0 var(--folio-frame-lower), 0 5px 0 var(--folio-frame-edge), 0 15px 26px #0000001f; }
+.folio-space-id-stage { display: grid; place-items: center; align-self: stretch; min-height: 265px; padding: 21px; overflow: hidden; border: 1px solid var(--folio-frame-edge); border-radius: 9px; background: radial-gradient(ellipse at 30% 15%, #ffffff80, transparent 70%), #eeeee9; box-shadow: inset 0 4px 10px var(--folio-frame-recess), inset 2px 0 5px var(--folio-frame-recess), inset 0 -1px 0 var(--folio-frame-highlight), 0 1px 0 var(--folio-frame-highlight); }
+html[data-professional-theme="dark"] .folio-space-id-stage { background: radial-gradient(ellipse at 30% 15%, #ffffff06, transparent 70%), #080808; }
+.folio-space-id { width: 156px; padding: 9px 12px 13px; border: 1px solid #c1c9d5; border-radius: 12px; color: #243348; background: linear-gradient(135deg, #fff, #e4e9f0); transform: rotate(-6deg); box-shadow: inset 0 2px 1px #ffffff, inset 2px 0 2px #ffffffb3, inset -2px -2px 2px #a7b4c580, 0 2px 0 #d8e0e9, 0 4px 0 #96a6ba, 0 5px 0 #56677e, 2px 7px 3px #00000025, 7px 17px 19px #00000042; }
+.folio-space-id-slot { width: 32px; height: 5px; margin: 0 auto 12px; border-radius: 6px; background: #1c3b8e; box-shadow: inset 0 1px 2px #071b60aa, 0 1px 0 #fff; }
+.folio-space-id-heading { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 8px; font: 5px/1.5 var(--font-geist-mono), monospace; letter-spacing: .4px; }
+.folio-space-id-heading span:first-child { color: #2457e6; font-weight: 700; }
+.folio-space-id-portrait { position: relative; display: grid; place-items: center; height: 126px; overflow: hidden; border: 1px solid #8091a7; border-radius: 5px; background: #405775; box-shadow: inset 0 4px 7px #0c1a3680, inset 2px 0 4px #0c1a3640, 0 1px 0 #fff; }
+.folio-space-id-portrait::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 2px 4px #0b193e66, inset 0 -1px 0 #b9cde34d; }
+.folio-space-id-portrait .astronaut-svg { width: 91px; height: 114px; filter: drop-shadow(0 3px 0 #14263a55); }
+.folio-space-id-name { margin-top: 10px; font-size: 11px; font-weight: 600; }
+.folio-space-id-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; font: 7px/1.5 var(--font-geist-mono), monospace; color: #596d86; }
+.folio-space-id-bars { width: 40px; height: 12px; background: repeating-linear-gradient(90deg, #243348 0 1px, transparent 1px 3px, #243348 3px 5px, transparent 5px 6px); }
+.folio-space-invitation-copy { padding: 6px 0; }
+.folio-space-eyebrow { margin-bottom: 11px; color: var(--folio-accent); font: 9px/1.5 var(--font-geist-mono), monospace; }
+.folio-space-enter { gap: 26px; color: #fff; background: #2455e8; border-color: #3260ee; box-shadow: inset 0 1px 0 #ffffff66, inset 1px 0 0 #ffffff1a, 0 3px 0 #1739a3, 0 4px 0 #102c7e, 0 7px 12px #00000026; }
+.folio-space-enter:hover { background: #2c60f2; color: #fff; }
+.folio-space-enter:active { box-shadow: inset 0 2px 4px #102c7e80, 0 1px 0 #1739a3; }
+.folio-footer { padding: 28px 0; border-top: 1px solid var(--folio-border); }
+.folio-footer-signoff { margin: 0 0 25px; text-align: center; color: var(--folio-muted); font-size: 15px; line-height: 1.7; letter-spacing: -.2px; }
+.folio-footer-links { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 20px 34px; }
+.folio-footer-link { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 40px; color: var(--folio-muted); font: 11px/1.5 var(--font-dm-sans), sans-serif; text-decoration: none; transition: color .2s; }
+.folio-footer-link > svg { width: 17px; height: 17px; flex-shrink: 0; }
+.folio-footer-link > span:last-child { color: var(--folio-subtle); font-size: 12px; }
+.folio-footer-link:hover { color: var(--folio-accent); }
+.folio-footer-resume { min-height: 36px; font-size: 11px; gap: 9px; }
+
+.folio-footer-bottom { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 27px; color: var(--folio-subtle); font: 9px/1.6 var(--font-geist-mono), monospace; }
+
+/* A local, lazy-loaded PDF viewer; the original document remains downloadable. */
+.folio-resume-dialog { position: fixed; inset: 0; width: min(940px, calc(100vw - 28px)); height: min(900px, calc(100svh - 32px)); max-width: none; max-height: none; margin: auto; padding: 5px; border: 1px solid var(--folio-frame-edge); border-radius: 13px; background: var(--folio-frame-surface); color: var(--folio-foreground); box-shadow: inset 0 1px 0 var(--folio-frame-highlight), 0 3px 0 var(--folio-frame-lower), 0 4px 0 var(--folio-frame-edge), 0 24px 75px #00000080; opacity: 0; transform: translateY(14px) scale(.98); transition: opacity 220ms ease, transform 300ms cubic-bezier(.22,.7,.25,1); }
+.folio-resume-dialog[data-entered="true"] { opacity: 1; transform: translateY(0) scale(1); }
+.folio-resume-dialog::backdrop { background: #00000000; transition: background-color 220ms ease; }
+.folio-resume-dialog[data-entered="true"]::backdrop { background: #000000ad; }
+.folio-resume-shell { display: flex; flex-direction: column; height: 100%; overflow: hidden; border: 1px solid var(--folio-key-edge); border-radius: 8px; background: var(--folio-key-face); }
+.folio-resume-header { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 16px 20px; border-bottom: 1px solid var(--folio-border); box-shadow: inset 0 1px 0 var(--folio-key-highlight); }
+.folio-resume-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 20px 15px; }
+.folio-resume-zoom { display: flex; align-items: center; gap: 8px; }
+.folio-resume-zoom output { min-width: 42px; text-align: center; color: var(--folio-muted); font: 10px/1.5 var(--font-geist-mono), monospace; }
+.folio-resume-zoom button { min-width: 32px; }
+.folio-resume-zoom button:disabled { opacity: .4; cursor: default; transform: none; }
+.folio-resume-page-count { color: var(--folio-subtle); font: 10px/1.5 var(--font-geist-mono), monospace; }
+.folio-resume-scroller { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 18px; background: var(--folio-frame-lower); border-top: 1px solid var(--folio-frame-edge); border-bottom: 1px solid var(--folio-key-highlight); box-shadow: inset 0 4px 10px var(--folio-frame-recess); }
+.folio-resume-pages { display: flex; flex-direction: column; align-items: center; gap: 22px; width: max-content; min-width: 100%; }
+.folio-resume-page { position: relative; margin: 0; flex-shrink: 0; background: white; box-shadow: 0 1px 3px #00000025, 0 8px 20px #00000030; }
+.folio-resume-page canvas { display: block; width: 100%; height: 100%; }
+.folio-resume-page-status { position: absolute; top: 25px; left: 16px; right: 16px; text-align: center; color: #636363; font-size: 12px; }
+.folio-resume-loading { max-width: 400px; margin: 48px auto; text-align: center; color: var(--folio-muted); font-size: 12px; line-height: 1.8; }
+.folio-resume-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 15px 20px 19px; }
+.folio-resume-bottom a { min-height: 36px; }
+@media (max-width: 639px) {
+  .folio-header-actions { gap: 7px; }
+  .folio-space-card { grid-template-columns: 1fr; gap: 19px; padding: 15px; border-radius: 12px; }
+  .folio-space-id-stage { min-height: 255px; padding: 21px; }
+  .folio-space-invitation-copy { padding: 2px 5px 8px; }
+  .folio-footer-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); justify-items: center; gap: 18px 20px; }
+  .folio-resume-dialog { width: calc(100vw - 14px); height: calc(100svh - 24px); padding: 4px; border-radius: 10px; }
+  .folio-resume-header { padding: 13px 14px; }
+  .folio-resume-toolbar { padding: 11px 12px 14px; gap: 7px; }
+  .folio-resume-zoom { gap: 5px; }
+  .folio-resume-zoom button { padding: 7px 9px; }
+  .folio-resume-bottom { padding: 13px 12px 16px; gap: 8px; }
+  .folio-resume-bottom a { padding-inline: 9px; font-size: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .folio-resume-dialog, .folio-resume-dialog::backdrop { transition: none; }
 }

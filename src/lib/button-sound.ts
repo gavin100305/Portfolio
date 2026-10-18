@@ -37,8 +37,8 @@ export function playButtonSound(phase: SoundPhase, index = 0) {
   if (!loaded) return;
 
   const [offset, duration] = strokes[phase][index % strokes[phase].length];
-  void loaded.context.resume().catch(() => {});
-  void loaded.buffer.then(buffer => {
+  const resumed = loaded.context.resume();
+  void Promise.all([resumed, loaded.buffer]).then(([, buffer]) => {
     if (loaded.context.state === "closed") return;
     const source = loaded.context.createBufferSource();
     source.buffer = buffer;

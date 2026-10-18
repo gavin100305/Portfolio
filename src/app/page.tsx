@@ -8,7 +8,8 @@ import { GitHubCalendar } from "@/components/professional/github-calendar";
 import { Experience } from "@/components/professional/experience";
 import { ContactSection } from "@/components/professional/contact-section";
 import { SectionDock } from "@/components/professional/section-dock";
-import { profile } from "@/data/portfolio-content";
+import { SpaceInvitation } from "@/components/professional/space-invitation";
+import { PortfolioFooter } from "@/components/professional/portfolio-footer";
 import { ButtonSoundEffects } from "@/components/professional/button-sound-effects";
 import { ScrollReveals } from "@/components/professional/scroll-reveals";
 import "./professional.css";
@@ -38,7 +39,9 @@ export default function Home() {
         <Link href="/" className="folio-home-mark" aria-label="Home" title="Home">
           <DotMonogram />
         </Link>
-        <ThemeToggle />
+        <div className="folio-header-actions">
+          <ThemeToggle />
+        </div>
       </header>
       <main id="main" className="pb-14 pt-2 sm:pb-20">
         <AsciiDesk />
@@ -51,14 +54,9 @@ export default function Home() {
         <Achievements />
         <GitHubCalendar />
         <ContactSection />
+        <SpaceInvitation />
       </main>
-      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-folio-border py-6 font-mono text-[10px] text-folio-muted">
-        <a href={`mailto:${profile.email}`} className="folio-text-link">Email</a>
-        <div className="flex items-center gap-5">
-          <a href={profile.github} target="_blank" rel="noreferrer" className="folio-text-link">GitHub</a>
-          <a href={profile.linkedin} target="_blank" rel="noreferrer" className="folio-text-link">LinkedIn</a>
-        </div>
-      </footer>
+      <PortfolioFooter />
     </div>
   </div>;
 }

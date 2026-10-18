@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { playButtonSound, preloadButtonSound } from "@/lib/button-sound";
 
-const buttonSelector = "button, [role='button'], a.folio-raised-control, a.folio-section-link";
+const buttonSelector = "button, [role='button'], a.folio-raised-control, a.folio-section-link, a.folio-footer-link";
 
 function getSoundButton(target: EventTarget | null) {
   if (!(target instanceof Element)) return null;
@@ -18,10 +18,14 @@ export function ButtonSoundEffects() {
     const activePointers = new Map<number, number>();
     const activeKeys = new Map<HTMLElement, Map<string, number>>();
     const lastKeyboardPress = new WeakMap<HTMLElement, number>();
+    const lastPointerPress = new WeakMap<HTMLElement, number>();
     let strokeIndex = 0;
 
     function pointerDown(event: PointerEvent) {
-      if (!event.isPrimary || event.button !== 0 || !getSoundButton(event.target)) return;
+      const button = getSoundButton(event.target);
+      // Mobile audio activation is reliable on the completed tap (click).
+      if (!event.isPrimary || event.button !== 0 || event.pointerType === "touch" || !button) return;
+      lastPointerPress.set(button, performance.now());
       const index = strokeIndex++;
       activePointers.set(event.pointerId, index);
       playButtonSound("down", index);
@@ -60,9 +64,9 @@ export function ButtonSoundEffects() {
     }
 
     function click(event: MouseEvent) {
-      if (event.detail !== 0) return;
       const button = getSoundButton(event.target);
       if (!button || performance.now() - (lastKeyboardPress.get(button) ?? -Infinity) < 500) return;
+      if (event.detail !== 0 && performance.now() - (lastPointerPress.get(button) ?? -Infinity) < 1500) return;
       const index = strokeIndex++;
       playButtonSound("down", index);
       playButtonSound("up", index);

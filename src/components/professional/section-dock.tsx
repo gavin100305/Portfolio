@@ -12,16 +12,12 @@ const sections = [
 
 export function SectionDock() {
   const [active, setActive] = useState("home");
-  const [hidden, setHidden] = useState(false);
   const navigating = useRef<string | null>(null);
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const targets = sections.map(section => document.getElementById(section.id));
     let frame = 0;
-    let lastY = window.scrollY;
-    let direction = 0;
-    let travel = 0;
     function update() {
       frame = 0;
       const readingLine = Math.min(window.innerHeight * .32, 230);
@@ -39,19 +35,9 @@ export function SectionDock() {
       schedule();
     }
     function scroll() {
-      const y = Math.max(0, window.scrollY);
-      const delta = y - lastY;
-      lastY = y;
       if (navigating.current) {
         if (settleTimer.current) clearTimeout(settleTimer.current);
         settleTimer.current = setTimeout(settled, 150);
-        travel = 0;
-      } else if (window.matchMedia("(max-width: 1279px)").matches && Math.abs(delta) > 1) {
-        const nextDirection = Math.sign(delta);
-        travel = direction === nextDirection ? travel + Math.abs(delta) : Math.abs(delta);
-        direction = nextDirection;
-        if (y < 48) setHidden(false);
-        else if (travel >= 22) { setHidden(direction < 0); travel = 0; }
       }
       schedule();
     }
@@ -75,14 +61,13 @@ export function SectionDock() {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     navigating.current = id;
     setActive(id);
-    setHidden(false);
     if (settleTimer.current) clearTimeout(settleTimer.current);
     // Native anchor scrolling continues normally. Keep its destination selected
     // until scrolling settles instead of selecting every section along the way.
     settleTimer.current = setTimeout(() => { navigating.current = null; }, 1200);
   }
 
-  return <nav className="folio-section-dock" data-hidden={hidden} aria-label="Portfolio sections" onFocusCapture={() => setHidden(false)}>
+  return <nav className="folio-section-dock" aria-label="Portfolio sections">
     <div className="folio-section-track" style={{ "--dock-index": sections.findIndex(section => section.id === active) } as CSSProperties}>
       <span className="folio-section-indicator" aria-hidden="true" />
       {sections.map(section => <a key={section.id} href={`#${section.id}`} className="folio-section-link" onClick={event => navigate(event, section.id)} aria-label={section.label} aria-current={active === section.id ? "location" : undefined}>
