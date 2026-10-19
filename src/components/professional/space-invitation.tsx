@@ -1,5 +1,5 @@
 import { Astronaut } from "@/components/ship-artwork";
-import Link from "next/link";
+import { SpaceDepartureLink } from "./space-departure-link";
 
 export function SpaceInvitation() {
   return <section className="folio-space-invitation mt-16 sm:mt-20" aria-labelledby="space-invitation-title">
@@ -17,7 +17,7 @@ export function SpaceInvitation() {
         <p className="folio-space-eyebrow">The interactive portfolio</p>
         <h2 id="space-invitation-title" className="text-xl font-medium tracking-tight">Take a look around.</h2>
         <p className="mt-2 text-xs leading-6 text-folio-muted">Explore the station, step into its rooms, and discover my work along the way.</p>
-        <Link className="folio-raised-control folio-space-enter mt-5" href="/space">Explore space <span aria-hidden="true">↗</span></Link>
+        <SpaceDepartureLink />
       </div>
     </div>
   </section>;

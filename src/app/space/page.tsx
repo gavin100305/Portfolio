@@ -1,3 +1,5 @@
+import { StationArrival } from "@/components/station-arrival";
+import "../station-arrival.css";
 import type { Metadata } from "next";
 import { StationShell } from "@/components/station-shell";
 import "../space-backgrounds.css";
@@ -10,5 +12,5 @@ export const metadata: Metadata = {
 };
 
 export default function SpacePage() {
-  return <StationShell />;
+  return <StationArrival><StationShell /></StationArrival>;
 }

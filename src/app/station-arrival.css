@@ -1,0 +1,88 @@
+/* Use the station's cream deck, layered blue steel, and pixel instruments. */
+.station-arrival { --airlock-window-size: clamp(230px, 34vmin, 340px); --airlock-travel: calc(50vw + var(--airlock-window-size) / 2 + 32px); --airlock-cream: #d5d2bb; --airlock-light: #eeeada; --airlock-steel: #405775; --airlock-edge: #8295a6; --airlock-dark: #17283e; --airlock-deep: #091728; --airlock-accent: #65c8ff; --airlock-sky: #03050b; --airlock-nebula: #2e2446; }
+.station-arrival[data-mood="nebula-drift"] { --airlock-accent: #ba9adf; --airlock-sky: #05030c; --airlock-nebula: #7842a8; }
+.station-arrival[data-mood="planetary-orbit"] { --airlock-accent: #80d4d9; --airlock-sky: #030911; --airlock-nebula: #215974; }
+.station-arrival[data-mood="meteor-shower"] { --airlock-accent: #edb777; --airlock-sky: #0a0505; --airlock-nebula: #82432e; }
+.station-airlock { position: fixed; inset: 0; z-index: 1000; overflow: hidden; color: #eef2ed; font-family: var(--font-pixel), monospace; isolation: isolate; }
+.station-airlock-frame { position: absolute; inset: 0; z-index: 5; pointer-events: none; border: clamp(10px, 2.5vw, 30px) solid var(--airlock-dark); box-shadow: inset 0 0 0 4px var(--airlock-edge), inset 0 0 0 12px var(--airlock-steel), inset 0 0 0 15px #0c1b2c, inset 0 0 35px 20px #0009; }
+.station-airlock-frame > span { position: absolute; top: 12%; bottom: 12%; width: 5px; background: linear-gradient(transparent, var(--airlock-accent) 25% 75%, transparent); box-shadow: 0 0 14px color-mix(in srgb, var(--airlock-accent) 45%, transparent); opacity: .65; }
+.station-airlock-frame > span:first-child { left: 10px; }.station-airlock-frame > span:last-child { right: 10px; }
+.station-airlock-door { position: absolute; top: 0; bottom: 0; width: 50.1%; background: repeating-linear-gradient(0deg, transparent 0 89px, #152c3c0a 90px 91px), linear-gradient(110deg, var(--airlock-light), var(--airlock-cream) 40%, #b6b7a7); border: 7px solid var(--airlock-dark); box-shadow: inset 0 0 0 3px var(--airlock-edge), inset 0 0 0 12px var(--airlock-steel), inset 0 0 0 16px var(--airlock-dark), inset 20px 0 35px #0002, 0 0 20px #000b; transition: transform 3200ms cubic-bezier(.65,.02,.22,1); }
+.station-airlock-left { left: 0; }.station-airlock-right { right: 0; }
+.station-airlock-inset { position: absolute; inset: 11% 11% 19%; border: 2px solid #a6aa9a; box-shadow: inset 2px 2px 0 #f4efdb, inset -2px -2px 0 #939b91; clip-path: polygon(0 0, 88% 0, 100% 8%, 100% 100%, 12% 100%, 0 92%); opacity: .75; }
+.station-airlock-label { position: absolute; top: 14%; left: 15%; color: #3d5066; font-size: clamp(10px, 1.2vw, 15px); letter-spacing: .09em; }
+.station-airlock-number { position: absolute; right: 15%; top: 14%; color: #405775; font-size: clamp(25px, 4vw, 48px); opacity: .35; text-shadow: 1px 2px #f4efdb; }
+.station-airlock-ribs { position: absolute; left: 17%; right: 17%; bottom: 24%; height: 30px; background: repeating-linear-gradient(0deg, #17283e 0 4px, #8295a6 4px 6px, #405775 6px 9px); border: 4px solid #405775; box-shadow: -2px -2px #a7b3b5, 3px 4px #8f998f; }
+.station-airlock-handle { position: absolute; top: 43%; height: 70px; width: 16px; background: #405775; border: 3px solid #17283e; box-shadow: inset 3px 0 #8295a6, 4px 4px #0003; }.station-airlock-left .station-airlock-handle { right: 18%; }.station-airlock-right .station-airlock-handle { left: 18%; }
+.station-airlock-window { position: absolute; z-index: 2; width: var(--airlock-window-size); height: var(--airlock-window-size); left: 50%; top: 41%; transform: translate(-50%,-50%); border-radius: 50%; background: #17283e; padding: 8px; box-shadow: 0 8px 0 #071321, 0 13px 20px #0005, inset 0 3px #a4b4b8; transition: transform 3200ms cubic-bezier(.65,.02,.22,1); }
+.station-airlock-window-rim { height: 100%; border-radius: 50%; padding: 20px; border: 3px solid #8b9ca7; background: linear-gradient(140deg,#6c8496,#405775 48%,#253858); box-shadow: inset 0 3px #c1c9c6, inset 0 -4px #17283e; }
+.station-airlock-glass { position: relative; height: 100%; border-radius: 50%; overflow: hidden; border: 5px solid #0b1929; background: var(--airlock-sky); box-shadow: 0 3px #83979f, 0 -2px #17283e; }
+.station-airlock-glass::after { content: ""; position: absolute; inset: 0; z-index: 2; border-radius: inherit; background: linear-gradient(130deg,#ffffff20,transparent 38%,transparent 65%,#a7d3ff15); box-shadow: inset 0 0 15px 5px #000a; }
+.station-airlock-sky { position: absolute; inset: -35%; animation: airlock-sky-turn 7s cubic-bezier(.15,.5,.25,1) both; }
+.station-airlock-nebula { position: absolute; inset: 0; background: radial-gradient(ellipse at 75% 32%,color-mix(in srgb,var(--airlock-nebula) 80%,transparent),transparent 55%), radial-gradient(ellipse at 25% 75%,var(--airlock-nebula),transparent 55%); opacity: .8; }
+.station-airlock-stars { position: absolute; inset: -20%; background-image: radial-gradient(1px 1px at 20% 30%,#dce8ff 90%,transparent),radial-gradient(1.5px 1.5px at 70% 75%,#a8baff 90%,transparent); background-size: 49px 67px,83px 91px; animation: airlock-star-drift 8s ease-out both; }
+.station-airlock-stars-far { opacity: .35; background-size: 31px 53px,67px 73px; animation-duration: 13s; }
+.station-airlock-planet { position: absolute; width: 145%; height: 105%; left: -50%; top: 66%; border-radius: 50%; background: radial-gradient(ellipse at 65% 0%,#6486a4,#28445c 28%,#142538 50%,#050a16 75%); box-shadow: 0 -2px 0 #a2c7d77a,0 -7px 25px #7b9bc944; animation: airlock-horizon 7s ease-out both; }
+.station-airlock-bolt { position: absolute; width: 7px; height: 7px; left: calc(50% - 3px); top: calc(50% - 3px); background: #a8b7bc; border: 1px solid #253858; box-shadow: 0 2px #15263a; }.station-airlock-bolt::after { content:""; position:absolute; left:1px; right:1px; top:2px; height:1px; background:#405775; }
+.station-airlock-vent { position: absolute; top: 65%; width: 32px; height: 16px; border: 3px solid #17283e; background: repeating-linear-gradient(90deg,#0b1929 0 3px,#6c8496 3px 5px); box-shadow: 0 2px #aab5ad; z-index: 2; }.station-airlock-vent-left { left: calc(50% - 64px); }.station-airlock-vent-right { right: calc(50% - 64px); }
+.station-airlock-fog { position: absolute; inset: 0; z-index: 4; overflow: hidden; pointer-events: none; opacity: 0; transition: opacity 900ms ease; }
+.station-airlock-fog-texture { position: absolute; }
+.station-airlock-cloud { position: absolute; width: 80vw; height: 56vh; background: radial-gradient(ellipse at 20% 55%,#edf5ff99,transparent 44%),radial-gradient(ellipse at 48% 45%,#d9e9f4c4,transparent 49%),radial-gradient(ellipse at 75% 60%,#eef4fbb0,transparent 45%); opacity: 0; will-change: transform, opacity; }
+.station-airlock-cloud-left { left: -10%; top: 38%; --cloud-x: -24vw; --cloud-y: -12vh; }
+.station-airlock-cloud-right { right: -10%; top: 42%; --cloud-x: 25vw; --cloud-y: -6vh; }
+.station-airlock-cloud-floor { left: 2%; bottom: -25%; width: 100vw; height: 65vh; --cloud-x: 3vw; --cloud-y: -25vh; }
+.station-arrival:is([data-arrival="venting"],[data-arrival="opening"]) .station-airlock-fog { opacity: 1; }
+.station-arrival:is([data-arrival="venting"],[data-arrival="opening"]) .station-airlock-cloud { animation: airlock-fog-roll 6500ms cubic-bezier(.15,.55,.4,1) both; }
+.station-arrival:is([data-arrival="venting"],[data-arrival="opening"]) .station-airlock-cloud-right { animation-delay: 220ms; }
+.station-arrival:is([data-arrival="venting"],[data-arrival="opening"]) .station-airlock-cloud-floor { animation-delay: 450ms; }
+[data-arrival="docking"] .station-airlock { animation: airlock-dock 1400ms ease-out; }
+[data-arrival="docking"] .station-arrival-scene { animation: airlock-dock 1400ms ease-out; }
+[data-arrival="opening"] .station-airlock-left { transform:translateX(calc(-1 * var(--airlock-travel))); }[data-arrival="opening"] .station-airlock-right { transform:translateX(var(--airlock-travel)); }
+[data-arrival="opening"] .station-airlock-window { transform:translate(calc(-50% - var(--airlock-travel)),-50%); }
+[data-arrival="opening"] .station-airlock-vent-left { transform:translateX(calc(-1 * var(--airlock-travel))); }[data-arrival="opening"] .station-airlock-vent-right { transform:translateX(var(--airlock-travel)); }.station-airlock-vent { transition:transform 3200ms cubic-bezier(.65,.02,.22,1); }
+[data-arrival="opening"] .station-airlock-frame { opacity:0; transition:opacity 2600ms 400ms ease; }
+@keyframes airlock-star-drift { from { transform:translate(18%,-10%); } to { transform:translate(-8%,7%); } }
+@keyframes airlock-sky-turn { from { transform:rotate(-18deg) scale(1.1); } to { transform:rotate(5deg) scale(1); } }
+@keyframes airlock-horizon { from { transform:translate(25px,45px) rotate(-12deg); } to { transform:translate(-12px,-10px) rotate(5deg); } }
+@keyframes airlock-dock { 0%,100% { transform:translate(0) rotate(0); } 12% { transform:translate(-4px,2px) rotate(-.15deg); } 24% { transform:translate(3px,-2px) rotate(.12deg); } 38% { transform:translate(-3px,1px); } 52% { transform:translate(2px,1px); } 70% { transform:translate(-1px,-1px); } 85% { transform:translate(1px,0); } }
+@keyframes airlock-fog-roll { 0% { opacity:0; transform:translate(0,5vh) scale(.55); } 22% { opacity:.8; } 50% { opacity:.9; } 75% { opacity:.55; } 100% { opacity:.55; transform:translate(var(--cloud-x),var(--cloud-y)) scale(1.5); } }
+@media (max-width:600px) { .station-airlock-label { top:17%; left:20%; max-width:90px; font-size:10px; line-height:1.5; }.station-airlock-number { top:17%; right:22%; }.station-airlock-handle { width:12px; height:50px; }.station-airlock-left .station-airlock-handle { right:13%; }.station-airlock-right .station-airlock-handle { left:13%; }.station-airlock-ribs { left:20%; right:20%; bottom:27%; }.station-airlock-cloud { width:130vw; }.station-airlock-cloud-left { left:-60%; }.station-airlock-cloud-right { right:-60%; } }
+@media (prefers-reduced-motion:reduce) { .station-airlock,.station-airlock *,.station-airlock *::before,.station-airlock *::after,.station-arrival-scene { animation:none !important; }.station-airlock-door,.station-airlock-window,.station-airlock-vent { transition:none; }[data-arrival="opening"] .station-airlock { opacity:0; transition:opacity 180ms; } }
+
+[data-arrival="opening"] .station-airlock-fog { animation: airlock-fog-clear 3300ms ease-in both; }
+@keyframes airlock-fog-clear { 0%, 20% { opacity: 1; } 100% { opacity: 0; } }
+
+/* Closing happens over the professional page; the next route mounts fully shut. */
+[data-arrival="closing"] .station-airlock-left { animation: airlock-close-left 1800ms cubic-bezier(.4,0,.2,1) both; }
+[data-arrival="closing"] .station-airlock-right { animation: airlock-close-right 1800ms cubic-bezier(.4,0,.2,1) both; }
+[data-arrival="closing"] .station-airlock-window { animation: airlock-close-window 1800ms cubic-bezier(.4,0,.2,1) both; }
+[data-arrival="closing"] .station-airlock-vent-left { animation: airlock-close-left 1800ms cubic-bezier(.4,0,.2,1) both; }
+[data-arrival="closing"] .station-airlock-vent-right { animation: airlock-close-right 1800ms cubic-bezier(.4,0,.2,1) both; }
+[data-arrival="closing"] .station-airlock-frame { animation: airlock-frame-enter 1800ms ease both; }
+@keyframes airlock-close-left { from { transform:translateX(calc(-1 * var(--airlock-travel))); } to { transform:translateX(0); } }
+@keyframes airlock-close-right { from { transform:translateX(var(--airlock-travel)); } to { transform:translateX(0); } }
+@keyframes airlock-close-window { from { transform:translate(calc(-50% - var(--airlock-travel)),-50%); } to { transform:translate(-50%,-50%); } }
+@keyframes airlock-frame-enter { from { opacity:0; } to { opacity:1; } }
+
+/* Bright atmosphere and cloud bands give way to the station's selected sky. */
+.station-airlock-earth-sky { position:absolute; inset:0; overflow:hidden; background:linear-gradient(#428dd2,#8fd3f1 55%,#def2fb); z-index:1; animation:airlock-leave-earth 4100ms 700ms cubic-bezier(.4,0,.2,1) both; }
+.station-airlock-day-clouds { position:absolute; inset:-15%; background:radial-gradient(ellipse at 23% 37%,#fff9,transparent 28%),radial-gradient(ellipse at 85% 50%,#ffffffb0,transparent 30%); animation:airlock-cloud-flight 5s ease-in-out both; }
+.station-airlock-earth-horizon { position:absolute; top:52%; left:-45%; width:190%; height:120%; overflow:hidden; border-radius:50%; background:radial-gradient(ellipse at 60% 0%,#3da0bb,#267b9f 40%,#164362 85%); border-top:3px solid #e8faff; box-shadow:0 -5px 13px #daf6ffb0; transform:rotate(-18deg); animation:airlock-earth-recede 5s ease-in-out both; }
+.station-airlock-earth-horizon svg { display:block; width:100%; height:100%; }
+.station-airlock-sky { animation:airlock-sky-turn 9s cubic-bezier(.15,.5,.25,1) both; }
+[data-arrival="closing"] .station-airlock-earth-sky,[data-arrival="closing"] .station-airlock-day-clouds,[data-arrival="closing"] .station-airlock-earth-horizon { animation:none; }
+@keyframes airlock-leave-earth { 0%,15% { opacity:1; transform:scale(1); } 65% { opacity:.65; } 100% { opacity:0; transform:scale(1.12) translateY(9%); } }
+@keyframes airlock-cloud-flight { from { transform:translate(0,0); } to { transform:translate(-20%,14%); } }
+@keyframes airlock-earth-recede { from { transform:rotate(-18deg) translateY(0); } to { transform:rotate(-6deg) translateY(25%); } }
+
+/* Wisps originate at the seal, expand, and drift instead of forming a white band. */
+.station-airlock-cloud-left { width:72vw; height:52vh; left:calc(50% - 36vw); top:calc(65% - 22vh); --cloud-x:-27vw; --cloud-y:-13vh; transform-origin:50% 55%; }
+.station-airlock-cloud-right { width:76vw; height:48vh; right:auto; left:calc(50% - 38vw); top:calc(65% - 22vh); --cloud-x:29vw; --cloud-y:-8vh; transform-origin:50% 55%; }
+.station-airlock-cloud-floor { width:110vw; height:45vh; left:-5vw; bottom:-19vh; --cloud-x:0vw; --cloud-y:-15vh; }
+.station-airlock-cloud { background:radial-gradient(ellipse at 30% 55%,#edf5ffb0,transparent 42%),radial-gradient(ellipse at 55% 38%,#d9e9f4cf,transparent 45%),radial-gradient(ellipse at 72% 63%,#eef4fbc0,transparent 42%); }
+@keyframes airlock-fog-roll { 0% { opacity:0; transform:translate(0,0) scale(.12); } 18% { opacity:.9; } 42% { opacity:.85; } 72% { opacity:.6; } 100% { opacity:.4; transform:translate(var(--cloud-x),var(--cloud-y)) scale(1.35); } }
+.station-airlock-skip { position:absolute; right:max(32px,env(safe-area-inset-right)); bottom:max(32px,env(safe-area-inset-bottom)); z-index:6; padding:8px 12px; font:12px var(--font-pixel),monospace; color:#e7edf0; background:#253858; border:2px solid #8295a6; box-shadow:inset 0 1px #8295a6,0 3px #091728; cursor:pointer; }
+.station-airlock-skip:focus-visible { outline:2px solid var(--airlock-accent); outline-offset:4px; }
+[data-arrival="opening"] .station-airlock-skip { opacity:0; transition:opacity 300ms; }
+@media (max-width:600px) { .station-airlock-skip { right:26px; bottom:max(26px,env(safe-area-inset-bottom)); }.station-airlock-cloud-left,.station-airlock-cloud-right { width:130vw; left:-15vw; right:auto; } }
+@media (prefers-reduced-motion:reduce) { .station-airlock,.station-airlock * { animation:none !important; } .station-airlock-earth-sky { opacity:0; } }
