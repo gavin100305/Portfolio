@@ -1,5 +1,6 @@
 "use client";
 
+import { startWritingSound } from "@/lib/writing-sound";
 import { signaturePaths } from "./signature-paths";
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 
@@ -40,6 +41,7 @@ export function OpeningIntro() {
     const timers: ReturnType<typeof setTimeout>[] = [];
     let disposed = false;
     let exiting = false;
+    let stopWritingSound = () => {};
     let readinessObserver: MutationObserver | undefined;
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -54,6 +56,7 @@ export function OpeningIntro() {
     function finish() {
       if (disposed || exiting) return;
       exiting = true;
+      stopWritingSound();
 
       setLeaving(true);
       try { sessionStorage.setItem("gavin:opening-seen", "1"); } catch {}
@@ -72,6 +75,7 @@ export function OpeningIntro() {
       if (disposed || exiting) return;
       if (reduced) { finish(); return; }
       setWriting(true);
+      stopWritingSound = startWritingSound(4200);
       timers.push(setTimeout(() => { if (!disposed) setWritten(true); }, 4200));
       const hero = document.querySelector(".ascii-desk");
       const ready = new Promise<void>(resolve => {
@@ -94,6 +98,7 @@ export function OpeningIntro() {
     window.addEventListener("keydown", escape);
     return () => {
       disposed = true;
+      stopWritingSound();
       timers.forEach(clearTimeout);
       readinessObserver?.disconnect();
       restore();

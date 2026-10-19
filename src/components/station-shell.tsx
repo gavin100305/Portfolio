@@ -34,11 +34,11 @@ export function StationShell() {
     if (activeId && activeId !== "football") {
       titleRef.current?.focus({ preventScroll: true });
       dialogRef.current?.scrollTo(0, 0);
-      document.title = `${getSection(activeId)?.label} — Gavin Soares`;
+      document.title = `${getSection(activeId)?.label} | Gavin Soares`;
       document.body.classList.add("dialog-open");
     } else {
       document.body.classList.remove("dialog-open");
-      document.title = activeId === "football" ? "Orbital Training Deck — Gavin Soares" : "Gavin Soares — Space Station";
+      document.title = activeId === "football" ? "Orbital Training Deck | Gavin Soares" : "Space Station | Gavin Soares";
       if (activeId !== "football") {
         const opener = openerRef.current;
         if (opener?.isConnected) opener.focus({ preventScroll: true });

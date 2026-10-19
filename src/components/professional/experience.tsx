@@ -112,7 +112,7 @@ export function Experience() {
         <div className="folio-career-body mt-4">
           <p className="text-[13px] leading-6 text-folio-muted">{item.description}</p>
           <ul className="mt-4 grid gap-3 text-xs leading-6 text-folio-muted">
-            {item.highlights.map(highlight => <li key={highlight} className="flex gap-3"><span aria-hidden="true" className="text-folio-accent">—</span><span>{highlight}</span></li>)}
+            {item.highlights.map(highlight => <li key={highlight} className="flex gap-3"><span aria-hidden="true" className="text-folio-accent">•</span><span>{highlight}</span></li>)}
           </ul>
         </div>
         <div className="folio-career-stack mt-5" aria-label="Technologies used">{item.stack.map(tool => <span key={tool}>{tool}</span>)}</div>

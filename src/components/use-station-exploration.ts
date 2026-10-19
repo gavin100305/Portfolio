@@ -95,7 +95,7 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
         if (element) {
           element.style.setProperty("--door-open", progress.toFixed(3));
           const state = progress >= .9 ? "open" : progress > 0 ? "moving" : "closed";
-          if (element.dataset.state !== state) { element.dataset.state = state; element.setAttribute("aria-label", `Airlock ${index + 1} — ${state}`); }
+          if (element.dataset.state !== state) { element.dataset.state = state; element.setAttribute("aria-label", `Airlock ${index + 1}: ${state}`); }
         }
       });
       let distance = 0;

@@ -82,7 +82,7 @@ export function GitHubCalendar() {
     {state.status === "loading" && <div className="activity-loading" role="status">Connecting to GitHub…</div>}
     {state.status === "error" && <div className="activity-error" role="status"><p>GitHub activity is temporarily unavailable.</p><button className="info-button" onClick={() => { setState({ status: "loading" }); setAttempt(value => value + 1); }} type="button">Try again</button><a href="https://github.com/gavin100305?tab=overview" target="_blank" rel="noopener noreferrer">View activity on GitHub</a></div>}
     {state.status === "ready" && state.data && <>
-      <div className="activity-summary"><strong>{state.data.total.toLocaleString()}<span> contributions</span></strong><span>{dateLabel(days[0].date)} — {dateLabel(days.at(-1)!.date)}</span></div>
+      <div className="activity-summary"><strong>{state.data.total.toLocaleString()}<span> contributions</span></strong><span>{dateLabel(days[0].date)} to {dateLabel(days.at(-1)!.date)}</span></div>
       <p className="visually-hidden" id="activity-help">Explore daily contributions with arrow keys. Home goes to the first date; End goes to the latest. Tap or hover a square to see its date and count.</p>
       <div className="activity-scroll" ref={scrollRef} aria-label="Contribution calendar" onPointerLeave={() => { setHovered(null); setTooltip(null); }}>
         <div className="activity-calendar" style={{ "--activity-weeks": Math.ceil((days.length + offset) / 7) } as CSSProperties}>

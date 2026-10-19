@@ -55,7 +55,7 @@ function AchievementRecord({ award, onClose }: { award: ProfessionalAchievement;
         <div className="folio-award-record-copy">
           <h4 className="text-xl font-medium tracking-tight">{award.project ?? "Third rank · Second year"}</h4>
           <p className="mt-3 text-xs leading-6 text-folio-muted">{award.description}</p>
-          {award.highlights.length > 0 && <ul className="mt-4 grid gap-3 text-[11px] leading-5 text-folio-muted">{award.highlights.map(highlight => <li key={highlight} className="flex gap-2"><span aria-hidden="true" className="text-folio-accent">—</span><span>{highlight}</span></li>)}</ul>}
+          {award.highlights.length > 0 && <ul className="mt-4 grid gap-3 text-[11px] leading-5 text-folio-muted">{award.highlights.map(highlight => <li key={highlight} className="flex gap-2"><span aria-hidden="true" className="text-folio-accent">•</span><span>{highlight}</span></li>)}</ul>}
           {award.stack.length > 0 && <div className="mt-5"><h5 className="text-[11px] font-medium">Built with</h5><ul className="folio-award-stack mt-2" aria-label={`${award.project} technology stack`}>{award.stack.map(tool => <li key={tool}>{tool}</li>)}</ul></div>}
           {award.team.length > 0 && <div className="mt-5"><h5 className="text-[11px] font-medium">The team</h5><ul className="folio-award-team mt-2">{award.team.map(name => <li key={name}>{name}</li>)}</ul></div>}
           <p className="mt-5 text-[10px] leading-5 text-folio-subtle">{award.venue} · {award.year}</p>

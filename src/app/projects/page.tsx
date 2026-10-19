@@ -10,7 +10,7 @@ import { ProjectPageReveals } from "@/components/professional/project-page-revea
 import "../professional.css";
 
 export const metadata: Metadata = {
-  title: "All projects — Gavin Soares",
+  title: "All Projects | Gavin Soares",
   description: "Explore Gavin Soares’s full collection of applications, games, AI projects, and developer tools.",
 };
 

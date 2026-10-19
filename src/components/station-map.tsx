@@ -107,7 +107,7 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
                 tabIndex={footballActive ? -1 : undefined}
                 className={`world-room${activeId === section.id && section.id !== "football" ? " is-active" : ""}`}
                 style={{ left: room.x, top: room.y, width: room.width, height: room.height }}
-                aria-label={`Open ${section.label} — ${section.roomName}`}
+                aria-label={`Open ${section.label}: ${section.roomName}`}
                 aria-current={activeId === section.id ? "page" : undefined}
                 onClick={(event) => {
                   if (performance.now() < suppressRoomClickUntil.current) { event.preventDefault(); return; }
@@ -121,7 +121,7 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
               </a>
             );
           })}
-          <button ref={controlRef} className="cockpit-world-console" type="button" disabled={footballActive} aria-label="Cockpit console — change space mood" aria-haspopup="dialog" aria-expanded={cockpitOpen}
+          <button ref={controlRef} className="cockpit-world-console" type="button" disabled={footballActive} aria-label="Cockpit console: change space mood" aria-haspopup="dialog" aria-expanded={cockpitOpen}
             style={{ left: cockpitConsole.x, top: cockpitConsole.y, width: cockpitConsole.width, height: cockpitConsole.height }}
             onFocus={focusCockpit} onBlur={releaseFocus} onClick={openCockpit}>
             <span className="cockpit-console-switch" aria-hidden="true"><span /></span>
@@ -130,14 +130,14 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
           <StationDiscoveries robotAwake={robotAwake} enabled={!activeId && !flight && !cockpitOpen && !exteriorOpen && !discoveryModal} onDiscover={openDiscovery} getMovement={getMovementSnapshot} onRobotMovement={reportRobotMovement} onFocus={focusDiscovery} onBlur={releaseFocus} />
           <FootballArenaScene active={footballActive} game={game} />
           {!footballActive && <button className="football-ball-control" type="button" aria-label="Play penalties on the Orbital Training Deck pitch" style={{ left: footballBall.x - 24, top: footballBall.y - 24 }} onFocus={() => focusRoom("football")} onBlur={releaseFocus} onClick={(event) => onActivate("football", event.currentTarget)} />}
-          {stationDoors.map((door) => <div key={door.id} className="station-door" data-door-id={door.id} data-axis={door.axis} data-state="closed" role="img" aria-label="Room door — closed"
+          {stationDoors.map((door) => <div key={door.id} className="station-door" data-door-id={door.id} data-axis={door.axis} data-state="closed" role="img" aria-label="Room door: closed"
             style={{ left: door.x, top: door.y, width: door.width, height: door.height }}>
             <div className="door-aperture"><span className="door-leaf" /><span className="door-leaf" /></div>
           </div>)}
           {roomSigns.map((sign) => <div key={sign.id} className="wayfinding-wall" style={{ left: sign.x - 10, top: sign.y - 8, width: sign.width + 20 }}>
             <a tabIndex={footballActive ? -1 : undefined} className="room-wayfinding" href={`#${sign.id}`} aria-label={`Open ${getSection(sign.id)?.roomName}`} onClick={(event) => onOpen(sign.id, event)} onFocus={() => focusRoom(sign.id)} onBlur={releaseFocus}>{getSection(sign.id)?.roomName}</a>
           </div>)}
-          <div className="astronaut" data-kicking={footballActive && Boolean(game.flight)} ref={characterRef} role="img" aria-label={`Your astronaut — ${current?.label ?? "corridor"}`}>
+          <div className="astronaut" data-kicking={footballActive && Boolean(game.flight)} ref={characterRef} role="img" aria-label={`Your astronaut: ${current?.label ?? "corridor"}`}>
             <span className="astronaut-ring" aria-hidden="true" /><Astronaut />
           </div>
           {remoteVisitors.filter((visitor) => !contains(rooms.football, visitor)).map((visitor) => <div key={visitor.guestId} className="astronaut" data-remote="true" data-facing={visitor.facing} aria-label="Another visitor exploring the space station" role="img"

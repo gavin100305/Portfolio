@@ -5,7 +5,7 @@ import "../station-discoveries.css";
 import "../portfolio-pages.css";
 
 export const metadata: Metadata = {
-  title: "Gavin Soares — Space Station",
+  title: "Space Station | Gavin Soares",
   description: "Explore Gavin Soares’s interactive space station: projects, experience, discoveries, and an orbital football pitch.",
 };
 
