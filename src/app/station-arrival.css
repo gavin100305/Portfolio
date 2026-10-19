@@ -86,3 +86,37 @@
 [data-arrival="opening"] .station-airlock-skip { opacity:0; transition:opacity 300ms; }
 @media (max-width:600px) { .station-airlock-skip { right:26px; bottom:max(26px,env(safe-area-inset-bottom)); }.station-airlock-cloud-left,.station-airlock-cloud-right { width:130vw; left:-15vw; right:auto; } }
 @media (prefers-reduced-motion:reduce) { .station-airlock,.station-airlock * { animation:none !important; } .station-airlock-earth-sky { opacity:0; } }
+
+/* Return flight: keep the exterior in space while closing, then regain atmosphere. */
+[data-direction="return"] .station-airlock-earth-sky { animation: airlock-return-earth 4400ms 500ms cubic-bezier(.4,0,.2,1) both; }
+[data-direction="return"][data-arrival="closing"] .station-airlock-earth-sky { animation:none; opacity:0; }
+[data-direction="return"] .station-airlock-earth-horizon { animation:airlock-earth-arrive 5s ease-in-out both; }
+[data-direction="return"][data-arrival="closing"] .station-airlock-earth-horizon { animation:none; }
+[data-direction="return"]:is([data-arrival="venting"],[data-arrival="opening"]) .station-airlock-earth-sky { animation:none; opacity:1; }
+[data-direction="return"]:is([data-arrival="venting"],[data-arrival="opening"]) .station-airlock-earth-horizon { animation:none; transform:rotate(-18deg); }
+[data-fast="true"] .station-airlock-door,[data-fast="true"] .station-airlock-window,[data-fast="true"] .station-airlock-vent { transition-duration:150ms; }
+@keyframes airlock-return-earth { from { opacity:0; } to { opacity:1; } }
+@keyframes airlock-earth-arrive { from { transform:rotate(-6deg) translateY(25%); } to { transform:rotate(-18deg); } }
+.station-return-control { position:fixed; z-index:40; top:max(16px,env(safe-area-inset-top)); left:max(16px,env(safe-area-inset-left)); padding:9px 13px; border:2px solid #8295a6; background:#253858; color:#eef2ed; font:13px var(--font-pixel),monospace; box-shadow:inset 0 2px #526c86,0 3px #091728; cursor:pointer; }
+
+/* An arrival briefing made from the station's cream deck and blue steel frame. */
+.station-welcome { position:fixed; inset:0; margin:auto; width:min(610px,calc(100vw - 32px)); max-height:calc(100svh - 44px); padding:32px; overflow:auto; border:3px solid #17283e; border-radius:10px; color:#253858; background:linear-gradient(140deg,#f3f0e2,#dcdac5); box-shadow:inset 0 0 0 4px #8295a6,inset 0 0 0 8px #405775,inset 0 0 0 10px #b3bcae,0 8px 0 #091728,0 28px 65px #0008; font:13px/1.7 var(--font-manrope),sans-serif; animation:station-briefing-in 1000ms cubic-bezier(.16,1,.3,1) both; }
+.station-welcome::backdrop { background:#09132165; backdrop-filter:blur(5px); animation:station-briefing-backdrop 800ms ease both; }
+.station-welcome-close { position:absolute; top:16px; right:16px; width:30px; height:30px; border:2px solid #8295a6; background:#405775; color:#eef2ed; box-shadow:inset 0 1px #9aaeb8,0 3px #17283e; font:24px/1 var(--font-pixel),monospace; cursor:pointer; }
+.station-welcome-heading { display:flex; align-items:center; gap:22px; padding-right:16px; margin-bottom:22px; }
+.station-welcome-portrait { flex-shrink:0; display:grid; place-items:center; width:86px; height:96px; border:3px solid #17283e; border-radius:8px; background:radial-gradient(ellipse at 60% 20%,#405775,#17283e); box-shadow:inset 0 0 0 3px #8295a6,0 4px #405775; }.station-welcome-portrait svg { width:52px; height:65px; }
+.station-welcome-tag { display:inline-block; padding:2px 8px; background:#405775; color:#eef2ed; font:11px var(--font-pixel),monospace; letter-spacing:.08em; }
+.station-welcome h2 { margin:9px 0 5px; max-width:340px; font:clamp(23px,4vw,30px)/1.15 var(--font-pixel),monospace; text-wrap:balance; }
+.station-welcome-name { color:#52667b; font-size:11px; }.station-welcome-introduction { margin-bottom:22px; line-height:1.9; }
+.station-welcome-section-title { margin:0 0 12px; font:17px var(--font-pixel),monospace; }
+.station-welcome-destinations { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-bottom:20px; }
+.station-welcome-destinations > div { display:flex; flex-direction:column; align-items:center; gap:5px; padding:14px 5px; border:2px solid #a6b0aa; border-radius:5px; background:#f6f3e7; box-shadow:inset 0 2px 3px #25385813,0 2px #a5ada4; text-align:center; }
+.station-welcome-destinations svg { width:37px; height:37px; fill:#dce5e4; stroke:#405775; stroke-width:2; stroke-linejoin:miter; margin-bottom:5px; }.station-welcome-destinations strong { font:14px/1.3 var(--font-pixel),monospace; }.station-welcome-destinations span { font-size:10px; color:#52667b; }
+.station-welcome-guide { padding:13px 15px; margin-bottom:20px; border-radius:5px; background:#cbd0c2; box-shadow:inset 0 2px 4px #25385825,0 1px #f8f5e8; font-size:11px; }.station-welcome-guide p + p { margin-top:8px; }.station-welcome-guide kbd { display:inline-block; min-width:22px; padding:0 5px; margin-right:3px; border:1px solid #94a0a0; border-radius:3px; background:#f3f0e2; box-shadow:0 2px #8d9c9d,inset 0 1px white; text-align:center; font:13px/1.8 var(--font-pixel),monospace; }.station-welcome-guide span { margin-left:6px; }
+.station-welcome-touch { display:none; }
+.station-welcome-explore { display:flex; align-items:center; justify-content:space-between; width:100%; padding:14px 18px; border:2px solid #17283e; border-radius:5px; background:#405775; color:#f5f2e6; box-shadow:inset 0 2px #8295a6,inset 0 -3px #253858,0 4px #17283e; font:19px var(--font-pixel),monospace; cursor:pointer; }
+.station-welcome-return { display:block; margin:20px auto 0; padding:3px; border:0; background:transparent; color:#405775; text-decoration:underline; text-underline-offset:4px; font:11px/1.8 var(--font-manrope),sans-serif; cursor:pointer; }
+@keyframes station-briefing-in { from { opacity:0; transform:translateY(28px) scale(.97); } to { opacity:1; transform:none; } }
+@keyframes station-briefing-backdrop { from { background:#09132100; backdrop-filter:blur(0); } to { background:#09132165; backdrop-filter:blur(5px); } }
+@media (max-width:600px) { .station-welcome { padding:30px 22px 24px; }.station-welcome-heading { gap:14px; }.station-welcome-portrait { width:66px; height:82px; }.station-welcome-destinations { gap:7px; }.station-welcome-destinations strong { font-size:12px; }.station-welcome-destinations span { font-size:9px; }.station-welcome-desktop { display:none; }.station-welcome-touch { display:block; }.station-welcome-introduction { font-size:12px; } }
+@media (prefers-reduced-motion:reduce) { .station-welcome,.station-welcome::backdrop { animation:none; }[data-direction="return"] .station-airlock-earth-sky { animation:none; opacity:1; } }

@@ -1,3 +1,4 @@
+import { ReturnJourneyProvider } from "@/components/return-journey";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -137,7 +138,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personStructuredData) }}
         />
       </head>
-      <body><Script id="professional-theme-setup" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeScript }} />{children}</body>
+      <body><Script id="professional-theme-setup" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeScript }} /><ReturnJourneyProvider>{children}</ReturnJourneyProvider></body>
     </html>
   );
 }

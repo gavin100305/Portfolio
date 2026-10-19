@@ -4,14 +4,15 @@ import { useId, type RefObject } from "react";
 import "@/app/station-arrival.css";
 
 /** Shared geometry keeps the closing and arriving door seamless across routes. */
-export function AirlockDoor({ onSkip, skipButton, status, skipLabel = "Skip journey" }: {
+export function AirlockDoor({ onSkip, skipButton, status, skipLabel = "Skip journey", label = "Travelling to the station" }: {
   onSkip: () => void;
   skipButton: RefObject<HTMLButtonElement | null>;
   status: string;
   skipLabel?: string;
+  label?: string;
 }) {
   const fogId = useId();
-  return <div className="station-airlock" role="dialog" aria-modal="true" aria-label="Travelling to the station" onKeyDown={event => {
+  return <div className="station-airlock" role="dialog" aria-modal="true" aria-label={label} onKeyDown={event => {
     if (event.key === "Tab") { event.preventDefault(); skipButton.current?.focus(); }
     if (event.key === "Escape") { event.preventDefault(); onSkip(); }
   }}>

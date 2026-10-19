@@ -166,6 +166,7 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
     };
 
     const keyDown = (event: KeyboardEvent) => {
+      if (document.querySelector("[data-station-overlay], .station-airlock")) return;
       if (activeId || travelling || event.target instanceof HTMLSelectElement || (event.target instanceof HTMLElement && Boolean(event.target.closest(".mood-console"))) || event.ctrlKey || event.metaKey || event.altKey || event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || (event.target instanceof HTMLElement && event.target.isContentEditable)) return;
       if (event.key.toLowerCase() === "e" && !event.repeat && onInteract?.(position.current)) { event.preventDefault(); return; }
       if (event.key.toLowerCase() === "e" && nearFootball(position.current)) { event.preventDefault(); onActivate("football", viewport); return; }

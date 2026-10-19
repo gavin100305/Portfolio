@@ -1,11 +1,15 @@
 "use client";
 
+import { StationWelcome } from "./station-welcome";
+import { useReturnJourney } from "./return-journey";
 import { AirlockDoor } from "@/components/airlock-door";
 import { useSpaceMood } from "@/components/use-space-mood";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 export function StationArrival({ children }: { children: ReactNode }) {
   const { mood } = useSpaceMood();
+  const returnHome = useReturnJourney();
+  const [welcomed, setWelcomed] = useState(false);
   const [phase, setPhase] = useState<"transit" | "docking" | "venting" | "opening" | "done">("transit");
   const scene = useRef<HTMLDivElement>(null);
   const skip = useRef<() => void>(() => {});
@@ -38,7 +42,7 @@ export function StationArrival({ children }: { children: ReactNode }) {
     timers.push(setTimeout(() => { minimumElapsed = true; check(); }, reduced ? 180 : 8000));
     // The station has a complete CSS map even when its optional depth layer is unavailable.
     timers.push(setTimeout(open, reduced ? 700 : 12500));
-    const key = (event: KeyboardEvent) => { if (event.key === "Escape") { event.preventDefault(); open(); } };
+    const key = (event: KeyboardEvent) => { if (event.key === "Escape" && !opening) { event.preventDefault(); open(); } };
     window.addEventListener("keydown", key);
     return () => {
       disposed = true;
@@ -49,7 +53,12 @@ export function StationArrival({ children }: { children: ReactNode }) {
     };
   }, []);
   return <div className="station-arrival" data-arrival={phase} data-mood={mood}>
-    <div ref={scene} className="station-arrival-scene" inert={phase !== "done"}>{children}</div>
+    <div ref={scene} className="station-arrival-scene" inert={phase !== "done" || !welcomed}>{children}</div>
+    {phase === "done" && !welcomed && <StationWelcome onExplore={() => {
+      setWelcomed(true);
+      requestAnimationFrame(() => scene.current?.querySelector<HTMLElement>(".map-viewport")?.focus({ preventScroll: true }));
+    }} onReturn={() => { setWelcomed(true); returnHome(); }} />}
+    {phase === "done" && welcomed && <button className="station-return-control" type="button" onClick={returnHome}>← Main portfolio</button>}
     {phase !== "done" && <AirlockDoor onSkip={() => skip.current()} skipButton={skipButton} status={phase === "transit" ? "Leaving Earth for the station" : phase === "docking" ? "Docking" : phase === "venting" ? "Releasing pressure" : "Opening the airlock"} />}
   </div>;
 }
