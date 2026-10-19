@@ -1012,3 +1012,23 @@ html[data-professional-theme="dark"] .folio-opening-signature { color: #a9aaa2; 
 }
 
 .folio-project-board[data-layout-ready="false"] > .folio-project-print { transition: none; }
+
+/* Lift the dark keyboard chassis off the page while retaining the dark caps. */
+html[data-professional-theme="dark"] .folio-contribution-case {
+  --folio-frame-surface: #3b3e44;
+  --folio-frame-edge: #555a63;
+  --folio-frame-highlight: #71767e;
+  --folio-frame-lower: #1b1e23;
+  --folio-frame-recess: #00000099;
+  background: linear-gradient(155deg, #41454b, #303339 55%, #272a30);
+  box-shadow: inset 0 1px 0 #777d86, inset 1px 0 0 #626871, inset 0 -3px 0 #24272d, 0 5px 0 #191c21, 0 6px 0 #454a53, 0 13px 22px #000000b3;
+}
+html[data-professional-theme="dark"] .folio-contribution-case::before {
+  border-color: #51565f;
+  box-shadow: inset 0 2px 3px #00000080, 0 1px 0 #676d76;
+}
+html[data-professional-theme="dark"] :is(.folio-contribution-year-keys, .folio-contribution-month-keys) {
+  background: linear-gradient(165deg, #111213, #1b1c1e);
+  border-color: #0b0e13;
+  box-shadow: inset 0 5px 10px #000000b3, inset 2px 0 5px #00000080, inset -1px -1px 2px #00000066, 0 1px 0 #777d86;
+}
