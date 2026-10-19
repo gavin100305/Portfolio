@@ -11,7 +11,7 @@ const geistMono = localFont({ src: "./fonts/geist-mono-regular.ttf", variable: "
 const dmSans = localFont({ src: "./fonts/dm-sans.ttf", variable: "--font-dm-sans", weight: "400", display: "swap" });
 const instrumentSerif = localFont({ src: "./fonts/instrument-serif.ttf", variable: "--font-instrument-serif", weight: "400", display: "swap" });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gavinsoares.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gavin-soares.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -69,9 +69,6 @@ export const metadata: Metadata = {
       "max-image-preview": "large",
       "max-snippet": -1,
     },
-  },
-  verification: {
-    google: "GSZWHl9hHUdTvrFxZEAA9RZzU0CgyjOAbVwzDblWvZQ",
   },
 };
 
@@ -134,6 +131,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" suppressHydrationWarning className={`${manrope.variable} ${pixelify.variable} ${geistMono.variable} ${dmSans.variable} ${instrumentSerif.variable}`}>
       <head>
+        <meta name="google-site-verification" content="GSZWHl9hHUdTvrFxZEAA9RZzU0CgyjOAbVwzDblWvZQ" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personStructuredData) }}
