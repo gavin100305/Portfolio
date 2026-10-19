@@ -98,10 +98,6 @@ export function addBernabeuModel(parent: THREE.Group, width: number, depth: numb
   mesh(new THREE.BoxGeometry(width*.15,.22,.30),dark,-width*.465,.08,-.02);
   mesh(new THREE.BoxGeometry(width*.18,.025,.34),rim,-width*.47,.205,-.02);
   mesh(new THREE.BoxGeometry(.012,.16,.26),glazing,-width*.555,.08,-.02);
-  const canvas=document.createElement("canvas");canvas.width=1024;canvas.height=128;const ctx=canvas.getContext("2d");
-  if(ctx){ctx.fillStyle="#23344a";ctx.fillRect(0,0,1024,128);ctx.fillStyle="#e6e7e1";ctx.font="500 64px monospace";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("BERNABÉU",512,64);
-    const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;trackTexture(texture);const sign=new THREE.MeshBasicMaterial({map:texture});trackMaterial(sign);mesh(new THREE.PlaneGeometry(width*.34,.125),sign,0,.24,depth*.478);
-  }
   return {
     setOpen(value:boolean){if(open===value)return;open=value;startProgress=progress;startTime=null;},
     toggle(){this.setOpen(!open);return open;},
