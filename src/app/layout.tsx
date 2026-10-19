@@ -70,6 +70,9 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  verification: {
+    google: "GSZWHl9hHUdTvrFxZEAA9RZzU0CgyjOAbVwzDblWvZQ",
+  },
 };
 
 const personStructuredData = {
