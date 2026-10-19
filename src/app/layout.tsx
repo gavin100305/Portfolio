@@ -12,7 +12,7 @@ const geistMono = localFont({ src: "./fonts/geist-mono-regular.ttf", variable: "
 const dmSans = localFont({ src: "./fonts/dm-sans.ttf", variable: "--font-dm-sans", weight: "400", display: "swap" });
 const instrumentSerif = localFont({ src: "./fonts/instrument-serif.ttf", variable: "--font-instrument-serif", weight: "400", display: "swap" });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gavin-soares.vercel.app";
+const siteUrl = "https://gavin-soares.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
