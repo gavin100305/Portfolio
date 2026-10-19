@@ -38,7 +38,7 @@ export function StationShell() {
       document.body.classList.add("dialog-open");
     } else {
       document.body.classList.remove("dialog-open");
-      document.title = activeId === "football" ? "Orbital Training Deck | Gavin Soares" : "Space Station | Gavin Soares";
+      document.title = activeId === "football" ? "Orbital Bernabéu | Gavin Soares" : "Space Station | Gavin Soares";
       if (activeId !== "football") {
         const opener = openerRef.current;
         if (opener?.isConnected) opener.focus({ preventScroll: true });
@@ -55,7 +55,10 @@ export function StationShell() {
     const previous = sectionFromLocation();
     // Preserve the original map launcher while navigating between info pages.
     if (!previous || previous === "football") openerRef.current = opener;
-    if (window.location.hash === `#${id}`) return;
+    if (window.location.hash === `#${id}`) {
+      window.dispatchEvent(new Event(SECTION_URL_EVENT));
+      return;
+    }
     const previousDepth = window.history.state?.stationDepth;
     // Directly loaded section URLs have no station entry behind them.
     const stationDepth = !previous ? 1

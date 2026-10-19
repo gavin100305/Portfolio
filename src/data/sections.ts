@@ -43,10 +43,10 @@ export const sections = [
   },
   {
     id: "football",
-    label: "Orbital Training Deck",
-    roomName: "Orbital Training Deck",
+    label: "Bernabéu",
+    roomName: "Orbital Bernabéu",
     marker: "07",
-    description: "Practise penalties against the station’s goalkeeper. Pick your spot and shoot.",
+    description: "Step inside a Real Madrid-inspired stadium and practise penalties.",
   },
 ] as const;
 

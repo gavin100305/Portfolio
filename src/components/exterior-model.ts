@@ -1,3 +1,4 @@
+import { addBernabeuModel } from "./bernabeu-model";
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { airlocks, corridorRoutes, MAP_SCALE, rooms, WORLD, type Point } from "@/data/station-world";
@@ -13,6 +14,7 @@ export type DeckSources = Partial<Record<SectionId, SVGSVGElement>>;
 /** Procedural observation model. No changes to the playable world or its data. */
 export function createExteriorModel(sources: DeckSources, invalidate: () => void) {
   const group = new THREE.Group();
+  let stadium: ReturnType<typeof addBernabeuModel> | undefined;
   const peekRoofs = new Map<SectionId, THREE.Group>();
   const geometry = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
@@ -103,9 +105,13 @@ export function createExteriorModel(sources: DeckSources, invalidate: () => void
     group.add(bay);
     const scale = room.width / 240 / unit;
     const w = room.width / unit, d = room.height / unit;
+    if (id === "football") {
+      stadium = addBernabeuModel(bay, w, d, g => geometry.add(g), m => materials.add(m), t => textures.add(t));
+      continue;
+    }
     slab(bay, moduleOutline, scale, .16, -.16, side);
     slab(bay, moduleOutline, scale * .995, .025, -.005, edge);
-    const floor = box(bay, 0, .015, 0, w * .85, .025, d * .82, id === "football" ? inset : cream);
+    const floor = box(bay, 0, .015, 0, w * .85, .025, d * .82, cream);
 
     // Perimeter wall segments are cut at the existing entrances. This also
     // makes the peek decks visibly connected to the real corridors.
@@ -179,11 +185,6 @@ export function createExteriorModel(sources: DeckSources, invalidate: () => void
       receiver.rotation.x = -.24; receiver.position.set(0, .51, -.06);
       box(lid, 0, .55, -.06, .014, .09, .014, edge);
       box(lid, 0, .598, -.06, .025, .012, .025, cyan);
-    } else if (id === "football") {
-      box(lid, 0, .365, -.05, w * .51, .03, d * .44, inset);
-      box(lid, 0, .385, -.05, w * .48, .009, d * .41, glass);
-      for (const x of [-w * .16, 0, w * .16]) box(lid, x, .396, -.05, .018, .015, d * .43, edge);
-      for (const z of [-d * .14, d * .09]) box(lid, 0, .396, z, w * .49, .015, .018, edge);
     } else if (id === "stack") {
       for (const x of [-w * .15, 0, w * .15]) {
         box(lid, x, .367, -.07, w * .10, .028, d * .35, inset);
@@ -337,16 +338,19 @@ export function createExteriorModel(sources: DeckSources, invalidate: () => void
 
   return {
     group,
-    setPeek(value: boolean) { peekRoofs.forEach(lid => { lid.visible = !value; }); },
+    setPeek(value: boolean) { stadium?.setOpen(value); peekRoofs.forEach(lid => { lid.visible = !value; }); },
     toggleRoom(id: SectionId) {
+      if(id === "football") return stadium?.toggle() ?? false;
       const lid = peekRoofs.get(id);
       if (!lid) return false;
       lid.visible = !lid.visible;
       return !lid.visible;
     },
     animate(time: number, reduced: boolean) {
+      const roofMoving=stadium?.animate(time,reduced) ?? false;
       group.position.y = reduced ? 0 : Math.sin(time / 6000) * .012;
       engineGlow.opacity = reduced ? .65 : .65 + Math.sin(time / 1400) * .09;
+      return roofMoving;
     },
     dispose,
   };

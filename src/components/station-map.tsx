@@ -4,7 +4,7 @@ import { useSpaceMood } from "@/components/use-space-mood";
 import { MoodControl } from "@/components/mood-control";
 import { useCallback, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { sections, getSection, type SectionId } from "@/data/sections";
-import { contains, footballBall, cockpitConsole, roomSigns, stationDoors, rooms, WORLD } from "@/data/station-world";
+import { contains, cockpitConsole, roomSigns, stationDoors, rooms, WORLD } from "@/data/station-world";
 import { RoomArtwork, RoomFocusOutline } from "@/components/room-artwork";
 import { Astronaut, StationConnections, StationForeground, StationEngines, SpaceBackdrop } from "@/components/ship-artwork";
 import { useStationExploration } from "@/components/use-station-exploration";
@@ -15,6 +15,8 @@ import { Spacewalk } from "@/components/spacewalk";
 import { StationDiscoveries, AlienTransmission } from "@/components/station-discoveries";
 import { discoveryNear, type DiscoveryId } from "@/data/station-discoveries";
 import type { Point } from "@/data/station-world";
+import { BernabeuExteriorArtwork, BernabeuInteriorArtwork } from "./bernabeu-artwork";
+import { MadridistaJournal } from "./madridista-journal";
 import { InteriorDepth } from "@/components/interior-depth";
 
 type StationMapProps = {
@@ -27,8 +29,13 @@ type StationMapProps = {
 
 export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: StationMapProps) {
   const footballActive = activeId === "football";
+  const [penaltyMode, setPenaltyMode] = useState(false);
   const game = useFootballGame(footballActive);
+  const startPenalty = useCallback(() => setPenaltyMode(true), []);
+  const stopPenalty = useCallback(() => setPenaltyMode(false), []);
+  if (!footballActive && penaltyMode) setPenaltyMode(false);
   const [cockpitOpen, setCockpitOpen] = useState(false);
+  const [journalOpen, setJournalOpen] = useState(false);
   const [exteriorOpen, setExteriorOpen] = useState(false);
   const [discovery, setDiscovery] = useState<Exclude<DiscoveryId, "robot"> | null>(null);
   const [robotAwake, setRobotAwake] = useState(false);
@@ -58,20 +65,20 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
   if (activeId && exteriorOpen) setExteriorOpen(false);
   const openCockpit = useCallback(() => setCockpitOpen(true), []);
   const { controlRef, mood, flight, choose, advance } = useSpaceMood();
-  const { backdropRef, depthFrameRef, viewportRef, worldRef, characterRef, location, atCockpit, atFootball, focusCockpit, focusDiscovery, press, release, focusRoom, releaseFocus, getMovementSnapshot } = useStationExploration(activeId, onActivate, Boolean(flight) || cockpitOpen || exteriorOpen || discoveryModal, openCockpit, interact, getRobotPosition);
+  const { backdropRef, depthFrameRef, viewportRef, worldRef, characterRef, location, atCockpit, atFootball, focusCockpit, focusDiscovery, press, release, focusRoom, releaseFocus, getMovementSnapshot } = useStationExploration(activeId, onActivate, Boolean(flight) || cockpitOpen || exteriorOpen || discoveryModal || journalOpen, openCockpit, interact, getRobotPosition, penaltyMode, startPenalty, onLeaveArena);
   const remoteVisitors = useShipPresence((!activeId || footballActive) && !flight && !cockpitOpen, getMovementSnapshot);
   const current = getSection(location);
   const dragMoved = useRef(false);
   const suppressRoomClickUntil = useRef(0);
   const [drag, setDrag] = useState<{ id: number; x: number; y: number; direction: "up" | "down" | "left" | "right" | null } | null>(null);
   const onTouchStart = (event: PointerEvent<HTMLDivElement>) => {
-    if (footballActive || event.pointerType !== "touch" || (event.target as HTMLElement).closest("button, .room-wayfinding")) return;
+    if (penaltyMode || event.pointerType !== "touch" || (event.target as HTMLElement).closest("button, .room-wayfinding")) return;
     dragMoved.current = false;
     suppressRoomClickUntil.current = 0;
     setDrag({ id: event.pointerId, x: event.clientX, y: event.clientY, direction: null });
   };
   const onTouchMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (footballActive || !drag || drag.id !== event.pointerId) return;
+    if (penaltyMode || !drag || drag.id !== event.pointerId) return;
     const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
     const next = Math.hypot(dx, dy) < 18 ? null : Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
     if (next === drag.direction) return;
@@ -91,12 +98,12 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
     setDrag(null);
   };
   return (
-    <div className="exploration-map" data-travelling={Boolean(flight)} data-football={footballActive} data-exterior={exteriorOpen || discovery === "airlock"} data-depth-ready={depthReady}>
+    <div className="exploration-map" data-travelling={Boolean(flight)} data-football={footballActive} data-penalty={penaltyMode} data-exterior={exteriorOpen || discovery === "airlock"} data-depth-ready={depthReady}>
       <SpaceBackdrop backdropRef={backdropRef} mood={mood} />
       <div className="interior-experience" inert={exteriorOpen || discoveryModal}>
       <div className="map-viewport" inert={Boolean(flight)} ref={viewportRef} tabIndex={0} role="region" aria-label="Explore the space station" aria-describedby="movement-instructions" onPointerDown={onTouchStart} onPointerMove={onTouchMove} onPointerUp={onTouchEnd} onPointerCancel={onTouchEnd}>
         <div className="ship-flight" data-flight={flight ?? undefined} onAnimationEnd={(event) => { if (event.target === event.currentTarget) advance(); }}>
-        <InteriorDepth theme={mood} worldRef={worldRef} frameRef={depthFrameRef} enabled={!exteriorOpen && !discoveryModal && (!activeId || footballActive)} onReady={setDepthReady} />
+        <InteriorDepth theme={mood} worldRef={worldRef} frameRef={depthFrameRef} enabled={!exteriorOpen && !discoveryModal && !footballActive && !activeId} onReady={setDepthReady} />
         <div className="station-world" ref={worldRef} style={{ width: WORLD.width, height: WORLD.height }}>
           <StationEngines />
           <StationConnections />
@@ -111,11 +118,12 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
                 aria-current={activeId === section.id ? "page" : undefined}
                 onClick={(event) => {
                   if (performance.now() < suppressRoomClickUntil.current) { event.preventDefault(); return; }
+                  if(footballActive){event.preventDefault();return;}
                   onOpen(section.id, event);
                 }}
                 onFocus={() => focusRoom(section.id)} onBlur={releaseFocus}
                 onKeyDown={(event) => { if (event.key === " ") { event.preventDefault(); event.currentTarget.click(); } }}>
-                <RoomArtwork id={section.id} goals={section.id === "football" ? game.displayGoals : undefined} saves={section.id === "football" ? game.displaySaves : undefined} />
+                {section.id === "football" ? footballActive ? <BernabeuInteriorArtwork goals={game.displayGoals} saves={game.displaySaves} /> : <BernabeuExteriorArtwork /> : <RoomArtwork id={section.id} />}
                 <RoomFocusOutline id={section.id} />
                 <span className="visually-hidden">{section.roomName}</span>
               </a>
@@ -128,9 +136,9 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
             <span className="visually-hidden">Change space mood</span>
           </button>
           <StationDiscoveries robotAwake={robotAwake} enabled={!activeId && !flight && !cockpitOpen && !exteriorOpen && !discoveryModal} onDiscover={openDiscovery} getMovement={getMovementSnapshot} onRobotMovement={reportRobotMovement} onFocus={focusDiscovery} onBlur={releaseFocus} />
-          <FootballArenaScene active={footballActive} game={game} />
-          {!footballActive && <button className="football-ball-control" type="button" aria-label="Play penalties on the Orbital Training Deck pitch" style={{ left: footballBall.x - 24, top: footballBall.y - 24 }} onFocus={() => focusRoom("football")} onBlur={releaseFocus} onClick={(event) => onActivate("football", event.currentTarget)} />}
-          {stationDoors.map((door) => <div key={door.id} className="station-door" data-door-id={door.id} data-axis={door.axis} data-state="closed" role="img" aria-label="Room door: closed"
+          <FootballArenaScene active={footballActive} playing={penaltyMode} game={game} />
+
+          {stationDoors.filter(door => door.id !== "airlock-11").map((door) => <div key={door.id} className="station-door" data-door-id={door.id} data-axis={door.axis} data-state="closed" role="img" aria-label="Room door: closed"
             style={{ left: door.x, top: door.y, width: door.width, height: door.height }}>
             <div className="door-aperture"><span className="door-leaf" /><span className="door-leaf" /></div>
           </div>)}
@@ -150,9 +158,10 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
         </div>
       </div>
       <MoodControl open={cockpitOpen} onClose={() => setCockpitOpen(false)} mood={mood} controlRef={controlRef} onChoose={(next) => { setCockpitOpen(false); choose(next); }} />
-      {footballActive && <FootballArenaControls game={game} onExit={onLeaveArena} />}
+      {footballActive && <>{penaltyMode ? <FootballArenaControls game={game} onExit={stopPenalty} /> : !atFootball && <p className="stadium-walk-hint"><span className="desktop-instructions">WASD / arrows to move · Walk through the left tunnel to leave</span><span className="touch-instructions">Drag to move · Walk through the left tunnel to leave</span></p>}<button type="button" className="madridista-journal-launch" onClick={() => setJournalOpen(true)}>My Madridista story <span aria-hidden="true">↗</span></button></>}
+      {journalOpen && <MadridistaJournal onClose={() => setJournalOpen(false)} />}
       <p hidden={footballActive} id="movement-instructions" className="movement-instructions"><span className="desktop-instructions"><span className="inline-flex items-center gap-2"><span>Move</span><kbd>WASD</kbd><span className="mx-1 opacity-40" aria-hidden="true">/</span><kbd>Enter</kbd><span>open room</span></span></span><span className="touch-instructions">Drag to move<br />Tap a room to open</span></p>
-      {atFootball && !footballActive && <button className="nearby-action" type="button" onClick={(event) => onActivate("football", event.currentTarget)}>Play penalties <span aria-hidden="true">E</span></button>}
+      {atFootball && footballActive && !penaltyMode && <button className="nearby-action" type="button" onClick={startPenalty}>Play penalties <span aria-hidden="true">E</span></button>}
       {atCockpit && !footballActive && <button className="nearby-action" type="button" disabled={Boolean(flight)} onClick={openCockpit}>Change space mood <span aria-hidden="true">E</span></button>}
       {!activeId && <button className="ship-view-launch" type="button" ref={exteriorControlRef} disabled={Boolean(flight) || cockpitOpen} aria-haspopup="dialog" onClick={() => setExteriorOpen(true)}><span className="grid size-7 shrink-0 place-items-center rounded border border-card-edge bg-station-wash" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 3h8v3h3v12h-3v3H8v-3H5V6h3zM2 9v6m20-6v6M9 8h6v8H9z" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg></span><span>Station view</span></button>}
       </div>

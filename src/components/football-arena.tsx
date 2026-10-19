@@ -91,25 +91,26 @@ export function useFootballGame(active: boolean) {
 type Game = ReturnType<typeof useFootballGame>;
 
 /** Only actors and aiming markers: the room itself supplies the pitch and goal. */
-export function FootballArenaScene({ active, game }: { active: boolean; game: Game }) {
+export function FootballArenaScene({ active, playing, game }: { active: boolean; playing: boolean; game: Game }) {
   const room = rooms.football;
-  const shot = active ? game.flight ?? game.lastShot : null;
-  const target = 98 + game.aim * 20;
+  const shot = playing ? game.flight ?? game.lastShot : null;
+  const target = 100 + game.aim * 18;
   const style = {
     left: room.x, top: room.y, width: room.width, height: room.height,
-    "--shot-x": `${(shot?.aim ?? game.aim) * 20 - 20}px`,
+    "--shot-x": `${(shot?.aim ?? game.aim) * 18 - 18}px`,
     "--shot-y": `${shot?.goal ? -35 : -27}px`,
-    "--keeper-x": `${(shot?.keeper ?? 1) * 20 - 20}px`,
+    "--keeper-x": `${(shot?.keeper ?? 1) * 18 - 18}px`,
     "--keeper-tilt": `${((shot?.keeper ?? 1) - 1) * 55}deg`,
   } as CSSProperties;
+  if (!active) return null;
   return <svg className="football-world-scene" style={style} viewBox="0 0 240 176" aria-hidden="true" focusable="false" shapeRendering="crispEdges" data-shooting={active && Boolean(game.flight)} data-result={shot && !game.flight ? shot.goal ? "goal" : "saved" : ""}>
     <g className="penalty-net">
-      <path d="M96 35v14m8-14v14m8-14v14m8-14v14m8-14v14m8-14v14m8-14v14M89 40h62M89 45h62" stroke="#a4c4cf" strokeWidth=".6" fill="none" />
-      <rect className="penalty-net-flash" x="89" y="35" width="62" height="14" fill="#65c8ff" opacity="0" />
+      <path d="M94 33v16m8-16v16m8-16v16m8-16v16m8-16v16m8-16v16m8-16v16M89 39h58M89 45h58" stroke="#a4c4cf" strokeWidth=".6" fill="none" />
+      <rect className="penalty-net-flash" x="89" y="33" width="58" height="16" fill="#65c8ff" opacity="0" />
     </g>
-    {active && <>
+    {playing && <>
       {!shot && <path d={`M118 80L${target} 46`} stroke="#e4f0df" strokeWidth=".8" strokeDasharray="2 3" opacity=".6" />}
-      {spots.map((spot, i) => <rect key={spot} x={94 + i * 20} y="38" width="8" height="8" fill="none" stroke={game.aim === i ? "#ffd38b" : "#cde5db"} strokeWidth={game.aim === i ? 1 : .5} opacity={game.aim === i ? 1 : .4} />)}
+      {spots.map((spot, i) => <rect key={spot} x={96 + i * 18} y="38" width="8" height="8" fill="none" stroke={game.aim === i ? "#ffd38b" : "#cde5db"} strokeWidth={game.aim === i ? 1 : .5} opacity={game.aim === i ? 1 : .4} />)}
     </>}
     <g className="penalty-keeper"><ellipse cx="118" cy="51" rx="6" ry="2" fill="#111722" opacity=".4" /><g className="keeper-body"><g transform="translate(112 35) scale(.25)"><Astronaut palette="coral" /></g></g></g>
     <g className="penalty-ball"><path d="M116 77h4v1h1v4h-1v1h-4v-1h-1v-4h1z" fill="#f2f5fa" stroke="#111722" strokeWidth=".5" /><rect x="117" y="79" width="2" height="2" fill="#111722" /></g>
@@ -117,31 +118,55 @@ export function FootballArenaScene({ active, game }: { active: boolean; game: Ga
   </svg>;
 }
 
+function StadiumBriefing({ onPlay, onExit }: { onPlay: () => void; onExit: () => void }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const play = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const element = dialog.current;
+    if (!element) return;
+    const arrival = element.closest(".station-arrival-scene");
+    const open = () => {
+      if (arrival?.hasAttribute("inert") || element.open) return;
+      element.showModal(); play.current?.focus({ preventScroll: true });
+    };
+    const observer = new MutationObserver(open);
+    if (arrival) observer.observe(arrival, { attributes:true, attributeFilter:["inert"] });
+    open();
+    return () => { observer.disconnect(); element.close(); };
+  }, []);
+  return <dialog ref={dialog} className="station-welcome stadium-briefing" data-station-overlay="true" aria-labelledby="stadium-briefing-title" onCancel={event => { event.preventDefault(); onExit(); }}>
+    <button className="station-welcome-close" type="button" onClick={onPlay} aria-label="Close stadium instructions">×</button>
+    <div className="station-welcome-heading"><div className="station-welcome-portrait"><Astronaut /></div><div><p className="station-welcome-tag">MATCHDAY / GS 01</p><h2 id="stadium-briefing-title">Welcome to the Bernabéu.</h2><p className="station-welcome-name">Your astronaut. The spot. One keeper to beat.</p></div></div>
+    <p className="station-welcome-introduction">Pick your corner and take a penalty. The keeper chooses a side too—send the ball past them to score. Your goals and saves appear on the stadium’s video halo.</p>
+    <h3 className="station-welcome-section-title">Make it count.</h3>
+    <div className="stadium-briefing-steps"><div><b>01</b><strong>Aim</strong><span>Choose left, centre or right.</span></div><div><b>02</b><strong>Shoot</strong><span>Take your shot, then go again.</span></div><div><b>03</b><strong>Keep playing</strong><span>Your tally lasts until you leave.</span></div></div>
+    <div className="station-welcome-guide"><p className="station-welcome-desktop"><kbd>←</kbd><kbd>→</kbd> or <kbd>A</kbd><kbd>D</kbd> to aim · <kbd>Space</kbd> to shoot.</p><p className="station-welcome-desktop"><kbd>Esc</kbd> leaves penalty mode. Walk back through the tunnel to leave the stadium.</p><p className="station-welcome-touch">Use the direction buttons at the bottom, then tap Shoot.</p><p>Reopen this guide with “How to play” anytime.</p></div>
+    <button ref={play} className="station-welcome-explore" type="button" onClick={onPlay}>Take the pitch <span aria-hidden="true">→</span></button>
+  </dialog>;
+}
+
 export function FootballArenaControls({ game, onExit }: { game: Game; onExit: () => void }) {
   const { aim, select, shoot } = game;
+  const [briefing, setBriefing] = useState(true);
   useEffect(() => {
     function handleKeys(event: KeyboardEvent) {
-      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      if (event.ctrlKey || event.metaKey || event.altKey || document.querySelector("[data-madrid-dialog], [data-station-overlay]")) return;
       const action = penaltyKeyAction(event.key);
       if (action === "exit") { event.preventDefault(); onExit(); }
       else if (action === "left" || action === "right") {
-        event.preventDefault();
-        select((aim + (action === "left" ? 2 : 1)) % 3);
-      } else if (action === "shoot" && !event.repeat) {
-        event.preventDefault(); shoot();
-      }
+        event.preventDefault(); select((aim + (action === "left" ? 2 : 1)) % 3);
+      } else if (action === "shoot" && !event.repeat) { event.preventDefault(); shoot(); }
     }
     window.addEventListener("keydown", handleKeys);
     return () => window.removeEventListener("keydown", handleKeys);
   }, [aim, select, shoot, onExit]);
-
-  return <section className="football-controls" aria-label="Orbital Training Deck penalty controls">
-    <div className="football-console-title">ORBITAL TRAINING DECK <span>Penalty practice</span></div>
-    <div className="football-controls-top"><strong>GOALS {game.displayGoals} · SAVES {game.displaySaves}</strong><span className="football-attempts">{game.displayAttempts} {game.attempts === 1 ? "penalty" : "penalties"}</span>{game.goalStreak >= 3 && <span className="football-streak" role="status">GOAL STREAK ×{game.goalStreak}</span>}</div>
-    <span className={`football-result${game.lastShot ? game.lastShot.goal ? " is-goal" : " is-save" : ""}`}>{game.flight ? "IN FLIGHT" : game.lastShot ? game.lastShot.goal ? "GOAL" : "SAVE" : "READY"}</span>
-    <p className="penalty-status" role="status" aria-live="polite" aria-atomic="true">{game.status}</p>
-    <p className="penalty-help"><kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd>/<kbd>D</kbd> aim <span>·</span> <kbd>Space</kbd> shoot <span>·</span> <kbd>Esc</kbd> return to exploring</p>
-  </section>;
+  return <>
+    <button type="button" className="stadium-leave" onClick={onExit}>← Stop penalties</button>
+    <button type="button" className="stadium-help" onClick={() => setBriefing(true)}>How to play <span aria-hidden="true">?</span></button>
+    <div className="stadium-touch-controls" aria-label="Penalty controls"><div className="penalty-aim" aria-label="Choose shot direction">{spots.map((spot,index)=><button key={spot} type="button" aria-pressed={aim===index} disabled={Boolean(game.flight)} onClick={()=>select(index)}>{spot}</button>)}</div><button type="button" className="penalty-shoot" disabled={Boolean(game.flight)} onClick={shoot}>Shoot →</button></div>
+    <p className="visually-hidden" role="status" aria-live="polite" aria-atomic="true">{game.status}</p>
+    {briefing && <StadiumBriefing onPlay={() => setBriefing(false)} onExit={onExit} />}
+  </>;
 }
 
 /** Sideline display only; authoritative visitor coordinates and tickets stay untouched. */

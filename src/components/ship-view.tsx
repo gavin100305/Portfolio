@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type RefObject, type KeyboardEvent } from "react";
+import { BernabeuExteriorArtwork } from "./bernabeu-artwork";
 import { sections, getSection } from "@/data/sections";
 import { corridorPath, MAP_SCALE, rooms, WORLD } from "@/data/station-world";
 import { moduleOutline } from "@/data/ship-observation";
@@ -14,11 +15,13 @@ function ShipIllustration() {
     <path d={corridorPath} fill="none" stroke="#405775" strokeWidth="36" strokeLinejoin="round" />
     <path d={corridorPath} fill="none" stroke="#d9d4be" strokeWidth="16" strokeLinejoin="round" />
     {Object.entries(rooms).map(([id, r]) => <g key={id} transform={`translate(${r.x / MAP_SCALE} ${r.y / MAP_SCALE}) scale(${r.width / MAP_SCALE / 240})`}>
+      {id === "football" ? <svg width="240" height="176" viewBox="0 0 240 176"><BernabeuExteriorArtwork /></svg> : <>
       <polygon points={moduleOutline.map(p => `${p.x},${p.y}`).join(" ")} fill="#405775" stroke="#8ba2ba" strokeWidth="3" />
-      <rect x="28" y="30" width="184" height="112" rx="3" fill={id === "football" ? "#214c3e" : "#d9d4be"} />
+      <rect x="28" y="30" width="184" height="112" rx="3" fill="#d9d4be" />
       <path d="M40 38h40v20H40zM100 38h40v20h-40zM160 38h40v20h-40z" fill="#718795" />
       <path d="M44 42h32m28 0h32m28 0h32" stroke="#65c8ff" strokeWidth="3" />
       <path d="M96 88h48v32H96z" fill="#253858" stroke="#8ba2ba" strokeWidth="3" />
+      </>}
     </g>)}
     <path d="M0 392h48v168H0zM1584 408h48v168h-48z" fill="#182e4c" stroke="#8ba2ba" strokeWidth="3" />
   </svg>;
@@ -55,7 +58,7 @@ export function ShipView({ worldRef, mood, onMoodChange, onClose }: ShipViewProp
     // portfolio available, with a small original SVG overview as fallback.
     void import("@/components/exterior-scene").then(({ createExteriorScene }) => {
       if (cancelled || !hostRef.current) return;
-      sceneRef.current = createExteriorScene(hostRef.current, sources, () => { if (!cancelled) setStatus("fallback"); }, (id, open) => { if (!cancelled) setPeekNotice(`${getSection(id)?.roomName} ${open ? "open · tap again to close" : "closed"}`); });
+      sceneRef.current = createExteriorScene(hostRef.current, sources, () => { if (!cancelled) setStatus("fallback"); }, (id, open) => { if (!cancelled) setPeekNotice(id === "football" ? `Bernabéu · roof ${open ? "open · tap again to close" : "closed"}` : `${getSection(id)?.roomName} ${open ? "open · tap again to close" : "closed"}`); });
       setStatus("ready");
     }).catch(() => { if (!cancelled) setStatus("fallback"); });
     return () => { cancelled = true; sceneRef.current?.dispose(); sceneRef.current = null; };
@@ -85,7 +88,7 @@ export function ShipView({ worldRef, mood, onMoodChange, onClose }: ShipViewProp
       <div className="ship-view-canvas" ref={hostRef} role="img" tabIndex={status === "ready" ? 0 : -1} aria-describedby="ship-view-help" aria-label="Interactive perspective view of the space station" hidden={status === "fallback"} />
       {status !== "ready" && <div className="ship-view-fallback"><ShipIllustration /><p role="status">{status === "loading" ? "Preparing observation view…" : "3D view unavailable. Return to the deck to explore the station."}</p></div>}
       {status === "ready" && <p role="status" className="ship-view-notice pointer-events-none m-0 text-center font-pixel text-xs tracking-wide text-[#c8d5df]">{peekNotice}</p>}
-      <p id="ship-view-help" className="visually-hidden">Drag to rotate, scroll or pinch to zoom. Keyboard: left and right arrows rotate, plus and minus zoom, Home resets. Number keys 1 to 7 toggle room roofs, in Projects, Achievements, Tech Stack, Experience, About, Contact, and Orbital Training Deck order.</p>
+      <p id="ship-view-help" className="visually-hidden">Drag to rotate, scroll or pinch to zoom. Keyboard: left and right arrows rotate, plus and minus zoom, Home resets. Number keys 1 to 7 toggle room roofs, in Projects, Achievements, Tech Stack, Experience, About, Contact, and Bernabéu order. The Bernabéu’s central roof slides open to reveal the pitch.</p>
     </div>
     <footer className="relative mx-auto w-full max-w-[540px] shrink-0 px-3 py-3"><ThemeSlider mood={mood} onChange={onMoodChange} /></footer>
   </section>;

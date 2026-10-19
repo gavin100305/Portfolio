@@ -8,7 +8,25 @@ export type Direction = "up" | "down" | "left" | "right";
 const keys: Record<string, Direction> = { w: "up", arrowup: "up", s: "down", arrowdown: "down", a: "left", arrowleft: "left", d: "right", arrowright: "right" };
 const vectors: Record<Direction, Point> = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
 
-export function useStationExploration(activeId: SectionId | null, onActivate: (id: SectionId, opener: HTMLElement | null) => void, travelling = false, onCockpit?: () => void, onInteract?: (point: Point) => boolean, getRobotPosition?: () => Point | null) {
+
+/** Walk on the arena floor and its west tunnel, never across the seating tiers. */
+function moveInStadium(point:Point,dx:number,dy:number):Point {
+  const arena=rooms.football,unit=arena.width/240;
+  const walkable=(p:Point)=>{
+    const x=(p.x-arena.x)/unit,y=(p.y-arena.y)/unit;
+    const inside=(x:number,y:number)=> (x>=-40 && x<=51 && y>=81 && y<=92)
+      || Math.pow(Math.abs((x-120)/77),4.6)+Math.pow(Math.abs((y-87)/51),4.6)<=1;
+    return [[0,0],[-2,0],[2,0],[0,-2],[0,2]].every(([ox,oy])=>inside(x+ox,y+oy));
+  };
+  let next={...point};const steps=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/4));
+  for(let i=0;i<steps;i++){
+    const x={x:next.x+dx/steps,y:next.y};if(walkable(x)) next=x;
+    const y={x:next.x,y:next.y+dy/steps};if(walkable(y)) next=y;
+  }
+  return next;
+}
+
+export function useStationExploration(activeId: SectionId | null, onActivate: (id: SectionId, opener: HTMLElement | null) => void, travelling = false, onCockpit?: () => void, onInteract?: (point: Point) => boolean, getRobotPosition?: () => Point | null, penaltyMode = false, onPenalty?: () => void, onArenaExit?: () => void) {
   const backdropRef = useRef<HTMLDivElement>(null);
   const depthFrameRef = useRef<((time: number) => void) | null>(null);
   const doorProgress = useRef(stationDoors.map(() => 0));
@@ -29,6 +47,10 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
   const [atCockpit, setAtCockpit] = useState(false);
   const [atFootball, setAtFootball] = useState(false);
   const footballNearby = useRef(false);
+  const arenaEntryArmed = useRef(true);
+  const insideArena = useRef(false);
+  const wasPenalty = useRef(false);
+  const exitRequested = useRef(false);
   const cockpitNearby = useRef(false);
   const previousRoom = useRef<SectionId | null>("about");
   const [location, setLocation] = useState<SectionId | null>("about");
@@ -41,14 +63,18 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
     const doorElements = stationDoors.map((door) => world.querySelector<HTMLElement>(`[data-door-id="${door.id}"]`));
     const footballActive = activeId === "football";
     const panelOpen = Boolean(activeId) && !footballActive;
-    const entryPosition = { ...position.current };
-    if (footballActive) {
-      presenceAnchor.current = entryPosition;
-      position.current = { ...footballKicker };
-      facingRef.current = "up";
-      focusedPoint.current = null;
-      viewport.focus();
+    if (footballActive && !insideArena.current) {
+      insideArena.current=true; exitRequested.current=false;
+      presenceAnchor.current={x:rooms.football.x-18,y:rooms.football.y+rooms.football.width/240*86.4};
+      position.current={x:rooms.football.x+rooms.football.width/240*48,y:rooms.football.y+rooms.football.width/240*86.4};
+      facingRef.current="right";focusedPoint.current=null;viewport.focus();
+    } else if(!footballActive && insideArena.current) {
+      position.current=presenceAnchor.current ?? position.current;
+      presenceAnchor.current=null;insideArena.current=false;exitRequested.current=false;
+      arenaEntryArmed.current=false;
     }
+    if(penaltyMode && !wasPenalty.current) { position.current={...footballKicker};facingRef.current="up"; }
+    wasPenalty.current=penaltyMode;
     let frame = 0;
     let previousTime = 0;
     let width = 0, height = 0, scale = 1;
@@ -59,7 +85,7 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
       width = viewport.clientWidth;
       height = viewport.clientHeight;
       scale = footballActive
-        ? Math.max(.1, Math.min((width - 32) / rooms.football.width, (height - 32) / rooms.football.height))
+        ? Math.max(.1, Math.min((width - 12) / rooms.football.width, (height - 32) / rooms.football.height))
         : Math.max(width < 700 ? .9 : 1, width / 1250, height / 860);
       if (!camera || width !== measuredSize.current.width || height !== measuredSize.current.height) {
         camera = cameraFor(position.current, width, height, scale);
@@ -99,7 +125,7 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
         }
       });
       let distance = 0;
-      if (!activeId && !travelling && !document.hidden) {
+      if ((!activeId || (footballActive && !penaltyMode)) && !travelling && !document.hidden && !document.querySelector("[data-station-overlay]")) {
         let x = 0, y = 0;
         const held = new Set(input.current);
         keyboardInput.current.forEach((key) => held.add(keys[key]));
@@ -116,14 +142,25 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
         const before = position.current;
         if (Math.hypot(velocity.current.x, velocity.current.y) > .1) {
           focusedPoint.current = null;
-          position.current = moveCharacter(before, velocity.current.x * delta, velocity.current.y * delta, closedDoors.current);
+          position.current = footballActive ? moveInStadium(before,velocity.current.x*delta,velocity.current.y*delta) : moveCharacter(before, velocity.current.x * delta, velocity.current.y * delta, closedDoors.current);
           // Discard velocity into a wall while retaining movement along its edge.
           if (Math.abs(position.current.x - before.x) < Math.abs(velocity.current.x * delta) * .5) velocity.current.x = 0;
           if (Math.abs(position.current.y - before.y) < Math.abs(velocity.current.y * delta) * .5) velocity.current.y = 0;
         }
         distance = Math.hypot(position.current.x - before.x, position.current.y - before.y);
         walkDistance.current += distance;
-        const nextRoom = roomAt(position.current);
+        const arena = rooms.football;
+        const entryX = arena.x + arena.width * 24 / 240;
+        if (position.current.x < arena.x + arena.width * 12 / 240) arenaEntryArmed.current = true;
+        if (!footballActive && arenaEntryArmed.current && position.current.x >= entryX && position.current.x <= entryX + 40 && Math.abs(position.current.y - (arena.y + arena.height * .49)) < 60) {
+          arenaEntryArmed.current = false;
+          input.current.clear(); keyboardInput.current.clear(); velocity.current = { x: 0, y: 0 };
+          onActivate("football", viewport);
+        }
+        if(footballActive && !exitRequested.current && position.current.x < arena.x-5) {
+          exitRequested.current=true;input.current.clear();keyboardInput.current.clear();velocity.current={x:0,y:0};onArenaExit?.();
+        }
+        const nextRoom = footballActive ? "football" : roomAt(position.current);
         if (nextRoom !== previousRoom.current) {
           previousRoom.current = nextRoom;
           setLocation(nextRoom);
@@ -134,13 +171,14 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
       if (nearBall !== footballNearby.current) { footballNearby.current = nearBall; setAtFootball(nearBall); }
       const nearby = nearCockpit(position.current);
       if (nearby !== cockpitNearby.current) { cockpitNearby.current = nearby; setAtCockpit(nearby); }
-      const target = footballActive ? { x: footballKicker.x, y: rooms.football.y + rooms.football.height / 2 } : focusedPoint.current ?? position.current;
-      const desired = cameraFor(target, width, height, scale);
+      const target = footballActive ? { x: rooms.football.x + rooms.football.width / 2, y: rooms.football.y + rooms.football.height / 2 } : focusedPoint.current ?? position.current;
+
+      const desired = footballActive ? { x: target.x - width / scale / 2, y: target.y - height / scale / 2 } : cameraFor(target, width, height, scale);
       const easing = motion.matches ? 1 : 1 - Math.exp(-delta * 18);
       camera ??= desired;
       if (!panelOpen && !travelling) {
-        camera.x += (desired.x - camera.x) * easing;
-        camera.y += (desired.y - camera.y) * easing;
+        camera.x += (desired.x - camera.x) * (footballActive ? 1 : easing);
+        camera.y += (desired.y - camera.y) * (footballActive ? 1 : easing);
       }
       cameraPosition.current = camera;
       const backdrop = backdropRef.current;
@@ -167,13 +205,14 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
 
     const keyDown = (event: KeyboardEvent) => {
       if (document.querySelector("[data-station-overlay], .station-airlock")) return;
-      if (activeId || travelling || event.target instanceof HTMLSelectElement || (event.target instanceof HTMLElement && Boolean(event.target.closest(".mood-console"))) || event.ctrlKey || event.metaKey || event.altKey || event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || (event.target instanceof HTMLElement && event.target.isContentEditable)) return;
-      if (event.key.toLowerCase() === "e" && !event.repeat && onInteract?.(position.current)) { event.preventDefault(); return; }
-      if (event.key.toLowerCase() === "e" && nearFootball(position.current)) { event.preventDefault(); onActivate("football", viewport); return; }
+      if ((activeId && !footballActive) || penaltyMode || travelling || event.target instanceof HTMLSelectElement || (event.target instanceof HTMLElement && Boolean(event.target.closest(".mood-console"))) || event.ctrlKey || event.metaKey || event.altKey || event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || (event.target instanceof HTMLElement && event.target.isContentEditable)) return;
+      if (footballActive && event.key.toLowerCase() === "e" && !event.repeat && nearFootball(position.current)) { event.preventDefault(); onPenalty?.(); return; }
+      if (!footballActive && event.key.toLowerCase() === "e" && !event.repeat && onInteract?.(position.current)) { event.preventDefault(); return; }
+      if (!footballActive && event.key.toLowerCase() === "e" && nearFootball(position.current)) { event.preventDefault(); onActivate("football", viewport); return; }
       if (event.key.toLowerCase() === "e" && nearCockpit(position.current)) { event.preventDefault(); onCockpit?.(); return; }
       const direction = keys[event.key.toLowerCase()];
       if (direction) { event.preventDefault(); keyboardInput.current.add(event.key.toLowerCase()); }
-      if ((event.key === "Enter" || event.key === " ") && event.target === viewport && previousRoom.current) {
+      if (!footballActive && (event.key === "Enter" || event.key === " ") && event.target === viewport && previousRoom.current) {
         event.preventDefault(); onActivate(previousRoom.current, viewport);
       }
     };
@@ -186,26 +225,25 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
     frame = requestAnimationFrame(tick);
     return () => {
       cancelAnimationFrame(frame); observer.disconnect(); clear();
-      if (footballActive) { position.current = entryPosition; presenceAnchor.current = null; }
       window.removeEventListener("keydown", keyDown); window.removeEventListener("keyup", keyUp);
       window.removeEventListener("blur", clear); document.removeEventListener("visibilitychange", clear);
     };
-  }, [activeId, onActivate, travelling, onCockpit, onInteract, getRobotPosition]);
+  }, [activeId, onActivate, travelling, onCockpit, onInteract, getRobotPosition, penaltyMode, onPenalty, onArenaExit]);
 
   const press = useCallback((direction: Direction) => {
-    if (activeId || travelling) return;
+    if ((activeId && activeId !== "football") || penaltyMode || travelling) return;
     const vector = vectors[direction];
-    position.current = moveCharacter(position.current, vector.x * 12, vector.y * 12, closedDoors.current);
+    position.current = activeId === "football" ? moveInStadium(position.current,vector.x*12,vector.y*12) : moveCharacter(position.current, vector.x * 12, vector.y * 12, closedDoors.current);
     input.current.add(direction); focusedPoint.current = null;
-  }, [activeId, travelling]);
+  }, [activeId, travelling, penaltyMode]);
   const release = useCallback((direction: Direction) => { input.current.delete(direction); }, []);
   const step = useCallback((direction: Direction) => {
-    if (activeId || travelling) return;
+    if ((activeId && activeId !== "football") || penaltyMode || travelling) return;
     const vector = vectors[direction];
     focusedPoint.current = null;
     velocity.current = { x: 0, y: 0 };
-    position.current = moveCharacter(position.current, vector.x * 32, vector.y * 32, closedDoors.current);
-  }, [activeId, travelling]);
+    position.current = activeId === "football" ? moveInStadium(position.current,vector.x*32,vector.y*32) : moveCharacter(position.current, vector.x * 32, vector.y * 32, closedDoors.current);
+  }, [activeId, travelling, penaltyMode]);
   const focusRoom = useCallback((id: SectionId) => { const room = rooms[id]; focusedPoint.current = { x: room.x + room.width / 2, y: room.y + room.height / 2 }; }, []);
   const focusDiscovery = useCallback((point: Point) => { focusedPoint.current = { ...point }; }, []);
   const focusCockpit = useCallback(() => { focusedPoint.current = cockpitApproach; }, []);

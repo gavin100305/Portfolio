@@ -21,10 +21,10 @@ export function StationConnections() {
         </mask>
         <pattern id="solar-grid" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#182e4c" /><path d="M0 14V0h14" fill="none" stroke="#405b7a" strokeWidth="2" /></pattern>
       </defs>
-      <path d="M24 480h48M1560 496h48" stroke="#405775" strokeWidth="12" />
+      <g className="station-solar-arrays"><path d="M24 480h48M1560 496h48" stroke="#405775" strokeWidth="12" />
       <rect x="0" y="392" width="48" height="168" fill="url(#solar-grid)" stroke="#8ba2ba" strokeWidth="3" />
       <rect x="1584" y="408" width="48" height="168" fill="url(#solar-grid)" stroke="#8ba2ba" strokeWidth="3" />
-      <g strokeLinecap="butt" strokeLinejoin="round">
+      </g><g strokeLinecap="butt" strokeLinejoin="round">
         <g mask="url(#corridor-exterior-only)">
         {[{ color: "#8ba2ba", width: 36 }, { color: "#252b38", width: 32 }, { color: "#405775", width: 26 }].map(({ color, width }) => <path key={width} d={corridorPath} fill="none" stroke={color} strokeWidth={width} />)}
         <path d={corridorPath} fill="none" stroke="#65c8ff" strokeWidth={CORRIDOR_WIDTH + 6} opacity=".035" />
@@ -44,7 +44,7 @@ export function StationForeground({ depth = false }: { depth?: boolean }) {
       <rect width={WORLD.width} height={WORLD.height} fill="white" />
       {airlocks.map((r, i) => <rect key={i} x={r.x * MAP_SCALE - 2} y={r.y * MAP_SCALE - 2} width={r.width * MAP_SCALE + 4} height={r.height * MAP_SCALE + 4} fill="black" />)}
     </mask></defs>
-    <g mask="url(#bulkhead-openings)">{Object.entries(rooms).map(([id, room]) => <g key={id} transform={`translate(${room.x} ${room.y - (depth && id !== "football" ? 8.5 : 0)}) scale(${room.width / 240})`}><RoomBulkheads /></g>)}</g>
+    <g mask="url(#bulkhead-openings)">{Object.entries(rooms).filter(([id]) => id !== "football").map(([id, room]) => <g key={id} transform={`translate(${room.x} ${room.y - (depth && id !== "football" ? 8.5 : 0)}) scale(${room.width / 240})`}><RoomBulkheads /></g>)}</g>
   </svg>;
 }
 

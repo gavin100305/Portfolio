@@ -10,6 +10,7 @@ export function StationArrival({ children }: { children: ReactNode }) {
   const { mood } = useSpaceMood();
   const returnHome = useReturnJourney();
   const [welcomed, setWelcomed] = useState(false);
+  const [welcomeReady, setWelcomeReady] = useState(false);
   const [phase, setPhase] = useState<"transit" | "docking" | "venting" | "opening" | "done">("transit");
   const scene = useRef<HTMLDivElement>(null);
   const skip = useRef<() => void>(() => {});
@@ -23,12 +24,12 @@ export function StationArrival({ children }: { children: ReactNode }) {
     const finish = () => {
       if (disposed) return;
       setPhase("done");
-      requestAnimationFrame(() => scene.current?.querySelector<HTMLElement>(".map-viewport")?.focus({ preventScroll: true }));
     };
     const open = () => {
       if (opening || disposed) return;
       opening = true;
       setPhase("opening");
+      timers.push(setTimeout(() => { if (!disposed) setWelcomeReady(true); }, reduced ? 180 : 2100));
       timers.push(setTimeout(finish, reduced ? 180 : 3300));
     };
     skip.current = open;
@@ -52,9 +53,12 @@ export function StationArrival({ children }: { children: ReactNode }) {
       if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus({ preventScroll: true });
     };
   }, []);
+  useEffect(() => {
+    if (phase === "done" && welcomed) scene.current?.querySelector<HTMLElement>(".map-viewport")?.focus({ preventScroll: true });
+  }, [phase, welcomed]);
   return <div className="station-arrival" data-arrival={phase} data-mood={mood}>
     <div ref={scene} className="station-arrival-scene" inert={phase !== "done" || !welcomed}>{children}</div>
-    {phase === "done" && !welcomed && <StationWelcome onExplore={() => {
+    {(welcomeReady || phase === "done") && !welcomed && <StationWelcome onExplore={() => {
       setWelcomed(true);
       requestAnimationFrame(() => scene.current?.querySelector<HTMLElement>(".map-viewport")?.focus({ preventScroll: true }));
     }} onReturn={() => { setWelcomed(true); returnHome(); }} />}

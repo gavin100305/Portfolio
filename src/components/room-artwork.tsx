@@ -1,3 +1,4 @@
+import { BernabeuBowl } from "./bernabeu-artwork";
 import type { SectionId } from "@/data/sections";
 import { EquipmentHousing, equipment } from "@/components/equipment-art";
 import { DeckPattern } from "@/components/deck-pattern";
@@ -262,29 +263,7 @@ function Communications() {
 }
 
 function FootballArenaArtwork({ goals = 0, saves = 0 }: { goals?: number | string; saves?: number | string }) {
-  return <g>
-    <rect x="48" y="48" width="144" height="94" fill="#111722" />
-    <rect x="50" y="50" width="140" height="90" fill="#12372b" />
-    {[0, 1, 2, 3].map((i) => <rect key={i} x={52 + i * 34} y="52" width="17" height="86" fill="#184333" />)}
-    <rect x="54" y="52" width="132" height="84" fill="none" stroke="#edf5ea" strokeWidth="1.2" />
-    <path d="M80 52v34h76V52M100 52v12h36V52M95 86a25 25 0 0 0 46 0" fill="none" stroke="#edf5ea" strokeWidth="1.2" />
-    <circle cx="118" cy="80" r="1" fill="#edf5ea" />
-    <rect x="88" y="34" width="64" height="16" fill="#122430" stroke="#edf5fa" strokeWidth="1.5" />
-    <path d="M86 51h68" stroke="#f2f5fa" strokeWidth="1.5" />
-    <g className="orbital-scoreboard" role="img" aria-label={`Stadium scoreboard: ${goals} goals, ${saves} saves`}>
-      <rect x="78" y="20" width="84" height="11" fill="#111824" stroke="#708aa2" strokeWidth="1" />
-      <path d="M81 22h78v7H81z" fill="#172536" />
-      <text x="85" y="27.5" fill="#65c8ff" fontSize="4.5" fontFamily="var(--font-pixel), monospace">{String(goals) === "1" ? "GOAL" : "GOALS"}</text>
-      <text x="106" y="28" fill="#f2f5fa" fontSize="6" fontFamily="var(--font-pixel), monospace">{goals}</text>
-      <text x="124" y="27.5" fill="#ffc875" fontSize="4.5" fontFamily="var(--font-pixel), monospace">{String(saves) === "1" ? "SAVE" : "SAVES"}</text>
-      <text x="147" y="28" fill="#f2f5fa" fontSize="6" fontFamily="var(--font-pixel), monospace">{saves}</text>
-      <path d="M82 30h76" stroke="#405775" strokeWidth=".5" />
-    </g>
-    <path d="M42 30h30m96 0h30" stroke="#65c8ff" strokeWidth="2" />
-    <path d="M40 144h22m112 0h22" stroke="#ffc875" strokeWidth="2" />
-    {[34, 202].map((x) => <g key={x}><path d={`M${x} 58h4v76h-4z`} fill="#111824" /><path d={`M${x + 1} 62h2m-2 18h2m-2 18h2m-2 18h2`} stroke="#4b657b" strokeWidth="1" /></g>)}
-    <path d="M62 151h112" stroke="#42536a" strokeWidth="1" />
-  </g>;
+  return <BernabeuBowl goals={goals} saves={saves} />;
 }
 
 const roomProps = {

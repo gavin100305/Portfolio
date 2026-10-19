@@ -127,7 +127,7 @@ export const walkways: Rect[] = [...corridorWalkways, ...airlocks.map(enlarge)];
 
 // Solid equipment footprints in native room coordinates. Shadows and screen light are walkable.
 const furniture: Record<SectionId, Rect[]> = {
-  football: [{ x: 88, y: 34, width: 64, height: 16 }],
+  football: [{ x: 88, y: 32, width: 60, height: 18 }],
   about: [{ x: 36, y: 60, width: 44, height: 24 }, { x: 98, y: 52, width: 44, height: 24 }, { x: 160, y: 60, width: 44, height: 24 }, { x: 100, y: 96, width: 36, height: 40 }, { x: 92, y: 100, width: 52, height: 32 }, { x: 88, y: 108, width: 60, height: 16 }, { x: 56, y: 104, width: 16, height: 20 }, { x: 168, y: 104, width: 16, height: 20 }],
   projects: [{ x: 74, y: 60, width: 10, height: 12 }, { x: 66, y: 72, width: 26, height: 34 }, { x: 54, y: 106, width: 50, height: 26 }, { x: 70, y: 132, width: 18, height: 10 }, { x: 146, y: 68, width: 42, height: 24 }, { x: 146, y: 104, width: 42, height: 24 }, { x: 26, y: 58, width: 10, height: 66 }],
   achievements: [40, 96, 152].map((x) => ({ x, y: 68, width: 44, height: 50 })).concat([{ x: 46, y: 132, width: 146, height: 10 }]),

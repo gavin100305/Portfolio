@@ -114,7 +114,7 @@ function AboutPage({ onOpen }: { onOpen: (id: SectionId, event: MouseEvent<HTMLE
     </div>
     <section className="info-education" aria-labelledby="education-title"><div><span className="info-overline">LEARNING LOG / 2023 → PRESENT</span><h2 id="education-title">{profile.education.degree}</h2><p>{profile.education.college}<br />{profile.education.location} · {profile.education.period}</p></div></section>
     <GitHubCalendar />
-    <a href="#football" className="info-football-invite" onClick={event => onOpen("football", event)}><PortfolioIcon name="football" /><div><span className="info-overline">OFF DUTY</span><h2>Fancy a penalty shootout?</h2><p>Take a detour to the Orbital Training Deck.</p></div><PortfolioIcon name="right" className="info-invite-arrow" /></a>
+    <a href="#football" className="info-football-invite" onClick={event => onOpen("football", event)}><PortfolioIcon name="football" /><div><span className="info-overline">OFF DUTY</span><h2>Fancy a penalty shootout?</h2><p>Take a detour to the Orbital Bernabéu.</p></div><PortfolioIcon name="right" className="info-invite-arrow" /></a>
   </>;
 }
 

@@ -1,0 +1,50 @@
+.madridista-journal-launch { position:absolute; z-index:7; top:18px; right:18px; padding:10px 14px; border:2px solid #a7adbc; border-radius:4px; background:#f4f0e5; color:#233256; box-shadow:inset 0 2px white,0 3px #15223e; font:13px var(--font-pixel),monospace; cursor:pointer; }
+.exploration-map[data-football="true"] .interior-experience .map-viewport { background:transparent; bottom:0; }
+.exploration-map[data-football="true"] .football-console-title { color:#eeeade; }
+.exploration-map[data-football="true"] .football-controls { border-top-color:#c6af75; }
+.exploration-map[data-football="true"] .room-artwork { animation:bernabeu-interior-in 900ms ease-out both; }
+@keyframes bernabeu-interior-in { from { opacity:0; } to { opacity:1; } }
+.madrid-journal { position:fixed; inset:0; margin:auto; padding:0; width:min(950px,calc(100vw - 28px)); max-height:calc(100svh - 28px); overflow:auto; border:2px solid #8d9aad; border-radius:9px; background:#f0eee3; color:#26324a; box-shadow:inset 0 0 0 5px #2a3b58,0 6px 0 #0b1528,0 25px 70px #0009; font:13px/1.9 var(--font-manrope),sans-serif; animation:madrid-programme-in 650ms cubic-bezier(.16,1,.3,1) both; }
+.madrid-journal::backdrop { background:#040b18b0; backdrop-filter:blur(7px); }
+.madrid-journal-toolbar { position:sticky; top:0; z-index:3; display:flex; justify-content:space-between; align-items:center; gap:16px; padding:14px 24px; background:#14223b; color:#c9cfda; font:10px var(--font-geist-mono),monospace; border-bottom:1px solid #58677d; }.madrid-journal-toolbar button { border:1px solid #78869d; border-radius:3px; background:#273c5a; padding:8px 12px; color:#f3efe5; font:12px var(--font-pixel),monospace; box-shadow:inset 0 1px #6c7a8c,0 2px #081224; cursor:pointer; }
+.madrid-journal-hero { position:relative; overflow:hidden; padding:28px 30px 35px; background:radial-gradient(ellipse at 50% 15%,#424a7a,#1a2542 60%,#111d34); color:#faf6e9; border-bottom:4px solid #c4ae78; }
+.madrid-journal-hero::before { content:""; position:absolute; inset:0; pointer-events:none; background:repeating-linear-gradient(90deg,transparent 0 79px,#ffffff03 80px 81px); }
+.madrid-journal-overline { display:block; text-align:center; font:10px var(--font-geist-mono),monospace; letter-spacing:.15em; color:#bcc5d6; }
+.madrid-scarf { position:relative; display:block; width:min(100%,760px); margin:0 auto -6px; height:auto; overflow:visible; }
+.madrid-journal-title { position:relative; text-align:center; }.madrid-journal-title > span { color:#c6b17b; font:9px var(--font-geist-mono),monospace; letter-spacing:.16em; }.madrid-journal-title h2 { margin:12px 0 0; font:clamp(26px,4vw,39px)/1.2 var(--font-pixel),monospace; letter-spacing:-.02em; }
+.madrid-journal-body { display:grid; grid-template-columns:1.1fr 1fr; gap:34px; padding:35px; }
+.madrid-journal-index { display:block; margin-bottom:12px; font:9px/1.6 var(--font-geist-mono),monospace; letter-spacing:.06em; color:#777057; }
+.madrid-journal h3 { margin:0 0 13px; font:24px/1.25 var(--font-pixel),monospace; }.madrid-journal-body p { margin:0 0 14px; color:#556071; font-size:12px; }
+.madrid-journal-facts { display:grid; gap:12px; border-top:1px solid #cbcbbf; margin-top:25px; padding-top:22px; }.madrid-journal-facts > div { display:flex; align-items:center; justify-content:space-between; gap:14px; }.madrid-journal-facts span { font:8px var(--font-geist-mono),monospace; color:#777e89; }.madrid-journal-facts strong { font:14px var(--font-pixel),monospace; font-weight:400; }
+.madrid-journal-ticket { position:relative; display:grid; gap:16px; padding:22px; margin-top:25px; border:1px solid #b5b8b0; border-radius:5px; background:#e6e5d7; box-shadow:inset 0 1px #fff,0 3px #c3c9c5; }.madrid-journal-ticket > span:first-child { font:8px var(--font-geist-mono),monospace; letter-spacing:.1em; color:#82714c; }.madrid-journal-ticket strong { font:20px/1.4 var(--font-pixel),monospace; font-weight:400; }.madrid-ticket-code { position:absolute; right:20px; top:57px; height:60px; width:38px; background:repeating-linear-gradient(90deg,#26324a 0 2px,transparent 2px 4px,#26324a 4px 5px,transparent 5px 8px); opacity:.7; }.madrid-journal-ticket button { display:flex; justify-content:space-between; align-items:center; padding:11px 12px; border:1px solid #101a32; border-radius:3px; background:#293653; color:#f7f3e7; font:13px var(--font-pixel),monospace; box-shadow:inset 0 1px #738094,0 3px #172139; cursor:pointer; }
+.madrid-journal-footer { grid-column:1 / -1; display:flex; justify-content:space-between; gap:15px; border-top:1px solid #c9cbbf; padding-top:19px; color:#747b82; font-size:9px; }.madrid-journal-footer a { color:#3c4c6b; text-underline-offset:3px; text-decoration:underline; }
+@keyframes madrid-programme-in { from { opacity:0; transform:translateY(20px) scale(.98); } to { opacity:1; transform:none; } }
+@media(max-width:600px) { .madrid-journal-toolbar { padding:11px 14px; gap:8px; }.madrid-journal-toolbar > span { font-size:7px; }.madrid-journal-toolbar button { font-size:10px; white-space:nowrap; }.madrid-journal-hero { padding:25px 12px 30px; }.madrid-journal-overline { font-size:7px; }.madrid-scarf { margin:12px auto 15px; }.madrid-journal-body { grid-template-columns:1fr; padding:24px; gap:28px; }.madrid-journal-footer { flex-direction:column; gap:8px; }.madridista-journal-launch { top:12px; right:12px; padding:8px 11px; font-size:11px; } }
+@media(prefers-reduced-motion:reduce) { .madrid-journal,.exploration-map[data-football="true"] .room-artwork { animation:none; } }
+/* The enclosed arena has its own lighting; neighboring decks stay outside. */
+.exploration-map[data-football="true"] :is(.world-room:not([href="#football"]),.interior-depth-canvas,.station-engines,.station-foreground,.wayfinding-wall,.cockpit-world-console,.station-door,.astronaut[data-remote="true"]) { visibility:hidden; }
+.exploration-map[data-football="true"] .football-controls { height:202px; }
+.bernabeu-exit { padding:5px 9px; border:1px solid #70819b; border-radius:3px; background:#29394f; color:#f4f1e5; font:11px var(--font-pixel),monospace; cursor:pointer; }
+@media (max-width:600px) { .exploration-map[data-football="true"] .football-console-title { font-size:14px; }.bernabeu-exit { font-size:10px; }.exploration-map[data-football="true"] .penalty-help { font-size:9px; } }
+
+/* Sliding leaves belong to the recessed tunnel, inside the stadium shell. */
+.bernabeu-entry-leaf-top { transform:translateY(calc(var(--door-open,0) * -8px)); }
+.bernabeu-entry-leaf-bottom { transform:translateY(calc(var(--door-open,0) * 8px)); }
+
+/* An uninterrupted arena view; instructions live in the matchday briefing. */
+body:has(.exploration-map[data-football="true"]) .station-return-control { display:none; }
+.stadium-leave,.stadium-help { position:absolute; z-index:7; padding:10px 13px; border:2px solid #8295a6; border-radius:4px; background:#243952; color:#f2efdf; box-shadow:inset 0 1px #91a2b3,0 3px #0a182b; font:13px var(--font-pixel),monospace; cursor:pointer; }
+.stadium-leave { top:18px; left:18px; }.stadium-help { bottom:18px; left:18px; background:#15253ac9; }.stadium-help span { display:inline-grid; place-items:center; width:17px; height:17px; margin-left:6px; border:1px solid #8295a6; border-radius:50%; }
+.stadium-touch-controls { display:none; position:absolute; z-index:7; bottom:max(18px,env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); gap:8px; width:min(380px,calc(100% - 28px)); color:#f2f5fa; font:13px var(--font-pixel),monospace; }
+.stadium-touch-controls .penalty-aim { gap:5px; }.stadium-touch-controls .penalty-aim button,.stadium-touch-controls .penalty-shoot { box-shadow:inset 0 1px #aab4c344,0 3px #080e1a; }
+.stadium-briefing-steps { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }.stadium-briefing-steps > div { display:grid; gap:5px; padding:12px; border:1px solid #a6b0aa; border-radius:4px; background:#f6f3e7; box-shadow:0 2px #a5ada4; }.stadium-briefing-steps b { color:#8a794e; font:12px var(--font-pixel),monospace; }.stadium-briefing-steps strong { font:16px var(--font-pixel),monospace; }.stadium-briefing-steps span { font-size:10px; color:#52667b; line-height:1.6; }
+@media(pointer:coarse),(max-width:700px) { .stadium-touch-controls { display:flex; }.stadium-help { top:72px; bottom:auto; left:auto; right:14px; font-size:11px; padding:7px 10px; }.stadium-leave { top:14px; left:14px; font-size:11px; }.stadium-briefing-steps { gap:6px; }.stadium-briefing-steps > div { padding:9px; } }
+
+/* The west pressure corridor remains attached to Communications during play. */
+.exploration-map[data-football="true"] .world-room[href="#contact"] { pointer-events:none; }
+
+
+.stadium-walk-hint { position:absolute; z-index:7; bottom:18px; left:18px; max-width:calc(100% - 36px); padding:9px 12px; border:1px solid #52667b; border-radius:4px; background:#142337dc; color:#dce4e7; font:11px/1.6 var(--font-pixel),monospace; }
+@media(pointer:coarse),(max-width:700px) { .stadium-walk-hint { bottom:18px; font-size:10px; } }
+
+.exploration-map[data-football="true"] .station-solar-arrays { display:none; }

@@ -93,7 +93,7 @@ export function createExteriorScene(host: HTMLDivElement, sources: DeckSources, 
     if (time - lastTime >= interval || motion.matches) {
       lastTime = time;
       controls?.update();
-      model.animate(time, motion.matches);
+      if(model.animate(time, motion.matches)) renderer.shadowMap.needsUpdate = true;
       try { renderer.render(scene, camera); }
       catch { fail(); return; }
       host.dataset.frames = String(renderer.info.render.frame);

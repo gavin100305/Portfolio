@@ -100,7 +100,7 @@
 .station-return-control { position:fixed; z-index:40; top:max(16px,env(safe-area-inset-top)); left:max(16px,env(safe-area-inset-left)); padding:9px 13px; border:2px solid #8295a6; background:#253858; color:#eef2ed; font:13px var(--font-pixel),monospace; box-shadow:inset 0 2px #526c86,0 3px #091728; cursor:pointer; }
 
 /* An arrival briefing made from the station's cream deck and blue steel frame. */
-.station-welcome { position:fixed; inset:0; margin:auto; width:min(610px,calc(100vw - 32px)); max-height:calc(100svh - 44px); padding:32px; overflow:auto; border:3px solid #17283e; border-radius:10px; color:#253858; background:linear-gradient(140deg,#f3f0e2,#dcdac5); box-shadow:inset 0 0 0 4px #8295a6,inset 0 0 0 8px #405775,inset 0 0 0 10px #b3bcae,0 8px 0 #091728,0 28px 65px #0008; font:13px/1.7 var(--font-manrope),sans-serif; animation:station-briefing-in 1000ms cubic-bezier(.16,1,.3,1) both; }
+.station-welcome { position:fixed; inset:0; margin:auto; width:min(610px,calc(100vw - 32px)); max-height:calc(100svh - 44px); padding:32px; overflow:auto; border:3px solid #17283e; border-radius:10px; color:#253858; background:linear-gradient(140deg,#f3f0e2,#dcdac5); box-shadow:inset 0 0 0 4px #8295a6,inset 0 0 0 8px #405775,inset 0 0 0 10px #b3bcae,0 8px 0 #091728,0 28px 65px #0008; font:13px/1.7 var(--font-manrope),sans-serif; animation:station-briefing-in 700ms cubic-bezier(.16,1,.3,1) both; }
 .station-welcome::backdrop { background:#09132165; backdrop-filter:blur(5px); animation:station-briefing-backdrop 800ms ease both; }
 .station-welcome-close { position:absolute; top:16px; right:16px; width:30px; height:30px; border:2px solid #8295a6; background:#405775; color:#eef2ed; box-shadow:inset 0 1px #9aaeb8,0 3px #17283e; font:24px/1 var(--font-pixel),monospace; cursor:pointer; }
 .station-welcome-heading { display:flex; align-items:center; gap:22px; padding-right:16px; margin-bottom:22px; }
@@ -120,3 +120,8 @@
 @keyframes station-briefing-backdrop { from { background:#09132100; backdrop-filter:blur(0); } to { background:#09132165; backdrop-filter:blur(5px); } }
 @media (max-width:600px) { .station-welcome { padding:30px 22px 24px; }.station-welcome-heading { gap:14px; }.station-welcome-portrait { width:66px; height:82px; }.station-welcome-destinations { gap:7px; }.station-welcome-destinations strong { font-size:12px; }.station-welcome-destinations span { font-size:9px; }.station-welcome-desktop { display:none; }.station-welcome-touch { display:block; }.station-welcome-introduction { font-size:12px; } }
 @media (prefers-reduced-motion:reduce) { .station-welcome,.station-welcome::backdrop { animation:none; }[data-direction="return"] .station-airlock-earth-sky { animation:none; opacity:1; } }
+
+/* The exterior observation screen already has its own Return to deck control. */
+.station-arrival:has(.exploration-map[data-exterior="true"]) > .station-return-control {
+  display: none;
+}
