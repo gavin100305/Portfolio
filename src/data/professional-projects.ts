@@ -11,14 +11,7 @@ function existing(id: string, image: string): GalleryProject {
 // Live homepages captured October 18, 2026; details checked against the linked repositories.
 export const galleryProjects: readonly GalleryProject[] = [
   existing("draft-xi", "/projects/draft-xi.webp"),
-  {
-    id: "citypulse", name: "City Pulse", category: "Civic infrastructure platform", visual: "earth", featured: true,
-    summary: "A shared workspace for citizens, authorities, and field teams to report infrastructure issues and follow them through to resolution.",
-    highlights: ["Location-based reports, a public dashboard, and workflows for assigning and resolving issues.", "AI-assisted categorization and duplicate detection, with an audit trail for accountability."],
-    technologies: ["React", "Node.js", "Supabase", "Leaflet"],
-    repository: "https://github.com/gavin100305/HackFusion-CityPulse",
-    deployment: "https://hack-fusion-city-pulse.vercel.app/", image: "/projects/citypulse.webp", lightImage: "/projects/citypulse-light.webp",
-  },
+  existing("skeuomorphism-ui", "/projects/skeuomorphism-ui.webp"),
   existing("money-council", "/projects/money-council.webp"),
   {
     id: "nomoreproxies", name: "NoMoreProxies", category: "Attendance & leave management", visual: "tools", featured: true,
@@ -42,6 +35,15 @@ const archiveScreenshots: Record<string, Pick<GalleryProject, "image" | "lightIm
 };
 
 const additionalProjects: readonly GalleryProject[] = [
+  {
+    id: "citypulse", name: "City Pulse", category: "Civic infrastructure platform", visual: "earth", featured: false,
+    summary: "A shared workspace for citizens, authorities, and field teams to report infrastructure issues and follow them through to resolution.",
+    highlights: ["Location-based reports, a public dashboard, and workflows for assigning and resolving issues.", "AI-assisted categorization and duplicate detection, with an audit trail for accountability."],
+    technologies: ["React", "Node.js", "Supabase", "Leaflet"],
+    repository: "https://github.com/gavin100305/HackFusion-CityPulse",
+    deployment: "https://hack-fusion-city-pulse.vercel.app/",
+    image: "/projects/citypulse.webp", lightImage: "/projects/citypulse-light.webp",
+  },
   {
     id: "handsfree", name: "Handsfree", category: "Assistive browsing & accessibility", visual: "tools", featured: false, collection: "Developer tools",
     summary: "An assistive browsing platform that combines face movements, broad hand gestures, and voice to navigate the web through an in-page cursor.",

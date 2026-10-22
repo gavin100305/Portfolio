@@ -205,7 +205,7 @@ export function useStationExploration(activeId: SectionId | null, onActivate: (i
 
     const keyDown = (event: KeyboardEvent) => {
       if (document.querySelector("[data-station-overlay], .station-airlock")) return;
-      if ((activeId && !footballActive) || penaltyMode || travelling || event.target instanceof HTMLSelectElement || (event.target instanceof HTMLElement && Boolean(event.target.closest(".mood-console"))) || event.ctrlKey || event.metaKey || event.altKey || event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || (event.target instanceof HTMLElement && event.target.isContentEditable)) return;
+      if ((activeId && !footballActive) || penaltyMode || travelling || event.target instanceof HTMLSelectElement || (event.target instanceof HTMLElement && Boolean(event.target.closest(".mood-console, .station-music"))) || event.ctrlKey || event.metaKey || event.altKey || event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || (event.target instanceof HTMLElement && event.target.isContentEditable)) return;
       if (footballActive && event.key.toLowerCase() === "e" && !event.repeat && nearFootball(position.current)) { event.preventDefault(); onPenalty?.(); return; }
       if (!footballActive && event.key.toLowerCase() === "e" && !event.repeat && onInteract?.(position.current)) { event.preventDefault(); return; }
       if (!footballActive && event.key.toLowerCase() === "e" && nearFootball(position.current)) { event.preventDefault(); onActivate("football", viewport); return; }

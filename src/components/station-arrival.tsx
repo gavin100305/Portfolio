@@ -1,5 +1,6 @@
 "use client";
 
+import { StationMusic, startStationMusic } from "./station-music";
 import { StationWelcome } from "./station-welcome";
 import { useReturnJourney } from "./return-journey";
 import { AirlockDoor } from "@/components/airlock-door";
@@ -59,9 +60,11 @@ export function StationArrival({ children }: { children: ReactNode }) {
   return <div className="station-arrival" data-arrival={phase} data-mood={mood}>
     <div ref={scene} className="station-arrival-scene" inert={phase !== "done" || !welcomed}>{children}</div>
     {(welcomeReady || phase === "done") && !welcomed && <StationWelcome onExplore={() => {
+      startStationMusic();
       setWelcomed(true);
       requestAnimationFrame(() => scene.current?.querySelector<HTMLElement>(".map-viewport")?.focus({ preventScroll: true }));
     }} onReturn={() => { setWelcomed(true); returnHome(); }} />}
+    <StationMusic ready={phase === "done" && welcomed} />
     {phase === "done" && welcomed && <button className="station-return-control" type="button" onClick={returnHome}>← Main portfolio</button>}
     {phase !== "done" && <AirlockDoor onSkip={() => skip.current()} skipButton={skipButton} status={phase === "transit" ? "Leaving Earth for the station" : phase === "docking" ? "Docking" : phase === "venting" ? "Releasing pressure" : "Opening the airlock"} />}
   </div>;

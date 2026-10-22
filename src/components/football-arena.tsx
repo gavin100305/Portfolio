@@ -150,7 +150,7 @@ export function FootballArenaControls({ game, onExit }: { game: Game; onExit: ()
   const [briefing, setBriefing] = useState(true);
   useEffect(() => {
     function handleKeys(event: KeyboardEvent) {
-      if (event.ctrlKey || event.metaKey || event.altKey || document.querySelector("[data-madrid-dialog], [data-station-overlay]")) return;
+      if ((event.target instanceof Element && event.target.closest(".station-music")) || event.ctrlKey || event.metaKey || event.altKey || document.querySelector("[data-madrid-dialog], [data-station-overlay]")) return;
       const action = penaltyKeyAction(event.key);
       if (action === "exit") { event.preventDefault(); onExit(); }
       else if (action === "left" || action === "right") {

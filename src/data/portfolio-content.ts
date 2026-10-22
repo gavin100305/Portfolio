@@ -35,6 +35,14 @@ export type Project = {
 
 export const projects: readonly Project[] = [
   {
+    id: "skeuomorphism-ui", name: "Skeuomorphism UI", category: "Tactile React component library", visual: "tools", featured: true, collection: "Developer tools",
+    summary: "A reusable React component library with raised edges, recessed surfaces, and physical-feeling interactions. Install the source through the shadcn CLI and make it your own.",
+    highlights: ["Installable components and complete blocks, with live previews, usage examples, and API documentation.", "Light and dark themes, semantic colour tokens, keyboard interaction, and reduced-motion support."],
+    technologies: ["React", "Next.js", "TypeScript", "Tailwind CSS", "shadcn"],
+    repository: "https://github.com/gavin100305/skeuomorphism-lib", deployment: "https://skeuomorphismui.vercel.app/",
+  },
+
+  {
     id: "draft-xi", name: "Draft XI", category: "Football career-mode game", visual: "football", featured: true, collection: "Games",
     summary: "Build a squad across football eras, shape its tactics, and take it through a career where every draft decision carries forward.",
     highlights: ["Club-and-season drafting with squad budgets and tactical profiles.", "Mid-season transfers, player development, and multi-season progression."],
