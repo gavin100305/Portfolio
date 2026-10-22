@@ -16,7 +16,7 @@ import { StationDiscoveries, AlienTransmission } from "@/components/station-disc
 import { discoveryNear, type DiscoveryId } from "@/data/station-discoveries";
 import type { Point } from "@/data/station-world";
 import { BernabeuExteriorArtwork, BernabeuInteriorArtwork } from "./bernabeu-artwork";
-import { MadridistaJournal } from "./madridista-journal";
+import "@/app/bernabeu.css";
 import { InteriorDepth } from "@/components/interior-depth";
 
 type StationMapProps = {
@@ -35,7 +35,6 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
   const stopPenalty = useCallback(() => setPenaltyMode(false), []);
   if (!footballActive && penaltyMode) setPenaltyMode(false);
   const [cockpitOpen, setCockpitOpen] = useState(false);
-  const [journalOpen, setJournalOpen] = useState(false);
   const [exteriorOpen, setExteriorOpen] = useState(false);
   const [discovery, setDiscovery] = useState<Exclude<DiscoveryId, "robot"> | null>(null);
   const [robotAwake, setRobotAwake] = useState(false);
@@ -65,7 +64,7 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
   if (activeId && exteriorOpen) setExteriorOpen(false);
   const openCockpit = useCallback(() => setCockpitOpen(true), []);
   const { controlRef, mood, flight, choose, advance } = useSpaceMood();
-  const { backdropRef, depthFrameRef, viewportRef, worldRef, characterRef, location, atCockpit, atFootball, focusCockpit, focusDiscovery, press, release, focusRoom, releaseFocus, getMovementSnapshot } = useStationExploration(activeId, onActivate, Boolean(flight) || cockpitOpen || exteriorOpen || discoveryModal || journalOpen, openCockpit, interact, getRobotPosition, penaltyMode, startPenalty, onLeaveArena);
+  const { backdropRef, depthFrameRef, viewportRef, worldRef, characterRef, location, atCockpit, atFootball, focusCockpit, focusDiscovery, press, release, focusRoom, releaseFocus, getMovementSnapshot } = useStationExploration(activeId, onActivate, Boolean(flight) || cockpitOpen || exteriorOpen || discoveryModal, openCockpit, interact, getRobotPosition, penaltyMode, startPenalty, onLeaveArena);
   const remoteVisitors = useShipPresence((!activeId || footballActive) && !flight && !cockpitOpen, getMovementSnapshot);
   const current = getSection(location);
   const dragMoved = useRef(false);
@@ -158,8 +157,7 @@ export function StationMap({ activeId, onOpen, onActivate, onLeaveArena }: Stati
         </div>
       </div>
       <MoodControl open={cockpitOpen} onClose={() => setCockpitOpen(false)} mood={mood} controlRef={controlRef} onChoose={(next) => { setCockpitOpen(false); choose(next); }} />
-      {footballActive && <>{penaltyMode ? <FootballArenaControls game={game} onExit={stopPenalty} /> : !atFootball && <p className="stadium-walk-hint"><span className="desktop-instructions">WASD / arrows to move · Walk through the left tunnel to leave</span><span className="touch-instructions">Drag to move · Walk through the left tunnel to leave</span></p>}<button type="button" className="madridista-journal-launch" onClick={() => setJournalOpen(true)}>My Madridista story <span aria-hidden="true">↗</span></button></>}
-      {journalOpen && <MadridistaJournal onClose={() => setJournalOpen(false)} />}
+      {footballActive && <>{penaltyMode ? <FootballArenaControls game={game} onExit={stopPenalty} /> : !atFootball && <p className="stadium-walk-hint"><span className="desktop-instructions">WASD / arrows to move · Walk through the left tunnel to leave</span><span className="touch-instructions">Drag to move · Walk through the left tunnel to leave</span></p>}</>}
       <p hidden={footballActive} id="movement-instructions" className="movement-instructions"><span className="desktop-instructions"><span className="inline-flex items-center gap-2"><span>Move</span><kbd>WASD</kbd><span className="mx-1 opacity-40" aria-hidden="true">/</span><kbd>Enter</kbd><span>open room</span></span></span><span className="touch-instructions">Drag to move<br />Tap a room to open</span></p>
       {atFootball && footballActive && !penaltyMode && <button className="nearby-action" type="button" onClick={startPenalty}>Play penalties <span aria-hidden="true">E</span></button>}
       {atCockpit && !footballActive && <button className="nearby-action" type="button" disabled={Boolean(flight)} onClick={openCockpit}>Change space mood <span aria-hidden="true">E</span></button>}
