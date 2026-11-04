@@ -75,7 +75,7 @@ export function OpeningIntro() {
       if (disposed || exiting) return;
       if (reduced) { finish(); return; }
       setWriting(true);
-      stopWritingSound = startWritingSound(4200);
+      stopWritingSound = startWritingSound(document.querySelector<SVGSVGElement>(".folio-opening-signature"));
       timers.push(setTimeout(() => { if (!disposed) setWritten(true); }, 4200));
       const hero = document.querySelector(".ascii-desk");
       const ready = new Promise<void>(resolve => {
