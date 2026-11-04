@@ -1,6 +1,6 @@
 "use client";
 
-import { startWritingSound } from "@/lib/writing-sound";
+import { loadWritingRecording, startWritingSound } from "@/lib/writing-sound";
 import { signaturePaths } from "./signature-paths";
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 
@@ -71,11 +71,14 @@ export function OpeningIntro() {
     const delay = (ms: number) => new Promise<void>(resolve => { timers.push(setTimeout(resolve, ms)); });
     async function run() {
       // Let the page fonts settle while the vector signature needs no font download.
-      await Promise.race([document.fonts.ready.catch(() => {}), delay(900)]);
+      const [, recording] = await Promise.all([
+        Promise.race([document.fonts.ready.catch(() => {}), delay(900)]),
+        reduced ? Promise.resolve(null) : Promise.race([loadWritingRecording(), delay(900).then(() => null)]),
+      ]);
       if (disposed || exiting) return;
       if (reduced) { finish(); return; }
       setWriting(true);
-      stopWritingSound = startWritingSound(document.querySelector<SVGSVGElement>(".folio-opening-signature"));
+      stopWritingSound = startWritingSound(document.querySelector<SVGSVGElement>(".folio-opening-signature"), recording);
       timers.push(setTimeout(() => { if (!disposed) setWritten(true); }, 4200));
       const hero = document.querySelector(".ascii-desk");
       const ready = new Promise<void>(resolve => {
