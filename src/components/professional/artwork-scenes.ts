@@ -8,20 +8,19 @@ type Scene = {
   image: string;
   creator: string;
   source: string;
-  additionalCredit?: { creator: string; source: string; license: { label: string; url: string } };
+  additionalCredit?: { creator: string; source: string };
 };
 
 export const scenicArtworks: Record<ScenicId, Scene> = {
   pond: {
     title: "Koi Pond",
-    description: "Seen from underwater, orange and golden koi swim past moss and gravel in deep green water.",
+    description: "Looking straight down through dark water, red, white, and golden koi swim over a shadowed bed of stones.",
     image: "/artwork/koi-pond.webp",
-    creator: "Pablo Buendia",
-    source: "https://www.pexels.com/video/fishes-in-aquarium-12409002/",
+    creator: "Hideyoshi isai",
+    source: "https://www.pexels.com/video/vibrant-koi-fish-swimming-in-a-clear-pond-31421042/",
     additionalCredit: {
-      creator: "Georg Pirrung",
-      source: "https://commons.wikimedia.org/wiki/File:Forests_Underwater_(122868199).jpeg",
-      license: { label: "CC BY 3.0", url: "https://creativecommons.org/licenses/by/3.0/" },
+      creator: "Francesco Ungaro",
+      source: "https://www.pexels.com/photo/crystal-clear-water-in-creek-5427803/",
     },
   },
   plateau: {

@@ -20,26 +20,33 @@ uniform float time;
 uniform vec4 waves[3];
 
 void main() {
-  vec3 photoColor = texture2D(photo, uv).rgb;
-  float gravel = smoothstep(.83, .965, uv.y);
-  float leaves = smoothstep(.06, .19, photoColor.g - photoColor.b)
-    * smoothstep(.48, .92, uv.y);
-  float floor = max(gravel, leaves);
-  vec2 pool = vec2(uv.x * 25., uv.y * 36.);
-  float a = sin(pool.x + pool.y + sin(pool.y * .9 - time * .71) * 1.23 - time * .82);
-  float b = sin(pool.x * 1.17 - pool.y * .83 + sin(pool.x - time * .58) * 1.5 + time * .95);
-  float caustic = pow(max(0., 1. - abs(a + b) * 1.32), 4.);
-  float beam = pow(.5 + .5 * sin((uv.x + uv.y * .32) * 30. + sin(time * .28) * .62), 5.);
-  float glow = beam * (1. - uv.y) * .022;
+  // Work in aspect-correct pond coordinates so ripples stay circular.
+  vec2 p = uv * vec2(1.77778, 1.);
+  float primary = p.x * 28. + p.y * 13. + sin(p.y * 9. + time * .58) - time * 1.55;
+  float crossWave = p.x * 14. - p.y * 33. + sin(p.x * 7. - time * .44) * 1.8 + time * 1.07;
+  vec2 at = uv + vec2(sin(primary) * .0017 + sin(crossWave) * .0011,
+    cos(primary) * .0022 - cos(crossWave) * .0014);
+  float rippleLight = 0.;
   for (int i = 0; i < 3; ++i) {
-    vec4 current = waves[i];
-    float age = time - current.z;
-    vec2 diff = (uv - current.xy) * vec2(1.77778, 1.);
-    float drift = exp(-length(diff - vec2(age * .045, 0.)) * 6.3);
-    glow += current.w * drift * smoothstep(0., .24, age) * (1. - smoothstep(.55, 2.8, age)) * .024;
+    vec4 impulse = waves[i];
+    float age = time - impulse.z;
+    vec2 offset = (uv - impulse.xy) * vec2(1.77778, 1.);
+    float radius = length(offset);
+    float pulse = smoothstep(0., .12, age) * (1. - smoothstep(.82, 2.85, age));
+    float front = radius - age * .265 + sin(primary * .7 - crossWave * .19) * .006 * min(age, 1.);
+    float ring = sin(front * 112.) * exp(-abs(front) * 46.) * pulse * impulse.w;
+    at += offset / max(radius, .009) * ring * vec2(.008, .013);
+    rippleLight += max(ring, 0.) * .106 + min(ring, 0.) * .028;
   }
-  vec3 light = vec3(.67, .88, .53) * (glow + (caustic - .16) * floor * .063);
-  gl_FragColor = vec4(photoColor * (1. + caustic * floor * .09) + light, 1.);
+  float folded = sin(primary + sin(crossWave * .72) * 1.42) + sin(crossWave);
+  float caustic = pow(max(0., 1. - abs(folded) * 1.13), 5.);
+  float patch = smoothstep(-.55, .72, sin(p.x * 5.6 + p.y * 4.4 - time * .28)
+    + cos(p.y * 6.8 - p.x * 2.4 + time * .34) * .58);
+  float light = caustic * (.012 + patch * .032) + rippleLight;
+  vec3 color = texture2D(photo, clamp(at, .001, .999)).rgb;
+  // Brighter subjects inherit the same moving light as the bed beneath them.
+  color = color * (1. + light * 1.22) + vec3(.39, .67, .64) * light;
+  gl_FragColor = vec4(color, 1.);
 }
 `;
 

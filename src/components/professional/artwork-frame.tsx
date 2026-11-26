@@ -153,8 +153,7 @@ export function ArtworkFrame() {
       <div className="artwork-credit">
         {photo && <>
           Images by <a href={photo.source}>{photo.creator}</a>
-          {photo.additionalCredit && <> and <a href={photo.additionalCredit.source}>{photo.additionalCredit.creator}</a>
-            {" "}(adapted, <a href={photo.additionalCredit.license.url}>{photo.additionalCredit.license.label}</a>)</>}
+          {photo.additionalCredit && <> and <a href={photo.additionalCredit.source}>{photo.additionalCredit.creator}</a></>}
         </>}
       </div>
     </figcaption>

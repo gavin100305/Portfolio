@@ -8,8 +8,7 @@ import { createArtworkSurface } from "./artwork-water";
 const width = 1000;
 const height = 562.5;
 const pondSources = [
-  "/artwork/pond-water.webp", "/artwork/pond-plants.webp",
-  "/artwork/pond-koi-vermilion.webp", "/artwork/pond-koi-copper.webp", "/artwork/pond-koi-gold.webp",
+  "/artwork/pond-water.webp", "/artwork/kohaku.webp", "/artwork/sanke.webp", "/artwork/ogon.webp",
 ];
 
 function loadImage(src: string) {
@@ -41,7 +40,6 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
     const waves = new Float32Array(12);
     let life: HTMLImageElement[] = [];
     let plate: HTMLImageElement | undefined;
-    let foreground: HTMLImageElement | undefined;
     let surface: ReturnType<typeof createArtworkSurface> = null;
     let underwater: CanvasRenderingContext2D | null = null;
     let drawFireflies: ReturnType<typeof makeFireflies> | undefined;
@@ -55,7 +53,6 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
         const brush = surface && underwater ? underwater : context;
         brush.drawImage(plate, 0, 0, width, height);
         drawKoi(brush, life, elapsed);
-        if (foreground) brush.drawImage(foreground, 0, 0, width, height);
         drawPondMotes(brush, elapsed, waves);
         if (surface) surface.draw(elapsed, waves);
       }
@@ -132,8 +129,8 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
       if (disposed) return;
       if (base) {
         plate = base;
+        life = subjects;
         if (pond) {
-          [foreground, ...life] = subjects;
           const composition = document.createElement("canvas");
           composition.width = 1024;
           composition.height = 576;
@@ -143,7 +140,7 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
             surface = createArtworkSurface(waterCanvas, composition);
             if (surface) waterCanvas.dataset.ready = "true";
           }
-        } else life = subjects;
+        }
       } else {
         drawFireflies = makeFireflies();
       }
@@ -191,7 +188,7 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
     {active && isLive && id !== "grove" && <button
       type="button"
       className="artwork-interact"
-      aria-label={id === "pond" ? "Stir the water" : "Send a gust through the meadow"}
+      aria-label={id === "pond" ? "Send a ripple through the pond" : "Send a gust through the meadow"}
       onClick={event => {
         const bounds = event.currentTarget.getBoundingClientRect();
         const x = event.detail ? (event.clientX - bounds.x) / bounds.width : .5;
