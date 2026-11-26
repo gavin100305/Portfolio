@@ -3,123 +3,111 @@ import { createPondRipples } from "./artwork-ripples";
 const tau = Math.PI * 2;
 type Point = readonly [number, number];
 
-function cubicSpline(a: number, b: number, c: number, d: number, t: number) {
-  const back = 1 - t;
-  return (back ** 3 * a + (4 - 6 * t * t + 3 * t ** 3) * b
-    + (1 + 3 * t + 3 * t * t - 3 * t ** 3) * c + t ** 3 * d) / 6;
-}
+const links = 32;
+const shoulder = 9;
 
-function makeTrack(waypoints: Point[]) {
-  const count = waypoints.length;
-  const points: Point[] = [];
-  const distance = [0];
-  const at = (i: number) => waypoints[(i + count) % count];
-  for (let i = 0; i <= count; i++) {
-    const [a, b, c, d] = [at(i - 1), at(i), at(i + 1), at(i + 2)];
-    const steps = i === count ? 1 : 40;
-    for (let j = 0; j < steps; j++) {
-      const t = j / 40;
-      const point: Point = [cubicSpline(a[0], b[0], c[0], d[0], t), cubicSpline(a[1], b[1], c[1], d[1], t)];
-      const last = points[points.length - 1];
-      if (last) distance.push(distance[distance.length - 1] + Math.hypot(point[0] - last[0], point[1] - last[1]));
-      points.push(point);
-    }
-  }
-  const length = distance[distance.length - 1];
-  // Resample by distance so tighter turns don't cause artificial speed changes.
-  const samples: Point[] = [];
-  const steps = Math.ceil(length);
-  let cursor = 0;
-  for (let i = 0; i < steps; i++) {
-    const target = i * length / steps;
-    while (distance[cursor + 1] < target) cursor++;
-    const blend = (target - distance[cursor]) / (distance[cursor + 1] - distance[cursor]);
-    const [a, b] = [points[cursor], points[cursor + 1]];
-    samples.push([a[0] + (b[0] - a[0]) * blend, a[1] + (b[1] - a[1]) * blend]);
-  }
-
-  function pointAt(distance: number): Point {
-    const unit = ((distance % length + length) % length) * steps / length;
-    const index = Math.floor(unit);
-    const blend = unit - index;
-    const [a, b] = [samples[index], samples[(index + 1) % steps]];
-    return [a[0] + (b[0] - a[0]) * blend, a[1] + (b[1] - a[1]) * blend];
-  }
-
-  function headingAt(distance: number) {
-    const a = pointAt(distance - 4);
-    const b = pointAt(distance + 4);
-    return Math.atan2(b[1] - a[1], b[0] - a[0]);
-  }
-
-  return { length, pointAt, headingAt };
-}
-
-const outer = makeTrack([[208, 253], [329, 127], [590, 111], [805, 174], [810, 324], [655, 428], [399, 454], [220, 375]]);
-const inner = makeTrack([[278, 250], [365, 374], [574, 392], [728, 305], [672, 187], [506, 159], [351, 170]]);
-
+// Positions are at the shoulder; dorsal photographs run from tail to nose.
 const koi = [
-  { asset: 1, track: inner, start: .31, size: 105, speed: 23, frequency: .85, phase: .44, cycle: 5.9, opacity: .78 },
-  { asset: 1, track: inner, start: .81, size: 120, speed: 22, frequency: .73, phase: .09, cycle: 6.4, opacity: .84 },
-  { asset: 2, track: outer, start: .53, size: 165, speed: 32, frequency: .79, phase: .71, cycle: 6.1, opacity: .91 },
-  { asset: 0, track: outer, start: .045, size: 187, speed: 32, frequency: .76, phase: .32, cycle: 6.9, opacity: .95 },
+  { asset: 1, x: 435, y: 180, heading: 2.85, size: 105, frequency: 1.15, seed: .44, opacity: .78 },
+  { asset: 1, x: 573, y: 349, heading: -.32, size: 120, frequency: 1.02, seed: .09, opacity: .84 },
+  { asset: 2, x: 756, y: 312, heading: 2.3, size: 165, frequency: .93, seed: .71, opacity: .91 },
+  { asset: 0, x: 257, y: 170, heading: -.68, size: 187, frequency: .98, seed: .32, opacity: .95 },
 ];
 type Koi = (typeof koi)[number];
 
-function poseAt(fish: Koi, time: number) {
-  const cadence = time / fish.cycle * tau + fish.phase * tau;
-  const phase = (time * fish.frequency + fish.phase) * tau;
-  // Each half stroke adds a short surge within the longer burst-and-coast cycle.
-  const surge = Math.sin(cadence - .45) * fish.cycle / tau * .40
-    + .14 * Math.sin(2 * phase - 1.1) / (2 * tau * fish.frequency);
-  const effort = Math.max(0, (Math.cos(cadence) + .28) / 1.28);
-  const distance = fish.track.length * fish.start + fish.speed * (time + surge);
-  return { distance, phase, effort };
-}
-
-// Advance the head along the route. Integrate backwards in fixed-length links:
-// the skull steers first, the trunk follows its track, and the tail finishes the stroke.
-const links = 32;
-function bodyAt(fish: Koi, time: number) {
-  const pose = poseAt(fish, time);
-  const noseDistance = pose.distance + fish.size * .5;
-  const headAngle = fish.track.headingAt(noseDistance);
-  const joints: Point[] = [fish.track.pointAt(noseDistance)];
+function bodyAt(fish: Koi, x: number, y: number, heading: number, bend: number, phase: number, effort: number) {
+  const joints: Point[] = [[0, 0]];
   const length = fish.size / links;
   for (let i = 0; i < links; i++) {
     const u = (i + .5) / links;
-    const angle = fish.track.headingAt(noseDistance - u * fish.size);
-    const turn = Math.atan2(Math.sin(angle - headAngle), Math.cos(angle - headAngle));
-    const flex = Math.max(0, (u - .19) / .81);
-    const stroke = Math.sin(pose.phase - flex * 5.1) * flex ** 1.8 * (.25 + .59 * pose.effort);
-    const tangent = headAngle + 1.12 * Math.tanh(turn / 1.12) * Math.min(1, u * 2.4) + stroke;
-    const [x, y] = joints[i];
-    joints.push([x - length * Math.cos(tangent), y - length * Math.sin(tangent)]);
+    const stroke = Math.sin(phase - u * 4.9) * (.055 + .98 * u ** 1.55) * effort;
+    const tangent = heading - bend * (u - .22) + stroke;
+    const [px, py] = joints[i];
+    joints.push([px - length * Math.cos(tangent), py - length * Math.sin(tangent)]);
   }
-  return { joints, phase: pose.phase, effort: pose.effort };
+  const dx = x - joints[shoulder][0], dy = y - joints[shoulder][1];
+  return joints.map(([px, py]): Point => [px + dx, py + dy]);
 }
 
 export function createPondSwim() {
   const ripples = createPondRipples();
-  const previous = koi.map(fish => bodyAt(fish, 0).joints);
+  const swimmers = koi.map(fish => {
+    const phase = fish.seed * tau;
+    return { ...fish, phase, effort: .8, speed: fish.size * .19, turn: 0,
+      joints: bodyAt(fish, fish.x, fish.y, fish.heading, 0, phase, .8) };
+  });
+
   function disturb(time: number, dt: number) {
-    for (const [i, fish] of koi.entries()) {
-      const { joints } = bodyAt(fish, time);
+    // Read all positions before advancing any fish, including when two meet.
+    const positions = swimmers.map(({ x, y }) => [x, y]);
+    for (const [i, fish] of swimmers.entries()) {
+      const previous = fish.joints;
+      const heading = fish.heading;
+      const forwardX = Math.cos(heading), forwardY = Math.sin(heading);
+      const lookX = fish.x + forwardX * fish.size * .88;
+      const lookY = fish.y + forwardY * fish.size * .88;
+      let steerX = Math.max(0, (238 - lookX) / 68) - Math.max(0, (lookX - 762) / 68);
+      let steerY = Math.max(0, (177 - lookY) / 52) - Math.max(0, (lookY - 385) / 52);
+      for (const [j, [x, y]] of positions.entries()) {
+        if (j === i) continue;
+        const dx = lookX - x, dy = lookY - y;
+        const range = Math.max(1, Math.hypot(dx, dy));
+        const avoid = Math.max(0, 1 - range / (fish.size * .83));
+        steerX += avoid * dx / range;
+        steerY += avoid * dy / range;
+      }
+      // Near a bank, keep steering toward open water until the shoulder clears
+      // the margin. Looking ahead alone can release a turn too early.
+      steerX += (Math.max(0, 210 - fish.x) - Math.max(0, fish.x - 790)) / 40;
+      steerY += (Math.max(0, 145 - fish.y) - Math.max(0, fish.y - 417)) / 32;
+      const wander = Math.sin(.39 * time + fish.seed * 15) * .22
+        + Math.sin(.14 * time + fish.seed * 29) * .19;
+      const side = forwardX * steerY - forwardY * steerX;
+      const ahead = forwardX * steerX + forwardY * steerY;
+      // Hold the turning side in a head-on encounter while the obstacle is
+      // directly ahead. Tiny changes in bearing can otherwise reverse the turn.
+      const bearing = Math.atan2(side + .04 * Math.sin(fish.seed * 15), .58 + ahead);
+      const desiredTurn = wander + (ahead < -.68 && Math.abs(side) < .35 && Math.abs(fish.turn) > .09
+        ? Math.sign(fish.turn) * Math.abs(bearing) : bearing);
+      const turnLimit = .28 + 1.75 * fish.speed / fish.size;
+      fish.turn += (Math.max(-turnLimit, Math.min(turnLimit, desiredTurn)) - fish.turn) * dt * 2.2;
+
+      const burst = Math.sin(time * (1.24 + fish.seed * .24) + fish.seed * 14)
+        + .43 * Math.sin(time * .57 + fish.seed * 29);
+      const effort = Math.min(1, Math.max(.09, .51 + burst * .52 + Math.abs(fish.turn) * .28));
+      fish.effort += (effort - fish.effort) * dt * 3.6;
+      fish.phase += tau * fish.frequency * (.69 + .46 * fish.effort) * dt;
+      fish.heading += fish.turn * dt;
+      const bend = Math.tanh(fish.turn * 2.2) * 1.17;
+      const joints = bodyAt(fish, fish.x, fish.y, fish.heading, bend, fish.phase, fish.effort);
+
+      // Tail velocity relative to the shoulder supplies thrust. During recovery
+      // drag bleeds off momentum, so a quiet tail cannot tow the body forward.
+      const tail = joints[links], oldTail = previous[links];
+      const rotationalSweep = fish.turn * ((oldTail[0] - fish.x) * forwardX + (oldTail[1] - fish.y) * forwardY);
+      const lateral = ((oldTail[0] - tail[0]) * forwardY + (tail[1] - oldTail[1]) * forwardX) / dt - rotationalSweep;
+      const thrust = Math.min(fish.size * 1.5, Math.abs(lateral)) * .52;
+      const braking = Math.max(0, -ahead);
+      fish.speed += (thrust / (1 + braking) - fish.speed * (.66 + braking + fish.speed / fish.size)) * dt;
+      const travel = fish.speed * dt;
+      const dx = Math.cos(fish.heading) * travel, dy = Math.sin(fish.heading) * travel;
+      fish.x += dx;
+      fish.y += dy;
+      fish.joints = joints.map(([x, y]): Point => [x + dx, y + dy]);
       // The shoulder parts water, the flank carries it, and the narrow tail
       // sweeps it sideways. Use actual joint velocities, including in turns.
       for (const [joint, radius] of [[4, .080], [15, .068], [27, .047], [32, .033]]) {
-        const [x, y] = joints[joint];
-        const [px, py] = previous[i][joint];
+        const [x, y] = fish.joints[joint];
+        const [px, py] = previous[joint];
         ripples.push(x, y, (x - px) / dt, (y - py) / dt, fish.size * radius);
       }
-      previous[i] = joints;
     }
   }
 
   function draw(ctx: CanvasRenderingContext2D, images: HTMLImageElement[], time: number) {
     ripples.advance(time, disturb);
-    for (const fish of koi) {
-      const { joints, phase, effort } = bodyAt(fish, time);
+    for (const fish of swimmers) {
+      const { joints, phase, effort } = fish;
       const sprite = images[fish.asset];
       const thickness = fish.size * sprite.height / sprite.width;
       const slices = links;
