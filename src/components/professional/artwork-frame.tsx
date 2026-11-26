@@ -6,6 +6,7 @@ import { AsciiDesk } from "./ascii-desk";
 import { ScenicArtwork } from "./scenic-artwork";
 
 const storageKey = "gavin:artwork";
+const openingArtwork = artworkOrder[0];
 type Display = {
   active: ArtworkId;
   outgoing: ArtworkId | null;
@@ -13,8 +14,10 @@ type Display = {
 };
 
 export function ArtworkFrame() {
-  const [display, setDisplay] = useState<Display>({ active: "desk", outgoing: null, reveal: null });
-  const navigation = useRef({ sequence: 0, active: "desk" as ArtworkId });
+  const [display, setDisplay] = useState<Display>({
+    active: openingArtwork, outgoing: null, reveal: { sequence: 0, direction: 1 },
+  });
+  const navigation = useRef<{ sequence: number; active: ArtworkId }>({ sequence: 0, active: openingArtwork });
 
   const selectArtwork = useCallback((id: ArtworkId, direction: -1 | 1, restoring = false) => {
     const pending = navigation.current;
@@ -33,13 +36,13 @@ export function ArtworkFrame() {
   useEffect(() => {
     const pending = navigation.current;
     const initialRequest = pending.sequence;
-    // Restore only after hydration, so the server and client start with the same desk.
+    // Restore only after hydration so the server and client start with the same scene.
     queueMicrotask(() => {
       if (pending.sequence !== initialRequest) return;
       try {
         const saved = localStorage.getItem(storageKey);
         const artwork = artworkOrder.find(id => id === saved);
-        if (artwork && artwork !== "desk") selectArtwork(artwork, 1, true);
+        if (artwork) selectArtwork(artwork, 1, true);
       } catch {}
     });
     return () => {
@@ -59,7 +62,8 @@ export function ArtworkFrame() {
   }
 
   const { active, outgoing, reveal } = display;
-  const title = active === "desk" ? "Retro Desk" : scenicArtworks[active].title;
+  const film = active === "desk" ? null : scenicArtworks[active];
+  const title = film?.title ?? "Retro Desk";
   const scenes = [outgoing, active].filter((artwork): artwork is ScenicId =>
     !!artwork && artwork !== "desk");
 
@@ -95,7 +99,7 @@ export function ArtworkFrame() {
           inert={artwork !== active}
           onAnimationEnd={artwork === active ? finishReveal : undefined}
         >
-          <ScenicArtwork id={artwork} />
+          <ScenicArtwork id={artwork} active={artwork === active} />
         </div>)}
       </div>
     </div>
@@ -108,6 +112,12 @@ export function ArtworkFrame() {
         <button type="button" className="artwork-arrow" aria-label="Next artwork" onClick={() => step(1)}>
           <span aria-hidden="true">›</span>
         </button>
+      </div>
+      <div className="artwork-credit">
+        {film && <>
+          Footage by <a href={film.source}>{film.creator}</a>
+          {film.license && <> · <a href={film.license}>CC BY 3.0</a> · edited for looping</>}
+        </>}
       </div>
     </figcaption>
   </figure>;

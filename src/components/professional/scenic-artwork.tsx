@@ -1,118 +1,83 @@
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { scenicArtworks, type ScenicId } from "./artwork-scenes";
-import { createScenicPainter, scenicHeight, scenicWidth } from "./scenic-motion";
 
-export function ScenicArtwork({ id }: { id: ScenicId }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean }) {
   const scene = scenicArtworks[id];
-  const interaction = id === "pond" ? "Send a ripple" : id === "plateau" ? "Send a gust through the flowers" : undefined;
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const syncRef = useRef<() => void>(() => {});
+  const intent = useRef<"auto" | "play" | "pause">("auto");
+  const [playing, setPlaying] = useState(false);
+  const [failed, setFailed] = useState(false);
 
-  useLayoutEffect(() => {
-    const element = canvasRef.current;
-    const context = element?.getContext("2d");
-    if (!element || !context) return;
-    const canvas = element;
-    const ctx = context;
-    const painter = createScenicPainter(id);
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  useEffect(() => {
+    const element = videoRef.current;
+    if (!element || !active) return;
+    const video = element;
     const root = document.documentElement;
-    let inView = false;
-    let frame = 0;
-    let previous = 0;
-    let elapsed = 0;
-
-    function paint() {
-      ctx.clearRect(0, 0, scenicWidth, scenicHeight);
-      painter.draw(ctx, reducedMotion.matches ? 0 : elapsed);
-    }
-
-    function resize() {
-      const { width, height } = canvas.getBoundingClientRect();
-      if (!width || !height) return;
-      const scale = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(width * scale);
-      canvas.height = Math.round(height * scale);
-      ctx.setTransform(canvas.width / scenicWidth, 0, 0, canvas.height / scenicHeight, 0, 0);
-      paint();
-    }
-
-    function tick(now: number) {
-      frame = requestAnimationFrame(tick);
-      if (previous && now - previous < 30) return;
-      if (previous) elapsed += Math.min(now - previous, 60) / 1000;
-      previous = now;
-      paint();
-    }
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let visible = false;
 
     function syncPlayback() {
-      const shouldPlay = inView && !document.hidden && !reducedMotion.matches && root.dataset.folioIntro !== "pending";
-      if (shouldPlay && !frame) frame = requestAnimationFrame(tick);
-      if (!shouldPlay && frame) {
-        cancelAnimationFrame(frame);
-        frame = 0;
-        previous = 0;
+      const canPlay = visible && !document.hidden && root.dataset.folioIntro !== "pending";
+      const wantsMotion = intent.current === "play" || (intent.current === "auto" && !reduced.matches);
+      if (canPlay && wantsMotion) {
+        if (video.paused) void video.play().catch(() => {});
+      } else {
+        video.pause();
       }
     }
 
-    function onMotionChange() {
-      paint();
-      syncPlayback();
-    }
-
-    const viewport = new IntersectionObserver(([entry]) => {
-      inView = entry.isIntersecting;
+    const visibility = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
       syncPlayback();
     });
-    viewport.observe(canvas);
-    const size = new ResizeObserver(resize);
-    size.observe(canvas);
-    const opening = new MutationObserver(syncPlayback);
-    opening.observe(root, { attributes: true, attributeFilter: ["data-folio-intro"] });
+    const intro = new MutationObserver(syncPlayback);
+    visibility.observe(video);
+    intro.observe(root, { attributes: true, attributeFilter: ["data-folio-intro"] });
     document.addEventListener("visibilitychange", syncPlayback);
-    reducedMotion.addEventListener("change", onMotionChange);
-    function interact(x: number, y: number) {
-      if (!painter.touch) return;
-      painter.touch(x, y, reducedMotion.matches ? -.65 : elapsed);
-      if (reducedMotion.matches) paint();
-    }
-
-    function touch(event: PointerEvent) {
-      if (event.button !== 0) return;
-      const bounds = canvas.getBoundingClientRect();
-      interact(
-        (event.clientX - bounds.left) * scenicWidth / bounds.width,
-        (event.clientY - bounds.top) * scenicHeight / bounds.height,
-      );
-    }
-
-    function keydown(event: KeyboardEvent) {
-      if (event.key !== "Enter" && event.key !== " ") return;
-      event.preventDefault();
-      if (!event.repeat) interact(scenicWidth / 2, scenicHeight / 2);
-    }
-
-    canvas.addEventListener("pointerdown", touch);
-    if (painter.touch) canvas.addEventListener("keydown", keydown);
-    resize();
+    reduced.addEventListener("change", syncPlayback);
+    syncRef.current = syncPlayback;
 
     return () => {
-      cancelAnimationFrame(frame);
-      canvas.removeEventListener("pointerdown", touch);
-      canvas.removeEventListener("keydown", keydown);
-      viewport.disconnect();
-      size.disconnect();
-      opening.disconnect();
+      syncRef.current = () => {};
+      video.pause();
+      visibility.disconnect();
+      intro.disconnect();
       document.removeEventListener("visibilitychange", syncPlayback);
-      reducedMotion.removeEventListener("change", onMotionChange);
+      reduced.removeEventListener("change", syncPlayback);
     };
-  }, [id]);
+  }, [active]);
 
+  function togglePlayback() {
+    const video = videoRef.current;
+    if (!video) return;
+    intent.current = video.paused ? "play" : "pause";
+    if (video.error) {
+      setFailed(false);
+      video.load();
+    }
+    syncRef.current();
+  }
+
+  const control = failed ? "Retry video" : playing ? "Pause video" : "Play video";
   return <div className="artwork-scenic">
-    <canvas
-      ref={canvasRef}
-      role={interaction ? "button" : "img"}
-      aria-label={interaction ? `${scene.description} ${interaction}.` : scene.description}
-      tabIndex={interaction ? 0 : undefined}
+    <video
+      ref={videoRef}
+      className="artwork-video"
+      src={`/artwork/${scene.file}.mp4`}
+      poster={`/artwork/${scene.file}.webp`}
+      muted
+      loop
+      playsInline
+      preload="none"
+      disablePictureInPicture
+      aria-label={scene.description}
+      onPlay={() => setPlaying(true)}
+      onPause={() => setPlaying(false)}
+      onError={() => setFailed(true)}
     />
+    {active && <button type="button" className="artwork-playback" aria-label={control} title={control} onClick={togglePlayback}>
+      <span aria-hidden="true">{failed ? "↻" : playing ? "Ⅱ" : "▶"}</span>
+    </button>}
   </div>;
 }

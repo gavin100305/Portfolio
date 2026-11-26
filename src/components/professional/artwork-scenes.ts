@@ -1,18 +1,37 @@
-export const artworkOrder = ["desk", "pond", "plateau", "grove"] as const;
+export const artworkOrder = ["pond", "plateau", "grove", "desk"] as const;
 export type ArtworkId = (typeof artworkOrder)[number];
 export type ScenicId = Exclude<ArtworkId, "desk">;
 
-export const scenicArtworks = {
+type Film = {
+  title: string;
+  description: string;
+  file: string;
+  creator: string;
+  source: string;
+  license?: string;
+};
+
+export const scenicArtworks: Record<ScenicId, Film> = {
   pond: {
     title: "Koi Pond",
-    description: "Ivory and red koi swim through a jade-green pond among ink-blue water and lily pads.",
+    description: "Red, white, and golden koi swim through a clear pond viewed from above.",
+    file: "koi-pond",
+    creator: "Hideyoshi isai",
+    source: "https://www.pexels.com/video/vibrant-koi-fish-swimming-in-a-clear-pond-31421042/",
   },
   plateau: {
-    title: "Alpine Plateau",
-    description: "White, yellow, and purple wildflowers sway across a high green plateau beneath layered mountain ridges.",
+    title: "Alpine Meadow",
+    description: "Purple wildflowers sway in the breeze beneath a ridge in the Uinta Mountains.",
+    file: "alpine-meadow",
+    creator: "Alex Moliski",
+    source: "https://www.pexels.com/video/wildflowers-in-the-alpine-meadows-27382859/",
   },
   grove: {
-    title: "Firefly Grove",
-    description: "Fireflies drift over a still woodland pool surrounded by ferns and dark trees at dusk.",
+    title: "Fireflies at Dusk",
+    description: "Fireflies flash briefly over a dark grassy field at dusk.",
+    file: "fireflies-at-dusk",
+    creator: "Mark of Minmark",
+    source: "https://commons.wikimedia.org/wiki/File:FireFlies_short_video.webm",
+    license: "https://creativecommons.org/licenses/by/3.0/",
   },
-} satisfies Record<ScenicId, { title: string; description: string }>;
+};
