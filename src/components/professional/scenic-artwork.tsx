@@ -9,7 +9,8 @@ import { createArtworkSurface } from "./artwork-water";
 const width = 1000;
 const height = 562.5;
 const pondSources = [
-  "/artwork/pond-water.webp", "/artwork/kohaku.webp", "/artwork/sanke.webp", "/artwork/ogon.webp",
+  "/artwork/pond-water.webp", "/artwork/pond-reflections.webp",
+  "/artwork/kohaku.webp", "/artwork/sanke.webp", "/artwork/ogon.webp",
 ];
 
 function loadImage(src: string) {
@@ -53,7 +54,8 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
       context.clearRect(0, 0, width, height);
       if (swim && plate) {
         const brush = surface && underwater ? underwater : context;
-        brush.drawImage(plate, 0, 0, width, height);
+        if (surface) brush.clearRect(0, 0, width, height);
+        else brush.drawImage(plate, 0, 0, width, height);
         swim.draw(brush, life, elapsed);
         if (!surface) swim.drawFallbackWake(brush);
         drawPondMotes(brush, elapsed, waves);
@@ -132,18 +134,19 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
       if (disposed) return;
       if (base) {
         plate = base;
-        life = subjects;
         if (pond) {
+          const [reflections, ...fish] = subjects;
+          life = fish;
           const composition = document.createElement("canvas");
           composition.width = 1024;
           composition.height = 576;
           underwater = composition.getContext("2d");
           if (underwater) {
             underwater.setTransform(1024 / width, 0, 0, 576 / height, 0, 0);
-            surface = createArtworkSurface(waterCanvas, composition);
+            surface = createArtworkSurface(waterCanvas, composition, base, reflections);
             if (surface) waterCanvas.dataset.ready = "true";
           }
-        }
+        } else life = subjects;
       } else {
         drawFireflies = makeFireflies();
       }

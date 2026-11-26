@@ -8,7 +8,7 @@ type Scene = {
   image: string;
   creator: string;
   source: string;
-  additionalCredit?: { creator: string; source: string };
+  additionalCredits?: { creator: string; source: string }[];
 };
 
 export const scenicArtworks: Record<ScenicId, Scene> = {
@@ -18,10 +18,10 @@ export const scenicArtworks: Record<ScenicId, Scene> = {
     image: "/artwork/koi-pond.webp",
     creator: "Hideyoshi isai",
     source: "https://www.pexels.com/video/vibrant-koi-fish-swimming-in-a-clear-pond-31421042/",
-    additionalCredit: {
-      creator: "Francesco Ungaro",
-      source: "https://www.pexels.com/photo/crystal-clear-water-in-creek-5427803/",
-    },
+    additionalCredits: [
+      { creator: "Francesco Ungaro", source: "https://www.pexels.com/photo/crystal-clear-water-in-creek-5427803/" },
+      { creator: "Megan Durkin", source: "https://www.pexels.com/photo/stones-under-shallow-water-24446616/" },
+    ],
   },
   plateau: {
     title: "Alpine Meadow",

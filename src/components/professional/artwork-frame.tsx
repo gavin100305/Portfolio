@@ -153,7 +153,9 @@ export function ArtworkFrame() {
       <div className="artwork-credit">
         {photo && <>
           Images by <a href={photo.source}>{photo.creator}</a>
-          {photo.additionalCredit && <> and <a href={photo.additionalCredit.source}>{photo.additionalCredit.creator}</a></>}
+          {photo.additionalCredits?.map((credit, index, credits) => <span key={credit.source}>
+            {index === credits.length - 1 ? " and " : ", "}<a href={credit.source}>{credit.creator}</a>
+          </span>)}
         </>}
       </div>
     </figcaption>
