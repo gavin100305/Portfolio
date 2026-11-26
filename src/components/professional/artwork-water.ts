@@ -83,18 +83,19 @@ void main() {
     + texture2D(koiLayer, floorUV - vec2(.013, .023)).a;
   bed *= 1. - .12 * shadow;
   // This premultiplied layer has its own transmission and water tint.
-  vec3 color = bed * (1. - fish.a) + fish.rgb * vec3(.87, .92, .86);
-  float bank = smoothstep(.015, .16, bed.g - bed.r);
+  vec3 color = bed * (1. - fish.a) + fish.rgb * vec3(.94, .95, .96);
+  float daylight = exp(-dot((uv - vec2(.20, -.09)) / vec2(.61, .89),
+    (uv - vec2(.20, -.09)) / vec2(.61, .89)));
   color *= 1. + light * 1.18;
-  color += mix(vec3(.22, .46, .41), vec3(.33, .78, .34), bank) * light;
+  color += mix(vec3(.18, .32, .43), vec3(.44, .63, .74), daylight) * light;
 
   // The photographed reflection stays in place in calm water. The same wake
   // that distorts the pond bed also bends this reflection over the koi.
   vec2 reflected = clamp(uv * .82 + .09 + displacement * 3.8, .001, .999);
   float flecks = texture2D(surfacePhoto, reflected).r;
   float reflection = smoothstep(.025, .45, flecks);
-  float silver = reflection * (.036 + light * 1.8) + max(light, 0.) * .52;
-  color = mix(color, vec3(.55, .66, .69), clamp(silver, 0., .48));
+  float silver = reflection * (.044 + .095 * daylight + light * 1.8) + max(light, 0.) * .52;
+  color = mix(color, vec3(.71, .86, .94), clamp(silver, 0., .48));
   gl_FragColor = vec4(color, 1.);
 }
 `;

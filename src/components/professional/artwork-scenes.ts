@@ -14,7 +14,7 @@ type Scene = {
 export const scenicArtworks: Record<ScenicId, Scene> = {
   pond: {
     title: "Koi Pond",
-    description: "Looking straight down through dark water, red, white, and golden koi swim between clusters of green lily pads.",
+    description: "Looking straight down through sunlit blue water, red, white, and golden koi swim between clusters of green lily pads.",
     image: "/artwork/koi-pond.webp",
     creator: "Hideyoshi isai",
     source: "https://www.pexels.com/video/vibrant-koi-fish-swimming-in-a-clear-pond-31421042/",
