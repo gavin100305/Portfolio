@@ -3,50 +3,42 @@ const height = 562.5;
 const circle = Math.PI * 2;
 
 const koi = [
-  { asset: 2, x: 480, y: 302, rx: 220, ry: 142, phase: 4.52, speed: -.105, size: 146, depth: .92 },
-  { asset: 1, x: 497, y: 294, rx: 262, ry: 151, phase: .40, speed: .115, size: 175, depth: .95 },
-  { asset: 0, x: 430, y: 291, rx: 240, ry: 151, phase: 2.98, speed: .128, size: 198, depth: .98 },
-  { asset: 1, x: 556, y: 284, rx: 207, ry: 125, phase: 2.09, speed: -.124, size: 124, depth: .77 },
+  { asset: 1, lane: 144, phase: .49, period: 32, size: 147, direction: 1, opacity: .66 },
+  { asset: 2, lane: 333, phase: .345, period: 35, size: 240, direction: 1, opacity: .93 },
+  { asset: 0, lane: 230, phase: .39, period: 38, size: 279, direction: -1, opacity: .97 },
 ];
-
-function route(fish: (typeof koi)[number], time: number) {
-  const a = fish.phase + time * fish.speed + Math.sin(time * .66 + fish.phase) * .066;
-  return [
-    fish.x + Math.cos(a) * fish.rx + Math.sin(a * 2) * 16,
-    fish.y + Math.sin(a) * fish.ry + Math.cos(a * 3) * 10,
-  ] as const;
-}
 
 export function drawKoi(ctx: CanvasRenderingContext2D, fishImages: HTMLImageElement[], time: number) {
   koi.forEach((fish, i) => {
-    const [x, y] = route(fish, time);
-    const [nextX, nextY] = route(fish, time + .12);
-    const [lastX, lastY] = route(fish, time - .12);
-    const heading = Math.atan2(nextY - lastY, nextX - lastX);
     const sprite = fishImages[fish.asset];
-    const length = fish.size * (1 + Math.sin(time * .37 + i) * .028);
+    const progress = (fish.phase + time / fish.period) % 1;
+    const length = fish.size * (1 + Math.sin(progress * circle + i) * .055);
     const thickness = length * sprite.height / sprite.width;
-    const bend = (u: number) =>
-      (Math.sin(time * (3.3 + i * .25) + i * 1.94 + u * 6.9) * .121 - Math.sign(fish.speed) * .048)
-      * (1 - u) ** 2.34 * length;
+    const travel = progress * (width + fish.size * 1.22) - fish.size * .61;
+    const x = fish.direction > 0 ? travel : width - travel;
+    const y = fish.lane + Math.sin(progress * circle - i * 1.4) * (12 + i * 8);
+    const pitch = Math.cos(progress * circle - i * 1.4) * .064;
+    const rootBend = (u: number) => Math.sin(time * (3.4 + i * .25) + u * 6.7 + i)
+      * (1 - u) ** 2.65 * length * .045;
 
     ctx.save();
     ctx.translate(x, y);
-    ctx.rotate(heading);
-    ctx.globalAlpha = fish.depth + Math.sin((x + y) * .024 + time * .45) * .025;
-    const slices = 28;
-    let previousBend = bend(0);
-    // Each photographic slice is sheared between adjacent points on the spine.
+    ctx.scale(fish.direction, 1);
+    ctx.rotate(pitch);
+    ctx.globalAlpha = fish.opacity;
+    const slices = 22;
+    const slice = length / slices;
+    let previousBend = rootBend(0);
+    // The head stays steady while the sides and tail flex against the current.
     for (let j = 0; j < slices; j++) {
       const u = j / slices;
-      const nextBend = bend((j + 1) / slices);
-      const slice = length / slices;
+      const nextBend = rootBend((j + 1) / slices);
       const slope = (nextBend - previousBend) / slice;
       const left = length * (u - .5);
       ctx.save();
       ctx.transform(1, slope, 0, 1, 0, previousBend - slope * left);
       ctx.drawImage(sprite, u * sprite.width, 0, sprite.width / slices, sprite.height,
-        left, -thickness * .5, slice + .35, thickness);
+        left, -thickness * .5, slice + .30, thickness);
       ctx.restore();
       previousBend = nextBend;
     }
@@ -141,17 +133,36 @@ export function drawMeadow(ctx: CanvasRenderingContext2D, atlas: HTMLImageElemen
   }
 }
 
-export function drawFallbackRipples(ctx: CanvasRenderingContext2D, time: number, waves: Float32Array) {
+const pondMotes = Array.from({ length: 40 }, (_, i) => ({
+  x: noise(i + 300) * width,
+  y: 65 + noise(i + 370) * (height - 60),
+  size: .32 + noise(i + 430) ** 2 * 1.25,
+  pace: 4 + noise(i + 460) * 8,
+  phase: noise(i + 540) * circle,
+}));
+
+export function drawPondMotes(ctx: CanvasRenderingContext2D, time: number, currents: Float32Array) {
   ctx.save();
-  ctx.strokeStyle = "#e5f6dc";
-  ctx.lineWidth = .85;
-  for (let i = 0; i < waves.length; i += 4) {
-    const age = time - waves[i + 2];
-    if (!waves[i + 3] || age <= 0 || age >= 2.6) continue;
-    ctx.globalAlpha = Math.min(age * 4, 1) * (1 - age / 2.6) * .26;
+  ctx.fillStyle = "#bee3bb";
+  for (const mote of pondMotes) {
+    const x = (mote.x + time * mote.pace + Math.sin(time * .51 + mote.phase) * 13 + 22) % width;
+    const y = mote.y + Math.sin(time * .36 + mote.phase) * 15;
+    let currentX = 0;
+    let currentY = 0;
+    for (let i = 0; i < currents.length; i += 4) {
+      const age = time - currents[i + 2];
+      if (!currents[i + 3] || age <= 0 || age >= 2.8) continue;
+      const dx = x - currents[i] * width;
+      const dy = y - currents[i + 1] * height;
+      const proximity = Math.exp(-Math.hypot(dx, dy) / 107);
+      const push = Math.sin(Math.PI * age / 2.8) * proximity * .63;
+      currentX += (dx - dy * .75) * push;
+      currentY += (dy + dx * .75) * push;
+    }
+    ctx.globalAlpha = .10 + mote.size * .17;
     ctx.beginPath();
-    ctx.arc(waves[i] * width, waves[i + 1] * height, 4 + age * 153, 0, circle);
-    ctx.stroke();
+    ctx.arc(x + currentX, y + currentY, mote.size, 0, circle);
+    ctx.fill();
   }
   ctx.restore();
 }

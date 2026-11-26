@@ -16,39 +16,34 @@ precision mediump float;
 #endif
 varying vec2 uv;
 uniform sampler2D photo;
-uniform sampler2D reflections;
 uniform float time;
 uniform vec4 waves[3];
 
 void main() {
-  vec2 at = uv;
-  float light = 0.;
-  vec2 p = vec2(uv.x * 1.77778, uv.y);
-  float a = p.x * 28. + p.y * 24. - time * 2.2;
-  float b = p.x * 13. - p.y * 41. + time * 1.2;
-  at += vec2(sin(a) * .0027 + sin(b) * .0012, cos(b) * .0036 + cos(a) * .0016);
-  light += sin(a + sin(b) * 1.2) * .009;
-  for (int i = 0; i < 3; i++) {
-    vec4 wave = waves[i];
-    vec2 d = (uv - wave.xy) * vec2(1.77778, 1.);
-    float age = time - wave.z;
-    float radius = length(d);
-    float pulse = smoothstep(0., .09, age) * (1. - smoothstep(.8, 2.5, age));
-    float front = radius - age * .29 + sin(a * .51 - b * .25) * .004 * min(age, 1.);
-    float ring = sin(front * 103.) * exp(-abs(front) * 29.) * pulse * wave.w;
-    at += d / max(radius, .008) * ring * vec2(.007, .010);
-    light += ring * .094;
+  vec3 photoColor = texture2D(photo, uv).rgb;
+  float gravel = smoothstep(.83, .965, uv.y);
+  float leaves = smoothstep(.06, .19, photoColor.g - photoColor.b)
+    * smoothstep(.48, .92, uv.y);
+  float floor = max(gravel, leaves);
+  vec2 pool = vec2(uv.x * 25., uv.y * 36.);
+  float a = sin(pool.x + pool.y + sin(pool.y * .9 - time * .71) * 1.23 - time * .82);
+  float b = sin(pool.x * 1.17 - pool.y * .83 + sin(pool.x - time * .58) * 1.5 + time * .95);
+  float caustic = pow(max(0., 1. - abs(a + b) * 1.32), 4.);
+  float beam = pow(.5 + .5 * sin((uv.x + uv.y * .32) * 30. + sin(time * .28) * .62), 5.);
+  float glow = beam * (1. - uv.y) * .022;
+  for (int i = 0; i < 3; ++i) {
+    vec4 current = waves[i];
+    float age = time - current.z;
+    vec2 diff = (uv - current.xy) * vec2(1.77778, 1.);
+    float drift = exp(-length(diff - vec2(age * .045, 0.)) * 6.3);
+    glow += current.w * drift * smoothstep(0., .24, age) * (1. - smoothstep(.55, 2.8, age)) * .024;
   }
-  vec3 color = texture2D(photo, clamp(at, .001, .999)).rgb;
-  vec2 reflectionUV = uv + vec2(sin(b) * .008, sin(a) * .010);
-  vec3 reflected = texture2D(reflections, clamp(reflectionUV, .001, .999)).rgb;
-  float silver = smoothstep(.28, .67, dot(reflected, vec3(.22, .64, .14)));
-  color = mix(color, reflected, .13 * silver);
-  gl_FragColor = vec4(color * (1. + light) + max(light, 0.) * .21, 1.);
+  vec3 light = vec3(.67, .88, .53) * (glow + (caustic - .16) * floor * .063);
+  gl_FragColor = vec4(photoColor * (1. + caustic * floor * .09) + light, 1.);
 }
 `;
 
-export function createArtworkSurface(canvas: HTMLCanvasElement, source: HTMLCanvasElement, reflectionImage: HTMLImageElement) {
+export function createArtworkSurface(canvas: HTMLCanvasElement, source: HTMLCanvasElement) {
   const context = canvas.getContext("webgl", { alpha: false, antialias: false, depth: false });
   if (!context) return null;
   const gl = context;
@@ -56,14 +51,12 @@ export function createArtworkSurface(canvas: HTMLCanvasElement, source: HTMLCanv
   const program = gl.createProgram();
   const buffer = gl.createBuffer();
   const texture = gl.createTexture();
-  const reflectionTexture = gl.createTexture();
 
   function dispose() {
     for (const shader of shaders) gl.deleteShader(shader);
     gl.deleteProgram(program);
     gl.deleteBuffer(buffer);
     gl.deleteTexture(texture);
-    gl.deleteTexture(reflectionTexture);
   }
 
   function attach(type: number, source: string) {
@@ -77,7 +70,7 @@ export function createArtworkSurface(canvas: HTMLCanvasElement, source: HTMLCanv
     return true;
   }
 
-  if (!program || !buffer || !texture || !reflectionTexture || !attach(gl.VERTEX_SHADER, vertex) || !attach(gl.FRAGMENT_SHADER, fragment)) {
+  if (!program || !buffer || !texture || !attach(gl.VERTEX_SHADER, vertex) || !attach(gl.FRAGMENT_SHADER, fragment)) {
     dispose();
     return null;
   }
@@ -104,9 +97,7 @@ export function createArtworkSurface(canvas: HTMLCanvasElement, source: HTMLCanv
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
   }
 
-  bindImage(gl.TEXTURE1, reflectionTexture, reflectionImage);
   bindImage(gl.TEXTURE0, texture, source);
-  gl.uniform1i(gl.getUniformLocation(program, "reflections"), 1);
   gl.uniform1i(gl.getUniformLocation(program, "photo"), 0);
   const clock = gl.getUniformLocation(program, "time");
   const impulses = gl.getUniformLocation(program, "waves[0]");

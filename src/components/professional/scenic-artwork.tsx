@@ -1,13 +1,16 @@
 import gsap from "gsap";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { drawFallbackRipples, drawKoi, drawMeadow, makeFireflies } from "./artwork-life";
+import { drawKoi, drawMeadow, drawPondMotes, makeFireflies } from "./artwork-life";
 import { scenicArtworks, type ScenicId } from "./artwork-scenes";
 import { createArtworkSurface } from "./artwork-water";
 
 const width = 1000;
 const height = 562.5;
-const koiSources = ["/artwork/kohaku.webp", "/artwork/sanke.webp", "/artwork/ogon.webp"];
+const pondSources = [
+  "/artwork/pond-water.webp", "/artwork/pond-plants.webp",
+  "/artwork/pond-koi-vermilion.webp", "/artwork/pond-koi-copper.webp", "/artwork/pond-koi-gold.webp",
+];
 
 function loadImage(src: string) {
   const image = new window.Image();
@@ -38,6 +41,7 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
     const waves = new Float32Array(12);
     let life: HTMLImageElement[] = [];
     let plate: HTMLImageElement | undefined;
+    let foreground: HTMLImageElement | undefined;
     let surface: ReturnType<typeof createArtworkSurface> = null;
     let underwater: CanvasRenderingContext2D | null = null;
     let drawFireflies: ReturnType<typeof makeFireflies> | undefined;
@@ -51,8 +55,9 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
         const brush = surface && underwater ? underwater : context;
         brush.drawImage(plate, 0, 0, width, height);
         drawKoi(brush, life, elapsed);
+        if (foreground) brush.drawImage(foreground, 0, 0, width, height);
+        drawPondMotes(brush, elapsed, waves);
         if (surface) surface.draw(elapsed, waves);
-        else drawFallbackRipples(context, elapsed, waves);
       }
       if (id === "plateau" && plate) {
         context.drawImage(plate, 0, 0, width, height);
@@ -119,7 +124,7 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
     };
 
     const assets = pond
-      ? Promise.all(["/artwork/pond-water.webp", ...koiSources].map(loadImage))
+      ? Promise.all(pondSources.map(loadImage))
       : id === "plateau"
         ? Promise.all(["/artwork/meadow-ground.webp", "/artwork/meadow-plants.webp"].map(loadImage))
         : Promise.resolve([]);
@@ -127,18 +132,18 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
       if (disposed) return;
       if (base) {
         plate = base;
-        life = subjects;
         if (pond) {
+          [foreground, ...life] = subjects;
           const composition = document.createElement("canvas");
           composition.width = 1024;
           composition.height = 576;
           underwater = composition.getContext("2d");
           if (underwater) {
             underwater.setTransform(1024 / width, 0, 0, 576 / height, 0, 0);
-            surface = createArtworkSurface(waterCanvas, composition, base);
+            surface = createArtworkSurface(waterCanvas, composition);
             if (surface) waterCanvas.dataset.ready = "true";
           }
-        }
+        } else life = subjects;
       } else {
         drawFireflies = makeFireflies();
       }
@@ -186,7 +191,7 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
     {active && isLive && id !== "grove" && <button
       type="button"
       className="artwork-interact"
-      aria-label={id === "pond" ? "Send a ripple through the pond" : "Send a gust through the meadow"}
+      aria-label={id === "pond" ? "Stir the water" : "Send a gust through the meadow"}
       onClick={event => {
         const bounds = event.currentTarget.getBoundingClientRect();
         const x = event.detail ? (event.clientX - bounds.x) / bounds.width : .5;
