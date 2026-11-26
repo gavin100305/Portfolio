@@ -1,4 +1,5 @@
-const height = 562.5;
+import { createPondRipples } from "./artwork-ripples";
+
 const tau = Math.PI * 2;
 type Point = readonly [number, number];
 
@@ -67,10 +68,13 @@ type Koi = (typeof koi)[number];
 
 function poseAt(fish: Koi, time: number) {
   const cadence = time / fish.cycle * tau + fish.phase * tau;
-  const surge = Math.sin(cadence) * fish.cycle / tau * .24;
+  const phase = (time * fish.frequency + fish.phase) * tau;
+  // Each half stroke adds a short surge within the longer burst-and-coast cycle.
+  const surge = Math.sin(cadence - .45) * fish.cycle / tau * .40
+    + .14 * Math.sin(2 * phase - 1.1) / (2 * tau * fish.frequency);
   const effort = Math.max(0, (Math.cos(cadence) + .28) / 1.28);
   const distance = fish.track.length * fish.start + fish.speed * (time + surge);
-  return { distance, phase: (time * fish.frequency + fish.phase) * tau, effort };
+  return { distance, phase, effort };
 }
 
 // Advance the head along the route. Integrate backwards in fixed-length links:
@@ -87,46 +91,35 @@ function bodyAt(fish: Koi, time: number) {
     const angle = fish.track.headingAt(noseDistance - u * fish.size);
     const turn = Math.atan2(Math.sin(angle - headAngle), Math.cos(angle - headAngle));
     const flex = Math.max(0, (u - .19) / .81);
-    const stroke = Math.sin(pose.phase - flex * 5.1) * flex ** 1.8 * (.09 + .64 * pose.effort);
+    const stroke = Math.sin(pose.phase - flex * 5.1) * flex ** 1.8 * (.25 + .59 * pose.effort);
     const tangent = headAngle + 1.12 * Math.tanh(turn / 1.12) * Math.min(1, u * 2.4) + stroke;
     const [x, y] = joints[i];
     joints.push([x - length * Math.cos(tangent), y - length * Math.sin(tangent)]);
   }
-  return { joints, headAngle, effort: pose.effort };
+  return { joints, phase: pose.phase, effort: pose.effort };
 }
 
 export function createPondSwim() {
-  const noses = new Float32Array(16);
-  const wakes = new Float32Array(32);
-  const wakeAges = new Float32Array(8);
-
-  const lastBeats = koi.map(() => NaN);
+  const ripples = createPondRipples();
+  const previous = koi.map(fish => bodyAt(fish, 0).joints);
+  function disturb(time: number, dt: number) {
+    for (const [i, fish] of koi.entries()) {
+      const { joints } = bodyAt(fish, time);
+      // The shoulder parts water, the flank carries it, and the narrow tail
+      // sweeps it sideways. Use actual joint velocities, including in turns.
+      for (const [joint, radius] of [[4, .080], [15, .068], [27, .047], [32, .033]]) {
+        const [x, y] = joints[joint];
+        const [px, py] = previous[i][joint];
+        ripples.push(x, y, (x - px) / dt, (y - py) / dt, fish.size * radius);
+      }
+      previous[i] = joints;
+    }
+  }
 
   function draw(ctx: CanvasRenderingContext2D, images: HTMLImageElement[], time: number) {
-    for (const [i, fish] of koi.entries()) {
-      const { joints, headAngle, effort } = bodyAt(fish, time);
-      const [noseX, noseY] = joints[0];
-      noses.set([noseX / height, noseY / height, headAngle, fish.opacity * (.40 + effort * .47)], i * 4);
-
-      // The tail lags the trunk wave. Release each vortex near the end of
-      // its lateral sweep, at the position occupied on that stroke.
-      const releasePhase = .84;
-      const lastBeat = Math.floor((time * fish.frequency + fish.phase - releasePhase) * 2);
-      for (let j = 0; j < 2; j++) {
-        const beat = lastBeat - j;
-        const released = (beat * .5 + releasePhase - fish.phase) / fish.frequency;
-        const index = i * 2 + j;
-        wakeAges[index] = time - released;
-        if (lastBeats[i] === lastBeat) continue;
-        const stroke = bodyAt(fish, released);
-        const [x, y] = stroke.joints[links];
-        const [stemX, stemY] = stroke.joints[links - 3];
-        const heading = Math.atan2(stemY - y, stemX - x);
-        const direction = beat % 2 ? 1 : -1;
-        wakes.set([x / height, y / height, heading, direction * stroke.effort * fish.opacity], index * 4);
-      }
-      lastBeats[i] = lastBeat;
-
+    ripples.advance(time, disturb);
+    for (const fish of koi) {
+      const { joints, phase, effort } = bodyAt(fish, time);
       const sprite = images[fish.asset];
       const thickness = fish.size * sprite.height / sprite.width;
       const slices = links;
@@ -141,8 +134,26 @@ export function createPondSwim() {
         const y = (end[1] - start[1]) / slice;
         ctx.save();
         ctx.transform(x, y, -y, x, start[0], start[1]);
-        ctx.drawImage(sprite, j * sourceSlice, 0, sourceSlice, sprite.height,
-          0, -.5 * thickness, slice + .6, thickness);
+        const u = (j + .5) / slices;
+        const fin = Math.exp(-(((u - .72) / .087) ** 2));
+        if (fin > .02) {
+          // The pectoral tips fan outward from a fixed root beside the gills.
+          // Move only the outer rows so the trunk keeps its width.
+          ctx.drawImage(sprite, j * sourceSlice, sprite.height * .21, sourceSlice, sprite.height * .58,
+            0, -thickness * .29, slice + .6, thickness * .58);
+          for (const side of [-1, 1]) {
+            const beat = Math.sin(phase + side * .56);
+            ctx.save();
+            ctx.translate(0, side * thickness * .29);
+            ctx.transform(1, 0, side * fin * (.28 + .48 * beat), 1 + fin * (.18 + .23 * beat) * (.7 + .3 * effort), 0, 0);
+            ctx.drawImage(sprite, j * sourceSlice, side < 0 ? 0 : sprite.height * .79, sourceSlice, sprite.height * .21,
+              0, side < 0 ? -thickness * .21 : 0, slice + .6, thickness * .21);
+            ctx.restore();
+          }
+        } else {
+          ctx.drawImage(sprite, j * sourceSlice, 0, sourceSlice, sprite.height,
+            0, -.5 * thickness, slice + .6, thickness);
+        }
         ctx.restore();
         start = end;
       }
@@ -150,30 +161,5 @@ export function createPondSwim() {
     }
   }
 
-  function drawFallbackWake(ctx: CanvasRenderingContext2D) {
-    ctx.save();
-    ctx.strokeStyle = "#82b9b0";
-    ctx.lineWidth = .9;
-    for (let i = 0; i < wakeAges.length; i++) {
-      const age = wakeAges[i];
-      const index = i * 4;
-      const strength = wakes[index + 3];
-      const alpha = Math.min(age * 7, 1) * Math.max(0, 1 - age) * Math.abs(strength) * .24;
-      if (alpha < .01) continue;
-      const side = Math.sign(strength);
-      const heading = wakes[index + 2];
-      const spread = 8 + age * 20;
-      ctx.globalAlpha = alpha;
-      ctx.beginPath();
-      ctx.ellipse(
-        wakes[index] * height - Math.sin(heading) * spread * side,
-        wakes[index + 1] * height + Math.cos(heading) * spread * side,
-        spread, spread * .56, heading, Math.PI * .59, Math.PI * 1.49,
-      );
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  return { draw, drawFallbackWake, noses, wakes, wakeAges };
+  return { draw, normals: ripples.normals };
 }

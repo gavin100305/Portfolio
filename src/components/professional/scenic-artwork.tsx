@@ -57,8 +57,22 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
         if (surface) brush.clearRect(0, 0, width, height);
         else brush.drawImage(plate, 0, 0, width, height);
         swim.draw(brush, life, elapsed);
-        if (!surface) swim.drawFallbackWake(brush);
-        surface?.draw(swim);
+
+        if (surface) surface.draw(swim);
+        else if (underwater) {
+          // Shade the same simulated surface on devices without WebGL.
+          const image = swim.normals;
+          const pixels = image.data;
+          for (let i = 0; i < pixels.length; i += 4) {
+            const slope = (128 - pixels[i]) * .54 + (128 - pixels[i + 1]) * .84;
+            pixels[i] = 109;
+            pixels[i + 1] = 177;
+            pixels[i + 2] = 202;
+            pixels[i + 3] = 12 + slope * .45;
+          }
+          underwater.putImageData(image, 0, 0);
+          brush.drawImage(underwater.canvas, 0, 0, image.width, image.height, 0, 0, width, height);
+        }
       }
       if (id === "plateau" && plate) {
         context.drawImage(plate, 0, 0, width, height);
