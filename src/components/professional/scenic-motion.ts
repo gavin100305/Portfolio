@@ -8,9 +8,9 @@ const tau = 2 * Math.PI;
 const swimmers = [
   { x: 322, y: 305, rx: 188, ry: 111, period: 74, phase: 1.3, length: 99, depth: .72 },
   { x: 494, y: 322, rx: 254, ry: 142, period: 85, phase: 4.2, length: 123, depth: .84 },
-  { x: 608, y: 305, rx: 226, ry: 136, period: -81, phase: 2.5, length: 110, depth: .77 },
-  { x: 486, y: 300, rx: 288, ry: 170, period: -99, phase: .82, length: 155, depth: .96 },
+  { x: 608, y: 305, rx: 226, ry: 136, period: -81, phase: 2.05, length: 110, depth: .77 },
   { x: 457, y: 286, rx: 286, ry: 134, period: 88, phase: 3.8, length: 140, depth: .9 },
+  { x: 486, y: 300, rx: 288, ry: 170, period: -99, phase: .82, length: 155, depth: .96 },
 ];
 
 function swimPath(fish: (typeof swimmers)[number], time: number) {
@@ -40,28 +40,40 @@ function pondPainter(koi: HTMLImageElement[]): Painter {
       const spriteHeight = fishCanvas.width * sprite.naturalHeight / sprite.naturalWidth;
       const sections = 32;
       const yCenter = (fishCanvas.height - spriteHeight) / 2;
+      const stroke = time * (3.1 + index * .17) + 6 * fish.phase;
+      const bendAt = (u: number) => {
+        const wave = Math.sin(stroke + u * 6.5);
+        return (wave * 32 - Math.sign(fish.period) * 7) * (1 - u) ** 2.3;
+      };
       fishContext.clearRect(0, 0, fishCanvas.width, fishCanvas.height);
 
-      // The stroke travels from the fixed head through the body to the tail.
+      // Shear each slice to follow the curve without stepping at the joins.
+      let bend = bendAt(0);
+      const span = 1 / sections;
+      const sliceWidth = fishCanvas.width * span;
       for (let section = 0; section < sections; section++) {
         const start = section / sections;
-        const span = 1 / sections;
-        const tailWeight = (1 - start) ** 2.3;
-        const wave = Math.sin(time * (3.1 + index * .17) + 6 * fish.phase + start * 6.5);
-        const bend = (wave * 32 - Math.sign(fish.period) * 7) * tailWeight;
+        const x = section * sliceWidth;
+        const endBend = bendAt((section + 1) / sections);
+        const slope = (endBend - bend) / sliceWidth;
+        fishContext.setTransform(1, slope, 0, 1, 0, yCenter + bend - slope * x);
         fishContext.drawImage(
           sprite, start * sprite.naturalWidth, 0, span * sprite.naturalWidth, sprite.naturalHeight,
-          start * fishCanvas.width, yCenter + bend, span * fishCanvas.width + .36, spriteHeight,
+          x, 0, sliceWidth + .36, spriteHeight,
         );
+        bend = endBend;
       }
+      fishContext.resetTransform();
+      fishContext.globalCompositeOperation = "source-atop";
+      fishContext.fillStyle = `rgba(40, 69, 39, ${.13 + (1 - fish.depth) * .42})`;
+      fishContext.fillRect(0, 0, fishCanvas.width, fishCanvas.height);
+      fishContext.globalCompositeOperation = "source-over";
 
       const height = length * fishCanvas.height / fishCanvas.width;
-      const brightness = .96 + .04 * Math.sin(x / 74 + y / 57 + time * .31);
+      const brightness = .95 + .05 * Math.sin(x / 74 + y / 57 + time * .31);
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(heading + pulse * .033);
-      ctx.globalAlpha = .11 * fish.depth;
-      ctx.drawImage(fishCanvas, -length * .50 + 5, -height / 2 + 7, length, height);
       ctx.globalAlpha = fish.depth * brightness;
       ctx.drawImage(fishCanvas, -length * .50, -height / 2, length, height);
       ctx.restore();
@@ -134,7 +146,7 @@ function grovePainter(): Painter {
     y: 174 + random(index + 31) ** .7 * 340,
     phase: random(index + 79) * tau,
     speed: .22 + random(index + 120) * .54,
-    size: .65 + random(index + 151) * 1.5,
+    size: .9 + random(index + 151) * 1.65,
   }));
   const glow = document.createElement("canvas");
   glow.width = glow.height = 40;
@@ -142,8 +154,8 @@ function grovePainter(): Painter {
   if (!glowContext) return () => {};
   const gradient = glowContext.createRadialGradient(20, 20, 0, 20, 20, 20);
   gradient.addColorStop(0, "#ffffd9");
-  gradient.addColorStop(.12, "#e8ed91d0");
-  gradient.addColorStop(.32, "#d3e67443");
+  gradient.addColorStop(.16, "#e8ed91e0");
+  gradient.addColorStop(.36, "#d3e67458");
   gradient.addColorStop(1, "#cedb7000");
   glowContext.fillStyle = gradient;
   glowContext.fillRect(0, 0, 40, 40);

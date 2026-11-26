@@ -7,9 +7,11 @@ export function ScenicArtwork({ id, assets }: { id: ScenicId; assets: ScenicAsse
   const scene = scenicArtworks[id];
 
   useLayoutEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) return;
+    const element = canvasRef.current;
+    const context = element?.getContext("2d");
+    if (!element || !context) return;
+    const canvas = element;
+    const ctx = context;
     const painter = createScenicPainter(id, assets.poster, assets.koi);
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const root = document.documentElement;
@@ -19,17 +21,17 @@ export function ScenicArtwork({ id, assets }: { id: ScenicId; assets: ScenicAsse
     let elapsed = 0;
 
     function paint() {
-      ctx!.clearRect(0, 0, scenicWidth, scenicHeight);
-      painter(ctx!, reducedMotion.matches ? 0 : elapsed);
+      ctx.clearRect(0, 0, scenicWidth, scenicHeight);
+      painter(ctx, reducedMotion.matches ? 0 : elapsed);
     }
 
     function resize() {
-      const { width, height } = canvas!.getBoundingClientRect();
+      const { width, height } = canvas.getBoundingClientRect();
       if (!width || !height) return;
       const scale = Math.min(window.devicePixelRatio || 1, 2);
-      canvas!.width = Math.round(width * scale);
-      canvas!.height = Math.round(height * scale);
-      ctx!.setTransform(canvas!.width / scenicWidth, 0, 0, canvas!.height / scenicHeight, 0, 0);
+      canvas.width = Math.round(width * scale);
+      canvas.height = Math.round(height * scale);
+      ctx.setTransform(canvas.width / scenicWidth, 0, 0, canvas.height / scenicHeight, 0, 0);
       paint();
     }
 
