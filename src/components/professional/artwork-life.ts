@@ -2,58 +2,6 @@ const width = 1000;
 const height = 562.5;
 const circle = Math.PI * 2;
 
-const koi = [
-  { asset: 1, x: 527, y: 284, rx: 263, ry: 127, phase: 4.25, speed: .101, size: 149, depth: .82 },
-  { asset: 2, x: 488, y: 263, rx: 213, ry: 129, phase: 1.08, speed: -.114, size: 168, depth: .93 },
-  { asset: 0, x: 485, y: 297, rx: 245, ry: 125, phase: 2.53, speed: .111, size: 198, depth: .95 },
-  { asset: 1, x: 576, y: 279, rx: 205, ry: 112, phase: .06, speed: -.092, size: 122, depth: .73 },
-];
-
-function swimAt(fish: (typeof koi)[number], time: number) {
-  const angle = fish.phase + time * fish.speed + Math.sin(time * .36 + fish.phase) * .11;
-  return {
-    x: fish.x + Math.cos(angle) * fish.rx + Math.sin(angle * 2) * 12,
-    y: fish.y + Math.sin(angle) * fish.ry + Math.cos(angle * 3) * 12,
-    angle,
-  };
-}
-
-export function drawKoi(ctx: CanvasRenderingContext2D, fishImages: HTMLImageElement[], time: number) {
-  koi.forEach((fish, i) => {
-    const { x, y, angle } = swimAt(fish, time);
-    const next = swimAt(fish, time + .15);
-    const previous = swimAt(fish, time - .15);
-    const heading = Math.atan2(next.y - previous.y, next.x - previous.x);
-    const sprite = fishImages[fish.asset];
-    const length = fish.size * (1 + Math.sin(angle + i * .7) * .037);
-    const thickness = length * sprite.height / sprite.width;
-    const tail = (u: number) => (Math.sin(time * (3.4 + i * .23) + u * 6.9 + i * 1.7) - Math.sign(fish.speed) * .27)
-      * (1 - u) ** 2.34 * length * .105;
-
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(heading);
-    ctx.globalAlpha = fish.depth + Math.sin(time * .64 + x * .023 + y * .018) * .045;
-    const slices = 26;
-    const slice = length / slices;
-    let previousBend = tail(0);
-    // The head leads the turn, with successive slices following along the spine.
-    for (let j = 0; j < slices; j++) {
-      const u = j / slices;
-      const nextBend = tail((j + 1) / slices);
-      const slope = (nextBend - previousBend) / slice;
-      const left = length * (u - .5);
-      ctx.save();
-      ctx.transform(1, slope, 0, 1, 0, previousBend - slope * left);
-      ctx.drawImage(sprite, u * sprite.width, 0, sprite.width / slices, sprite.height,
-        left, -thickness * .5, slice + .31, thickness);
-      ctx.restore();
-      previousBend = nextBend;
-    }
-    ctx.restore();
-  });
-}
-
 function noise(seed: number) {
   const n = Math.sin(seed * 127.1 + 78.23) * 43758.5453;
   return n - Math.floor(n);

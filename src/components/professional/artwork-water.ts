@@ -1,3 +1,5 @@
+import type { createPondSwim } from "./artwork-pond";
+
 // Texture coordinates run from the upper left, like the photograph and pointer.
 const vertex = `
 attribute vec2 position;
@@ -18,6 +20,9 @@ varying vec2 uv;
 uniform sampler2D photo;
 uniform float time;
 uniform vec4 waves[3];
+uniform vec4 noses[4];
+uniform vec4 wakes[8];
+uniform float wakeAges[8];
 
 void main() {
   // Work in aspect-correct pond coordinates so ripples stay circular.
@@ -37,6 +42,40 @@ void main() {
     float ring = sin(front * 112.) * exp(-abs(front) * 46.) * pulse * impulse.w;
     at += offset / max(radius, .009) * ring * vec2(.008, .013);
     rippleLight += max(ring, 0.) * .106 + min(ring, 0.) * .028;
+  }
+  for (int i = 0; i < 4; ++i) {
+    vec4 nose = noses[i];
+    vec2 offset = p - nose.xy;
+    if (max(abs(offset.x), abs(offset.y)) > .105) continue;
+    vec2 along = vec2(cos(nose.z), sin(nose.z));
+    float ahead = dot(offset, along);
+    float side = dot(offset, vec2(-along.y, along.x));
+    // A short bow wave falls away on either side as the fish displaces water.
+    float front = ahead - .020 + side * side * 9.;
+    float arc = exp(-abs(front) * 204. - (side * side) * 450.);
+    float sway = arc * nose.w * smoothstep(-.047, -.012, ahead);
+    at -= along * sway * vec2(.003, .005);
+    rippleLight += sway * .063;
+  }
+  for (int i = 0; i < 8; ++i) {
+    vec4 wake = wakes[i];
+    float age = wakeAges[i];
+    if (age > 1.28 || abs(wake.w) < .025) continue;
+    vec2 along = vec2(cos(wake.z), sin(wake.z));
+    vec2 across = vec2(-along.y, along.x);
+    vec2 center = wake.xy - along * age * .027
+      + across * sign(wake.w) * (.011 + age * .025);
+    vec2 offset = p - center;
+    float spread = .024 + age * .043;
+    if (max(abs(offset.x), abs(offset.y)) > spread * 2.2) continue;
+    vec2 field = vec2(dot(offset, along) * .76, dot(offset, across));
+    float radius = length(field) / spread;
+    float fade = smoothstep(0., .11, age) * (1. - smoothstep(.26, 1.28, age));
+    float curl = fade * wake.w * exp(-radius * radius * 1.25);
+    at += vec2(-offset.y, offset.x) / spread * curl * vec2(.009, .014);
+    float arc = exp(-abs(radius - .76) * 3.7);
+    float lee = clamp(.57 + dot(offset, -along) / spread, 0., 1.);
+    rippleLight += fade * abs(wake.w) * arc * lee * .088;
   }
   float folded = sin(primary + sin(crossWave * .72) * 1.42) + sin(crossWave);
   float caustic = pow(max(0., 1. - abs(folded) * 1.13), 5.);
@@ -108,13 +147,19 @@ export function createArtworkSurface(canvas: HTMLCanvasElement, source: HTMLCanv
   gl.uniform1i(gl.getUniformLocation(program, "photo"), 0);
   const clock = gl.getUniformLocation(program, "time");
   const impulses = gl.getUniformLocation(program, "waves[0]");
+  const bowPoints = gl.getUniformLocation(program, "noses[0]");
+  const wakePoints = gl.getUniformLocation(program, "wakes[0]");
+  const ages = gl.getUniformLocation(program, "wakeAges[0]");
 
   return {
-    draw(time: number, waves: Float32Array) {
+    draw(time: number, waves: Float32Array, flow: ReturnType<typeof createPondSwim>) {
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, source);
       gl.uniform1f(clock, time);
       gl.uniform4fv(impulses, waves);
+      gl.uniform4fv(bowPoints, flow.noses);
+      gl.uniform4fv(wakePoints, flow.wakes);
+      gl.uniform1fv(ages, flow.wakeAges);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     },
     dispose,

@@ -1,7 +1,8 @@
 import gsap from "gsap";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { drawKoi, drawMeadow, drawPondMotes, makeFireflies } from "./artwork-life";
+import { drawMeadow, drawPondMotes, makeFireflies } from "./artwork-life";
+import { createPondSwim } from "./artwork-pond";
 import { scenicArtworks, type ScenicId } from "./artwork-scenes";
 import { createArtworkSurface } from "./artwork-water";
 
@@ -46,15 +47,17 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
     let disposed = false, ready = false, visible = false, running = false;
     let elapsed = 0, throttle = 0, waveIndex = 0;
     const pond = id === "pond";
+    const swim = pond ? createPondSwim() : null;
 
     function draw() {
       context.clearRect(0, 0, width, height);
-      if (pond && plate) {
+      if (swim && plate) {
         const brush = surface && underwater ? underwater : context;
         brush.drawImage(plate, 0, 0, width, height);
-        drawKoi(brush, life, elapsed);
+        swim.draw(brush, life, elapsed);
+        if (!surface) swim.drawFallbackWake(brush);
         drawPondMotes(brush, elapsed, waves);
-        if (surface) surface.draw(elapsed, waves);
+        surface?.draw(elapsed, waves, swim);
       }
       if (id === "plateau" && plate) {
         context.drawImage(plate, 0, 0, width, height);
