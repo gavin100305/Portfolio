@@ -42,8 +42,10 @@ void main() {
     float arc = exp(-abs(front) * 204. - (side * side) * 450.);
     float sway = arc * nose.w * smoothstep(-.047, -.012, ahead)
       * (1. - smoothstep(.073, .116, extent));
-    displacement -= along * sway * vec2(.006, .010);
-    light += sway * .076;
+    vec2 normal = normalize(along + vec2(-along.y, along.x) * (18. * side));
+    float slope = sway * sin(front * 295.);
+    displacement += normal * slope * vec2(.006, .011);
+    light += slope * dot(normal, vec2(-.56, -.83)) * .26;
   }
   for (int i = 0; i < 8; ++i) {
     vec4 wake = wakes[i];
@@ -62,9 +64,15 @@ void main() {
       * (1. - smoothstep(1.38, 1.66, radius));
     float curl = fade * wake.w * exp(-radius * radius * 1.25);
     displacement += vec2(-offset.y, offset.x) / spread * curl * vec2(.020, .028);
-    float arc = exp(-abs(radius - .76) * 3.7);
-    float lee = clamp(.57 + dot(offset, -along) / spread, 0., 1.);
-    light += fade * abs(wake.w) * arc * lee * .102;
+    // A spreading crest tips the local surface toward the sky on one flank
+    // and away on the other. Both refraction and glints use that same slope.
+    vec2 normal = (.76 * field.x * along + field.y * across) / max(length(field), .0001);
+    float front = radius - .94;
+    float lee = smoothstep(-.65, .62, dot(offset, -along) / spread);
+    float slope = sin(front * 8.) * exp(-front * front * 8.)
+      * fade * abs(wake.w) * lee;
+    displacement += normal * slope * vec2(.006, .011);
+    light += slope * dot(normal, vec2(-.56, -.83)) * .32;
   }
   // Light bends farther on its way to the stone bed than to the shallower koi.
   vec2 floorUV = clamp(uv + displacement * 1.68, .001, .999);
@@ -85,8 +93,8 @@ void main() {
   vec2 reflected = clamp(uv * .82 + .09 + displacement * 3.8, .001, .999);
   float flecks = texture2D(surfacePhoto, reflected).r;
   float reflection = smoothstep(.025, .45, flecks);
-  float silver = reflection * (.13 + light * 2.1);
-  color = mix(color, vec3(.34, .63, .49), clamp(silver, 0., .48));
+  float silver = reflection * (.036 + light * 1.8) + max(light, 0.) * .52;
+  color = mix(color, vec3(.55, .66, .69), clamp(silver, 0., .48));
   gl_FragColor = vec4(color, 1.);
 }
 `;

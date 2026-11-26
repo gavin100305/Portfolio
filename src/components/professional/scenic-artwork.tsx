@@ -69,7 +69,7 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
 
     function tick(_time: number, delta: number) {
       throttle += Math.min(delta, 48);
-      if (throttle < 30) return;
+      if (!pond && throttle < 30) return;
       elapsed += throttle / 1000;
       throttle = 0;
       draw();
