@@ -88,37 +88,3 @@ export function drawMeadow(ctx: CanvasRenderingContext2D, atlas: HTMLImageElemen
     }
   }
 }
-
-const pondMotes = Array.from({ length: 40 }, (_, i) => ({
-  x: noise(i + 300) * width,
-  y: 65 + noise(i + 370) * (height - 60),
-  size: .32 + noise(i + 430) ** 2 * 1.25,
-  pace: 4 + noise(i + 460) * 8,
-  phase: noise(i + 540) * circle,
-}));
-
-export function drawPondMotes(ctx: CanvasRenderingContext2D, time: number, currents: Float32Array) {
-  ctx.save();
-  ctx.fillStyle = "#bee3bb";
-  for (const mote of pondMotes) {
-    const x = (mote.x + time * mote.pace + Math.sin(time * .51 + mote.phase) * 13 + 22) % width;
-    const y = mote.y + Math.sin(time * .36 + mote.phase) * 15;
-    let currentX = 0;
-    let currentY = 0;
-    for (let i = 0; i < currents.length; i += 4) {
-      const age = time - currents[i + 2];
-      if (!currents[i + 3] || age <= 0 || age >= 2.8) continue;
-      const dx = x - currents[i] * width;
-      const dy = y - currents[i + 1] * height;
-      const proximity = Math.exp(-Math.hypot(dx, dy) / 107);
-      const push = Math.sin(Math.PI * age / 2.8) * proximity * .63;
-      currentX += (dx - dy * .75) * push;
-      currentY += (dy + dx * .75) * push;
-    }
-    ctx.globalAlpha = .10 + mote.size * .17;
-    ctx.beginPath();
-    ctx.arc(x + currentX, y + currentY, mote.size, 0, circle);
-    ctx.fill();
-  }
-  ctx.restore();
-}

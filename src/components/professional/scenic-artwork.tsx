@@ -1,7 +1,7 @@
 import gsap from "gsap";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { drawMeadow, drawPondMotes, makeFireflies } from "./artwork-life";
+import { drawMeadow, makeFireflies } from "./artwork-life";
 import { createPondSwim } from "./artwork-pond";
 import { scenicArtworks, type ScenicId } from "./artwork-scenes";
 import { createArtworkSurface } from "./artwork-water";
@@ -39,14 +39,14 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
 
     const root = document.documentElement;
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
-    const waves = new Float32Array(12);
+    const gust = new Float32Array(4);
     let life: HTMLImageElement[] = [];
     let plate: HTMLImageElement | undefined;
     let surface: ReturnType<typeof createArtworkSurface> = null;
     let underwater: CanvasRenderingContext2D | null = null;
     let drawFireflies: ReturnType<typeof makeFireflies> | undefined;
     let disposed = false, ready = false, visible = false, running = false;
-    let elapsed = 0, throttle = 0, waveIndex = 0;
+    let elapsed = 0, throttle = 0;
     const pond = id === "pond";
     const swim = pond ? createPondSwim() : null;
 
@@ -58,12 +58,11 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
         else brush.drawImage(plate, 0, 0, width, height);
         swim.draw(brush, life, elapsed);
         if (!surface) swim.drawFallbackWake(brush);
-        drawPondMotes(brush, elapsed, waves);
-        surface?.draw(elapsed, waves, swim);
+        surface?.draw(swim);
       }
       if (id === "plateau" && plate) {
         context.drawImage(plate, 0, 0, width, height);
-        drawMeadow(context, life[0], elapsed, waves);
+        drawMeadow(context, life[0], elapsed, gust);
       }
       drawFireflies?.(context, elapsed);
     }
@@ -119,10 +118,7 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
     reduced.addEventListener("change", sync);
     syncRef.current = sync;
     pulseRef.current = (x, y) => {
-      if (!running) return;
-      if (id === "grove") return;
-      const index = pond ? (waveIndex++ % 3) * 4 : 0;
-      waves.set([x, y, elapsed, 1], index);
+      if (running && id === "plateau") gust.set([x, y, elapsed, 1]);
     };
 
     const assets = pond
@@ -191,10 +187,10 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
     <Image fill sizes="(max-width: 750px) 100vw, 675px" unoptimized src={scene.image} alt={scene.description} />
     <canvas className="artwork-water" ref={surfaceRef} aria-hidden="true" />
     <canvas className="artwork-life" ref={lifeRef} aria-hidden="true" />
-    {active && isLive && id !== "grove" && <button
+    {active && isLive && id === "plateau" && <button
       type="button"
       className="artwork-interact"
-      aria-label={id === "pond" ? "Send a ripple through the pond" : "Send a gust through the meadow"}
+      aria-label="Send a gust through the meadow"
       onClick={event => {
         const bounds = event.currentTarget.getBoundingClientRect();
         const x = event.detail ? (event.clientX - bounds.x) / bounds.width : .5;
