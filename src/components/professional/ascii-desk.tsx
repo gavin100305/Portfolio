@@ -20,13 +20,12 @@ const fallback = `                         .          +
     |_|                              |_|`;
 
 export function AsciiDesk() {
-  const figureRef = useRef<HTMLElement>(null);
+  const layerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const replayRef = useRef<(() => void) | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const canvas = canvasRef.current, figure = figureRef.current;
+    const canvas = canvasRef.current, figure = layerRef.current;
     if (!canvas || !figure) return;
     const context = canvas.getContext("2d");
     if (!context) return;
@@ -127,17 +126,11 @@ export function AsciiDesk() {
       setReady(true);
       beginReveal();
     });
-    replayRef.current = () => {
-      if (!playing) { beginReveal(); return; }
-      start = performance.now(); finished = false; figure.dataset.revealState = "revealing";
-    };
-    return () => { mounted = false; cancelAnimationFrame(frame); observer.disconnect(); theme.disconnect(); viewport.disconnect(); opening.disconnect(); replayRef.current = null; };
+    return () => { mounted = false; cancelAnimationFrame(frame); observer.disconnect(); theme.disconnect(); viewport.disconnect(); opening.disconnect(); };
   }, []);
 
-  return <figure ref={figureRef} className="ascii-desk" data-ready={ready}>
-    <div className="ascii-art-frame"><div className="ascii-stage">
-      <pre className="ascii-fallback" aria-hidden="true">{fallback}</pre>
-      <canvas ref={canvasRef} role="img" aria-label="Dot art with Gavin Soares written in dots in the upper-left corner beside a retro computer on a desk, with a keyboard, coffee, and a window overlooking a ringed planet. Cobalt blue lights up the terminal and a few stars." />
-    </div></div>
-  </figure>;
+  return <div ref={layerRef} className="ascii-desk-layer" data-ready={ready}>
+    <pre className="ascii-fallback" aria-hidden="true">{fallback}</pre>
+    <canvas ref={canvasRef} role="img" aria-label="Dot art with Gavin Soares written in dots in the upper-left corner beside a retro computer on a desk, with a keyboard, coffee, and a window overlooking a ringed planet. Cobalt blue lights up the terminal and a few stars." />
+  </div>;
 }

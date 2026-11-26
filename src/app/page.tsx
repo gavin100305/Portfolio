@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { DotMonogram } from "@/components/professional/brand";
 import { OpeningIntro } from "@/components/professional/opening-intro";
-import { AsciiDesk } from "@/components/professional/ascii-desk";
+import { ArtworkFrame } from "@/components/professional/artwork-frame";
 import { ThemeToggle } from "@/components/professional/theme-toggle";
 import { TechStack } from "@/components/professional/tech-stack";
 import { ProjectGallery } from "@/components/professional/project-gallery";
@@ -35,7 +35,7 @@ export default function Home() {
       </header>
       <main id="main" className="pb-14 pt-2 sm:pb-20">
         <h1 className="sr-only">Gavin Soares | Full-Stack Developer & Software Engineer Portfolio</h1>
-        <AsciiDesk />
+        <ArtworkFrame />
         <section aria-label="Introduction" className="folio-introduction mx-auto mt-7 w-full max-w-[760px] text-center sm:mt-9">
           <p className="mx-auto max-w-[700px] text-base leading-[1.85] text-folio-muted sm:text-[17px]">I’m a Computer Engineering student in Mumbai. I build full-stack applications, work with AI, and enjoy getting involved in both how a product works and how it looks.</p>
         </section>
