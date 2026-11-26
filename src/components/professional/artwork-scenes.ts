@@ -2,36 +2,39 @@ export const artworkOrder = ["pond", "plateau", "grove", "desk"] as const;
 export type ArtworkId = (typeof artworkOrder)[number];
 export type ScenicId = Exclude<ArtworkId, "desk">;
 
-type Film = {
+type Scene = {
   title: string;
   description: string;
-  file: string;
+  image: string;
   creator: string;
   source: string;
-  license?: string;
+  additionalCredit?: { creator: string; source: string };
 };
 
-export const scenicArtworks: Record<ScenicId, Film> = {
+export const scenicArtworks: Record<ScenicId, Scene> = {
   pond: {
     title: "Koi Pond",
-    description: "Red, white, and golden koi swim through a clear pond viewed from above.",
-    file: "koi-pond",
+    description: "Scarlet, white, and golden koi swim over mossy stones, viewed looking down into the pond.",
+    image: "/artwork/koi-pond.webp",
     creator: "Hideyoshi isai",
     source: "https://www.pexels.com/video/vibrant-koi-fish-swimming-in-a-clear-pond-31421042/",
+    additionalCredit: {
+      creator: "Megan Durkin",
+      source: "https://www.pexels.com/photo/stones-under-shallow-water-24446616/",
+    },
   },
   plateau: {
     title: "Alpine Meadow",
-    description: "Purple wildflowers sway in the breeze beneath a ridge in the Uinta Mountains.",
-    file: "alpine-meadow",
-    creator: "Alex Moliski",
-    source: "https://www.pexels.com/video/wildflowers-in-the-alpine-meadows-27382859/",
+    description: "Yellow wildflowers sway in an alpine meadow beneath layers of blue mountain ridges.",
+    image: "/artwork/alpine-meadow.webp",
+    creator: "landsmann",
+    source: "https://www.pexels.com/photo/flowers-on-meadow-in-mountains-19425581/",
   },
   grove: {
-    title: "Fireflies at Dusk",
-    description: "Fireflies flash briefly over a dark grassy field at dusk.",
-    file: "fireflies-at-dusk",
-    creator: "Mark of Minmark",
-    source: "https://commons.wikimedia.org/wiki/File:FireFlies_short_video.webm",
-    license: "https://creativecommons.org/licenses/by/3.0/",
+    title: "Firefly Grove",
+    description: "Fireflies blink and drift through a backlit woodland of tall trees and ferns.",
+    image: "/artwork/firefly-grove.webp",
+    creator: "Jacob Colvin",
+    source: "https://www.pexels.com/photo/scenic-photo-of-forest-with-sunlight-1757363/",
   },
 };

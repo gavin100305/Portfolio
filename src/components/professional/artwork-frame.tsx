@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type AnimationEvent, type KeyboardEvent } from "react";
+import gsap from "gsap";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { artworkOrder, scenicArtworks, type ArtworkId, type ScenicId } from "./artwork-scenes";
 import { AsciiDesk } from "./ascii-desk";
 import { ScenicArtwork } from "./scenic-artwork";
@@ -18,6 +19,7 @@ export function ArtworkFrame() {
     active: openingArtwork, outgoing: null, reveal: { sequence: 0, direction: 1 },
   });
   const navigation = useRef<{ sequence: number; active: ArtworkId }>({ sequence: 0, active: openingArtwork });
+  const stageRef = useRef<HTMLDivElement>(null);
 
   const selectArtwork = useCallback((id: ArtworkId, direction: -1 | 1, restoring = false) => {
     const pending = navigation.current;
@@ -62,8 +64,8 @@ export function ArtworkFrame() {
   }
 
   const { active, outgoing, reveal } = display;
-  const film = active === "desk" ? null : scenicArtworks[active];
-  const title = film?.title ?? "Retro Desk";
+  const photo = active === "desk" ? null : scenicArtworks[active];
+  const title = photo?.title ?? "Retro Desk";
   const scenes = [outgoing, active].filter((artwork): artwork is ScenicId =>
     !!artwork && artwork !== "desk");
 
@@ -72,22 +74,58 @@ export function ArtworkFrame() {
     return outgoing === id ? "outgoing" : "hidden";
   }
 
-  function finishReveal(event: AnimationEvent<HTMLDivElement>) {
-    if (event.currentTarget !== event.target || !reveal) return;
-    setDisplay(current => current.reveal?.sequence === reveal.sequence
+  useLayoutEffect(() => {
+    const incoming = stageRef.current?.querySelector<HTMLElement>('[data-artwork-layer="entering"]');
+    if (!reveal || !incoming) return;
+    const sequence = reveal.sequence;
+    const onComplete = () => setDisplay(current => current.reveal?.sequence === sequence
       ? { ...current, outgoing: null, reveal: null }
       : current);
-  }
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      queueMicrotask(onComplete);
+      return;
+    }
+
+    const forward = reveal.direction === 1;
+    const art = incoming.querySelector(".artwork-scenic");
+    const timeline = gsap.timeline({ paused: true, onComplete });
+    const animation = gsap.context(() => {
+      gsap.set(incoming, {
+        maskImage: `linear-gradient(${forward ? 105 : 255}deg, #000 39%, transparent 61%)`,
+        maskSize: "285% 100%",
+        maskRepeat: "no-repeat",
+        maskPosition: forward ? "100% 0%" : "0% 0%",
+      });
+      timeline.to(incoming, {
+        maskPosition: forward ? "0% 0%" : "100% 0%",
+        duration: reveal.sequence === 0 ? 1 : .84,
+        ease: "power2.inOut",
+      });
+      if (art) timeline.fromTo(art, { scale: 1.045, filter: "blur(3px)" },
+        { scale: 1, filter: "blur(0px)", duration: .98, ease: "power3.out" }, .02);
+    });
+    const root = document.documentElement;
+    const begin = () => {
+      if (root.dataset.folioIntro !== "pending") timeline.play();
+    };
+    const opening = new MutationObserver(begin);
+    opening.observe(root, { attributes: true, attributeFilter: ["data-folio-intro"] });
+    begin();
+    return () => {
+      opening.disconnect();
+      timeline.kill();
+      animation.revert();
+    };
+  }, [reveal]);
 
   return <figure className="artwork-frame">
     <div className="ascii-art-frame">
-      <div className="ascii-stage" data-direction={reveal?.direction}>
+      <div className="ascii-stage" ref={stageRef}>
         <div
           className="artwork-layer artwork-desk"
           data-artwork-layer={layerFor("desk")}
           hidden={layerFor("desk") === "hidden"}
           aria-hidden={active !== "desk"}
-          onAnimationEnd={active === "desk" ? finishReveal : undefined}
         >
           <AsciiDesk />
         </div>
@@ -97,7 +135,6 @@ export function ArtworkFrame() {
           data-artwork-layer={layerFor(artwork)}
           aria-hidden={artwork !== active}
           inert={artwork !== active}
-          onAnimationEnd={artwork === active ? finishReveal : undefined}
         >
           <ScenicArtwork id={artwork} active={artwork === active} />
         </div>)}
@@ -114,9 +151,9 @@ export function ArtworkFrame() {
         </button>
       </div>
       <div className="artwork-credit">
-        {film && <>
-          Footage by <a href={film.source}>{film.creator}</a>
-          {film.license && <> · <a href={film.license}>CC BY 3.0</a> · edited for looping</>}
+        {photo && <>
+          Images by <a href={photo.source}>{photo.creator}</a>
+          {photo.additionalCredit && <> and <a href={photo.additionalCredit.source}>{photo.additionalCredit.creator}</a></>}
         </>}
       </div>
     </figcaption>
