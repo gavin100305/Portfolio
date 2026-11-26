@@ -1,13 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { artworkOrder, loadArtworkImage, scenicArtworks, type ArtworkId } from "./artwork-scenes";
+import { artworkOrder, loadScenicArtwork, scenicArtworks, type ArtworkId, type ScenicAssets, type ScenicId } from "./artwork-scenes";
 import { AsciiDesk } from "./ascii-desk";
+import { ScenicArtwork } from "./scenic-artwork";
 
 const storageKey = "gavin:artwork";
+type Artwork = { id: "desk" } | { id: ScenicId; assets: ScenicAssets };
 
 export function ArtworkFrame() {
-  const [active, setActive] = useState<ArtworkId>("desk");
+  const [active, setActive] = useState<Artwork>({ id: "desk" });
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const navigation = useRef<{ active: ArtworkId; requested: ArtworkId; sequence: number }>({
@@ -20,8 +22,10 @@ export function ArtworkFrame() {
     pending.requested = id;
     setFailed(false);
     setLoading(id !== "desk" && id !== pending.active);
+    if (id === pending.active) return;
+    let artwork: Artwork;
     try {
-      if (id !== "desk" && id !== pending.active) await loadArtworkImage(scenicArtworks[id].poster);
+      artwork = id === "desk" ? { id } : { id, assets: await loadScenicArtwork(id) };
     } catch {
       if (sequence !== pending.sequence) return;
       pending.requested = pending.active;
@@ -31,7 +35,7 @@ export function ArtworkFrame() {
     }
     if (sequence !== pending.sequence) return;
     pending.active = id;
-    setActive(id);
+    setActive(artwork);
     setLoading(false);
     try { localStorage.setItem(storageKey, id); } catch {}
   }, []);
@@ -64,17 +68,12 @@ export function ArtworkFrame() {
     step(event.key === "ArrowRight" ? 1 : -1);
   }
 
-  const scene = active === "desk" ? null : scenicArtworks[active];
+  const title = active.id === "desk" ? "Retro Desk" : scenicArtworks[active.id].title;
   return <figure className="artwork-frame">
     <div className="ascii-art-frame">
       <div className="ascii-stage" aria-busy={loading}>
-        <div hidden={active !== "desk"}><AsciiDesk /></div>
-        {scene && <div
-          className="artwork-scenic"
-          role="img"
-          aria-label={scene.description}
-          style={{ backgroundImage: `url(${scene.poster})` }}
-        />}
+        <div hidden={active.id !== "desk"}><AsciiDesk /></div>
+        {active.id !== "desk" && <ScenicArtwork key={active.id} id={active.id} assets={active.assets} />}
       </div>
     </div>
     <figcaption className="artwork-caption">
@@ -82,7 +81,7 @@ export function ArtworkFrame() {
         <button type="button" className="artwork-arrow" aria-label="Previous artwork" onClick={() => step(-1)}>
           <span aria-hidden="true">‹</span>
         </button>
-        <span className="artwork-title" role="status">{scene?.title ?? "Retro Desk"}</span>
+        <span className="artwork-title" role="status">{title}</span>
         <button type="button" className="artwork-arrow" aria-label="Next artwork" onClick={() => step(1)}>
           <span aria-hidden="true">›</span>
         </button>

@@ -6,23 +6,23 @@ export const scenicArtworks = {
   pond: {
     title: "Koi Pond",
     poster: "/artwork/koi-pond.webp",
-    description: "A view straight into a jade-green pond, with sunlit stones and white water lilies.",
+    description: "Ivory and red koi swim through a jade-green pond among sunlit stones and white water lilies.",
   },
   plateau: {
     title: "Alpine Plateau",
     poster: "/artwork/alpine-plateau.webp",
-    description: "White, yellow, and purple wildflowers cover a high green plateau beneath the Dolomite peaks.",
+    description: "White, yellow, and purple wildflowers sway across a high green plateau beneath the Dolomite peaks.",
   },
   grove: {
     title: "Firefly Grove",
     poster: "/artwork/firefly-grove.webp",
-    description: "A still woodland pool surrounded by ferns and dark trees at dusk.",
+    description: "Fireflies drift over a still woodland pool surrounded by ferns and dark trees at dusk.",
   },
 } satisfies Record<ScenicId, { title: string; poster: string; description: string }>;
 
 const images = new Map<string, Promise<HTMLImageElement>>();
 
-export function loadArtworkImage(src: string) {
+function loadArtworkImage(src: string) {
   const cached = images.get(src);
   if (cached) return cached;
 
@@ -35,3 +35,13 @@ export function loadArtworkImage(src: string) {
   images.set(src, loaded);
   return loaded;
 }
+
+export function loadScenicArtwork(id: ScenicId) {
+  const poster = loadArtworkImage(scenicArtworks[id].poster);
+  const koi = id === "pond"
+    ? Promise.all(["/artwork/kohaku.webp", "/artwork/sanke.webp"].map(loadArtworkImage))
+    : Promise.resolve([]);
+  return Promise.all([poster, koi]).then(([poster, koi]) => ({ poster, koi }));
+}
+
+export type ScenicAssets = Awaited<ReturnType<typeof loadScenicArtwork>>;
