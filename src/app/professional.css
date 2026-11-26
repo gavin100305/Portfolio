@@ -186,7 +186,9 @@ html[data-folio-intro="pending"] .artwork-layer[data-artwork-layer="entering"] {
 @media (prefers-reduced-motion: reduce) {
   .artwork-frame .artwork-layer[data-artwork-layer="entering"] { mask-image: none; animation-duration: 1ms; }
 }
-.artwork-scenic { position: absolute; inset: 0; background-position: center; background-size: 100% 100%; }
+.artwork-scenic { position: absolute; inset: 0; }
+.artwork-scenic canvas:focus-visible { outline: 2px solid #e1d8ba; outline-offset: -4px; }
+.artwork-scenic canvas[role="button"] { cursor: crosshair; }
 .artwork-caption { display: grid; justify-items: center; gap: 6px; margin-top: 14px; }
 .artwork-controls {
   display: grid;
@@ -218,7 +220,6 @@ html[data-folio-intro="pending"] .artwork-layer[data-artwork-layer="entering"] {
 .artwork-arrow:hover { color: var(--folio-accent); background: var(--folio-key-face); }
 .artwork-arrow:focus-visible { outline: 2px solid var(--folio-accent); outline-offset: -3px; }
 .artwork-arrow:active { box-shadow: inset 0 2px 5px var(--folio-frame-recess); }
-.artwork-error { margin: 0; color: var(--folio-muted); font-size: 12px; }
 .folio-introduction { animation: folio-copy-in .85s .15s both; }
 .folio-project-board { position: relative; isolation: isolate; height: 440px; margin-top: 25px; }
 .folio-project-print {

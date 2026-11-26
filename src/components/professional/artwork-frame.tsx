@@ -1,52 +1,32 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type AnimationEvent, type KeyboardEvent } from "react";
-import { artworkOrder, loadScenicArtwork, scenicArtworks, type ArtworkId, type ScenicAssets, type ScenicId } from "./artwork-scenes";
+import { artworkOrder, scenicArtworks, type ArtworkId, type ScenicId } from "./artwork-scenes";
 import { AsciiDesk } from "./ascii-desk";
 import { ScenicArtwork } from "./scenic-artwork";
 
 const storageKey = "gavin:artwork";
-type Artwork = { id: "desk" } | { id: ScenicId; assets: ScenicAssets };
 type Display = {
-  active: Artwork;
-  outgoing: Artwork | null;
+  active: ArtworkId;
+  outgoing: ArtworkId | null;
   reveal: { sequence: number; direction: -1 | 1 } | null;
 };
 
 export function ArtworkFrame() {
-  const [display, setDisplay] = useState<Display>({ active: { id: "desk" }, outgoing: null, reveal: null });
-  const [loading, setLoading] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const navigation = useRef<{ active: ArtworkId; requested: ArtworkId; sequence: number }>({
-    active: "desk", requested: "desk", sequence: 0,
-  });
+  const [display, setDisplay] = useState<Display>({ active: "desk", outgoing: null, reveal: null });
+  const navigation = useRef({ sequence: 0, active: "desk" as ArtworkId });
 
-  const selectArtwork = useCallback(async (id: ArtworkId, direction: -1 | 1, restoring = false) => {
+  const selectArtwork = useCallback((id: ArtworkId, direction: -1 | 1, restoring = false) => {
     const pending = navigation.current;
-    const sequence = ++pending.sequence;
-    pending.requested = id;
-    setFailed(false);
-    setLoading(id !== "desk" && id !== pending.active);
     if (id === pending.active) return;
-    let artwork: Artwork;
-    try {
-      artwork = id === "desk" ? { id } : { id, assets: await loadScenicArtwork(id) };
-    } catch {
-      if (sequence !== pending.sequence) return;
-      pending.requested = pending.active;
-      setLoading(false);
-      setFailed(!restoring);
-      return;
-    }
-    if (sequence !== pending.sequence) return;
+    const sequence = ++pending.sequence;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     pending.active = id;
     setDisplay(previous => ({
-      active: artwork,
-      outgoing: reducedMotion || restoring || previous.active.id === id ? null : previous.active,
+      active: id,
+      outgoing: reducedMotion || restoring || previous.active === id ? null : previous.active,
       reveal: reducedMotion ? null : { sequence, direction },
     }));
-    setLoading(false);
     try { localStorage.setItem(storageKey, id); } catch {}
   }, []);
 
@@ -59,7 +39,7 @@ export function ArtworkFrame() {
       try {
         const saved = localStorage.getItem(storageKey);
         const artwork = artworkOrder.find(id => id === saved);
-        if (artwork && artwork !== "desk") void selectArtwork(artwork, 1, true);
+        if (artwork && artwork !== "desk") selectArtwork(artwork, 1, true);
       } catch {}
     });
     return () => {
@@ -68,8 +48,8 @@ export function ArtworkFrame() {
   }, [selectArtwork]);
 
   function step(direction: -1 | 1) {
-    const index = artworkOrder.indexOf(navigation.current.requested);
-    void selectArtwork(artworkOrder[(index + direction + artworkOrder.length) % artworkOrder.length], direction);
+    const index = artworkOrder.indexOf(navigation.current.active);
+    selectArtwork(artworkOrder[(index + direction + artworkOrder.length) % artworkOrder.length], direction);
   }
 
   function handleArrowKey(event: KeyboardEvent) {
@@ -79,13 +59,13 @@ export function ArtworkFrame() {
   }
 
   const { active, outgoing, reveal } = display;
-  const title = active.id === "desk" ? "Retro Desk" : scenicArtworks[active.id].title;
-  const scenes = [outgoing, active].filter((artwork): artwork is Extract<Artwork, { id: ScenicId }> =>
-    !!artwork && artwork.id !== "desk");
+  const title = active === "desk" ? "Retro Desk" : scenicArtworks[active].title;
+  const scenes = [outgoing, active].filter((artwork): artwork is ScenicId =>
+    !!artwork && artwork !== "desk");
 
   function layerFor(id: ArtworkId) {
-    if (active.id === id) return reveal ? "entering" : "current";
-    return outgoing?.id === id ? "outgoing" : "hidden";
+    if (active === id) return reveal ? "entering" : "current";
+    return outgoing === id ? "outgoing" : "hidden";
   }
 
   function finishReveal(event: AnimationEvent<HTMLDivElement>) {
@@ -97,24 +77,25 @@ export function ArtworkFrame() {
 
   return <figure className="artwork-frame">
     <div className="ascii-art-frame">
-      <div className="ascii-stage" data-direction={reveal?.direction} aria-busy={loading}>
+      <div className="ascii-stage" data-direction={reveal?.direction}>
         <div
           className="artwork-layer artwork-desk"
           data-artwork-layer={layerFor("desk")}
           hidden={layerFor("desk") === "hidden"}
-          aria-hidden={active.id !== "desk"}
-          onAnimationEnd={active.id === "desk" ? finishReveal : undefined}
+          aria-hidden={active !== "desk"}
+          onAnimationEnd={active === "desk" ? finishReveal : undefined}
         >
           <AsciiDesk />
         </div>
         {scenes.map(artwork => <div
-          key={artwork.id}
+          key={artwork}
           className="artwork-layer"
-          data-artwork-layer={layerFor(artwork.id)}
-          aria-hidden={artwork.id !== active.id}
-          onAnimationEnd={artwork.id === active.id ? finishReveal : undefined}
+          data-artwork-layer={layerFor(artwork)}
+          aria-hidden={artwork !== active}
+          inert={artwork !== active}
+          onAnimationEnd={artwork === active ? finishReveal : undefined}
         >
-          <ScenicArtwork id={artwork.id} assets={artwork.assets} />
+          <ScenicArtwork id={artwork} />
         </div>)}
       </div>
     </div>
@@ -128,7 +109,6 @@ export function ArtworkFrame() {
           <span aria-hidden="true">›</span>
         </button>
       </div>
-      {failed && <p className="artwork-error" role="status">Couldn’t load that artwork. Try again.</p>}
     </figcaption>
   </figure>;
 }
