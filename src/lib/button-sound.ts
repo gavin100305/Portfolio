@@ -49,3 +49,25 @@ export function playButtonSound(phase: SoundPhase, index = 0) {
     // Button interactions still work when browser audio is unavailable.
   });
 }
+
+export function unlockDialSound() {
+  const loaded = loadSample();
+  if (loaded?.context.state === "suspended") void loaded.context.resume().catch(() => {});
+}
+
+export function playDialTick(index: number) {
+  const loaded = loadSample();
+  if (!loaded) return;
+  void Promise.all([loaded.context.resume(), loaded.buffer]).then(([, buffer]) => {
+    const ctx = loaded.context;
+    const source = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    source.buffer = buffer;
+    source.playbackRate.value = 1.7;
+    gain.gain.setValueAtTime(.55, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .035);
+    source.connect(gain).connect(ctx.destination);
+    source.start(0, strokes.down[index % strokes.down.length][0], .06);
+    source.onended = () => { source.disconnect(); gain.disconnect(); };
+  }).catch(() => {});
+}

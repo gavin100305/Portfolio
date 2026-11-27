@@ -1,5 +1,6 @@
 "use client";
 
+import { playDialTick, unlockDialSound } from "@/lib/button-sound";
 import gsap from "gsap";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { artworkOrder, scenicArtworks, type ArtworkId, type ScenicId } from "./artwork-scenes";
@@ -21,17 +22,15 @@ export function ArtworkFrame() {
   const navigation = useRef<{ sequence: number; active: ArtworkId }>({ sequence: 0, active: openingArtwork });
   const stageRef = useRef<HTMLDivElement>(null);
 
-  const selectArtwork = useCallback((id: ArtworkId, direction: -1 | 1, restoring = false) => {
+  const selectArtwork = useCallback((id: ArtworkId, fromDial = true) => {
     const pending = navigation.current;
     if (id === pending.active) return;
     const sequence = ++pending.sequence;
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const outgoing = pending.active;
     pending.active = id;
-    setDisplay(previous => ({
-      active: id,
-      outgoing: reducedMotion || restoring || previous.active === id ? null : previous.active,
-      reveal: reducedMotion ? null : { sequence, direction },
-    }));
+    if (fromDial) playDialTick(artworkOrder.indexOf(id));
+    const fade = fromDial && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setDisplay({ active: id, outgoing: fade ? outgoing : null, reveal: fade ? { sequence, direction: 1 } : null });
     try { localStorage.setItem(storageKey, id); } catch {}
   }, []);
 
@@ -44,7 +43,7 @@ export function ArtworkFrame() {
       try {
         const saved = localStorage.getItem(storageKey);
         const artwork = artworkOrder.find(id => id === saved);
-        if (artwork) selectArtwork(artwork, 1, true);
+        if (artwork) selectArtwork(artwork, false);
       } catch {}
     });
     return () => {
@@ -54,9 +53,10 @@ export function ArtworkFrame() {
 
   function step(direction: -1 | 1) {
     const index = artworkOrder.indexOf(navigation.current.active);
-    selectArtwork(artworkOrder[(index + direction + artworkOrder.length) % artworkOrder.length], direction);
+    selectArtwork(artworkOrder[(index + direction + artworkOrder.length) % artworkOrder.length]);
   }
 
+  const drag = useRef<{ x: number; index: number; moved: boolean } | null>(null);
   function handleArrowKey(event: KeyboardEvent) {
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
     event.preventDefault();
@@ -86,6 +86,11 @@ export function ArtworkFrame() {
       return;
     }
 
+    if (sequence > 0) {
+      const fade = gsap.fromTo(incoming, { opacity: 0 }, { opacity: 1, duration: .26, ease: "sine.inOut",
+        clearProps: "opacity", onComplete });
+      return () => { fade.revert(); };
+    }
     const forward = reveal.direction === 1;
     const art = incoming.querySelector(".artwork-scenic");
     const timeline = gsap.timeline({ paused: true, onComplete });
@@ -142,22 +147,54 @@ export function ArtworkFrame() {
     </div>
     <figcaption className="artwork-caption">
       <div className="artwork-controls" role="group" aria-label="Choose artwork" onKeyDown={handleArrowKey}>
-        <button type="button" className="artwork-arrow" aria-label="Previous artwork" onClick={() => step(-1)}>
-          <span aria-hidden="true">‹</span>
-        </button>
+        <div className="artwork-dial" role="slider" tabIndex={0} aria-label="Artwork dial"
+          aria-valuemin={1} aria-valuemax={artworkOrder.length}
+          aria-valuenow={artworkOrder.indexOf(active) + 1} aria-valuetext={title}
+          onKeyDown={event => {
+            if (event.key === "Home" || event.key === "End") {
+              event.preventDefault();
+              selectArtwork(artworkOrder[event.key === "Home" ? 0 : artworkOrder.length - 1]);
+            }
+          }}
+          onPointerDown={event => {
+            if (!event.isPrimary || event.button !== 0) return;
+            unlockDialSound();
+            event.currentTarget.setPointerCapture(event.pointerId);
+            drag.current = { x: event.clientX, index: artworkOrder.indexOf(navigation.current.active), moved: false };
+          }}
+          onPointerMove={event => {
+            const start = drag.current;
+            if (!start || !event.currentTarget.hasPointerCapture(event.pointerId)) return;
+            const dx = event.clientX - start.x;
+            if (Math.abs(dx) > 3) start.moved = true;
+            event.currentTarget.style.setProperty("--roll", `${start.index * 18 + dx}px`);
+            const index = start.index + Math.round(dx / 18);
+            selectArtwork(artworkOrder[((index % artworkOrder.length) + artworkOrder.length) % artworkOrder.length]);
+          }}
+          onPointerUp={event => {
+            if (!drag.current || !event.currentTarget.hasPointerCapture(event.pointerId)) return;
+            unlockDialSound();
+            if (!drag.current.moved) {
+              const rect = event.currentTarget.getBoundingClientRect();
+              step(event.clientX < rect.left + rect.width / 2 ? -1 : 1);
+            }
+          }}
+          onLostPointerCapture={event => {
+            drag.current = null;
+            event.currentTarget.style.removeProperty("--roll");
+          }}
+        >
+          <span aria-hidden="true" className="artwork-barrel"
+            style={{ backgroundPositionX: `0px, var(--roll, ${artworkOrder.indexOf(active) * 18}px), 0px` }} />
+        </div>
         <span className="artwork-title" role="status">{title}</span>
-        <button type="button" className="artwork-arrow" aria-label="Next artwork" onClick={() => step(1)}>
-          <span aria-hidden="true">›</span>
-        </button>
       </div>
-      <div className="artwork-credit">
-        {photo && <>
+      {photo?.source && <div className="artwork-credit">
           Images by <a href={photo.source}>{photo.creator}</a>
           {photo.additionalCredits?.map((credit, index, credits) => <span key={credit.source}>
             {index === credits.length - 1 ? " and " : ", "}<a href={credit.source}>{credit.creator}</a>
           </span>)}
-        </>}
-      </div>
+      </div>}
     </figcaption>
   </figure>;
 }

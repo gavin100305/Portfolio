@@ -1,7 +1,7 @@
 import gsap from "gsap";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { drawMeadow, makeFireflies } from "./artwork-life";
+import { drawCreek, drawMeadow, makeFireflies } from "./artwork-life";
 import { createPondSwim } from "./artwork-pond";
 import { scenicArtworks, type ScenicId } from "./artwork-scenes";
 import { createArtworkSurface } from "./artwork-water";
@@ -12,6 +12,8 @@ const pondSources = [
   "/artwork/pond-water.webp", "/artwork/pond-reflections.webp",
   "/artwork/kohaku.webp", "/artwork/sanke.webp", "/artwork/ogon.webp",
 ];
+
+const grounds = { plateau: "/artwork/poppy-field-ground.webp", grove: scenicArtworks.grove.image };
 
 function loadImage(src: string) {
   const image = new window.Image();
@@ -42,6 +44,7 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
     const gust = new Float32Array(4);
     let life: HTMLImageElement[] = [];
     let plate: HTMLImageElement | undefined;
+    let reflectionImage: HTMLImageElement | undefined;
     let surface: ReturnType<typeof createArtworkSurface> = null;
     let underwater: CanvasRenderingContext2D | null = null;
     let drawFireflies: ReturnType<typeof makeFireflies> | undefined;
@@ -58,8 +61,17 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
         else brush.drawImage(plate, 0, 0, width, height);
         swim.draw(brush, life, elapsed);
 
-        if (surface) surface.draw(swim);
+        if (surface) surface.draw(swim, elapsed);
         else if (underwater) {
+          if (reflectionImage) {
+            // Drift the photographed highlights over both the bed and the koi.
+            brush.save();
+            brush.globalCompositeOperation = "soft-light";
+            brush.globalAlpha = .34;
+            brush.drawImage(reflectionImage, -20 + 13 * Math.sin(elapsed * .44),
+              -14 + 9 * Math.cos(elapsed * .39), width + 40, height + 28);
+            brush.restore();
+          }
           // Shade the same simulated surface on devices without WebGL.
           const image = swim.normals;
           const pixels = image.data;
@@ -74,11 +86,13 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
           brush.drawImage(underwater.canvas, 0, 0, image.width, image.height, 0, 0, width, height);
         }
       }
-      if (id === "plateau" && plate) {
-        context.drawImage(plate, 0, 0, width, height);
-        drawMeadow(context, life[0], elapsed, gust);
+      if (!pond && plate) {
+        if (id === "plateau") drawMeadow(context, life[0], life[1], elapsed, gust);
+        else {
+          drawCreek(context, life[0], elapsed);
+          drawFireflies?.(context, elapsed);
+        }
       }
-      drawFireflies?.(context, elapsed);
     }
 
     function tick(_time: number, delta: number) {
@@ -137,15 +151,16 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
 
     const assets = pond
       ? Promise.all(pondSources.map(loadImage))
-      : id === "plateau"
-        ? Promise.all(["/artwork/meadow-ground.webp", "/artwork/meadow-plants.webp"].map(loadImage))
-        : Promise.resolve([]);
+      : Promise.all((id === "plateau"
+        ? [grounds.plateau, "/artwork/poppy-hills-plants.webp", "/artwork/poppy-field-stems.webp"]
+        : [grounds.grove, "/artwork/creek-glints.webp"]).map(loadImage));
     void assets.then(([base, ...subjects]) => {
       if (disposed) return;
       if (base) {
         plate = base;
         if (pond) {
           const [reflections, ...fish] = subjects;
+          reflectionImage = reflections;
           life = fish;
           const composition = document.createElement("canvas");
           composition.width = 1024;
@@ -156,11 +171,12 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
             surface = createArtworkSurface(waterCanvas, composition, base, reflections);
             if (surface) waterCanvas.dataset.ready = "true";
           }
-        } else life = subjects;
-      } else {
-        drawFireflies = makeFireflies();
+        } else {
+          life = subjects;
+          if (id === "grove") drawFireflies = makeFireflies();
+        }
       }
-      ready = Boolean(plate || drawFireflies);
+      ready = Boolean(plate);
       if (!ready) return;
       resize();
       setIsLive(true);
@@ -198,7 +214,7 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
   }
 
   return <div ref={wrapperRef} className="artwork-scenic">
-    <Image fill sizes="(max-width: 750px) 100vw, 675px" unoptimized src={scene.image} alt={scene.description} />
+    <Image fill sizes="(max-width: 750px) 100vw, 675px" unoptimized src={isLive && id !== "pond" ? grounds[id] : scene.image} alt={scene.description} />
     <canvas className="artwork-water" ref={surfaceRef} aria-hidden="true" />
     <canvas className="artwork-life" ref={lifeRef} aria-hidden="true" />
     {active && isLive && id === "plateau" && <button
