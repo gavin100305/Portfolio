@@ -2,7 +2,7 @@
 
 import { createContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { makePageSnow } from "./page-artwork-snow";
-import type { ArtworkId } from "./artwork-scenes";
+import { openingArtwork, type ArtworkId } from "./artwork-scenes";
 import { makePageFlowers } from "./page-artwork-flowers";
 import {
   loadArtworkImage, loadContourPoints, makePageFireflies, makePagePond,
@@ -19,10 +19,10 @@ type ActiveLayer = {
 };
 
 export function PageArtwork({ children }: { children: ReactNode }) {
-  const [artwork, selectArtwork] = useState<ArtworkId>("pond");
+  const [artwork, selectArtwork] = useState<ArtworkId>(openingArtwork);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const flowerLayer = useRef<HTMLDivElement>(null);
-  const desired = useRef<ArtworkId>("pond");
+  const desired = useRef<ArtworkId>(openingArtwork);
   const resume = useRef<() => void>(() => {});
 
   useEffect(() => {

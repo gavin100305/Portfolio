@@ -1,4 +1,5 @@
-export const artworkOrder = ["pond", "plateau", "grove", "snow", "desk"] as const;
+export const artworkOrder = ["desk", "pond", "plateau", "grove", "snow"] as const;
+export const openingArtwork = artworkOrder[0];
 export type ArtworkId = (typeof artworkOrder)[number];
 export type ScenicId = Exclude<ArtworkId, "desk">;
 

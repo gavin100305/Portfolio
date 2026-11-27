@@ -2,14 +2,12 @@
 
 import { playDialTick, unlockDialSound } from "@/lib/button-sound";
 import gsap from "gsap";
-import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
-import { artworkOrder, scenicArtworks, type ArtworkId, type ScenicId } from "./artwork-scenes";
+import { useContext, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
+import { artworkOrder, openingArtwork, scenicArtworks, type ArtworkId, type ScenicId } from "./artwork-scenes";
 import { PageArtworkSelection } from "./page-artwork";
 import { AsciiDesk } from "./ascii-desk";
 import { ScenicArtwork } from "./scenic-artwork";
 
-const storageKey = "gavin:artwork";
-const openingArtwork = artworkOrder[0];
 type Display = {
   active: ArtworkId;
   outgoing: ArtworkId | null;
@@ -24,35 +22,17 @@ export function ArtworkFrame() {
   const selectPageArtwork = useContext(PageArtworkSelection);
   const stageRef = useRef<HTMLDivElement>(null);
 
-  const selectArtwork = useCallback((id: ArtworkId, fromDial = true) => {
+  function selectArtwork(id: ArtworkId) {
     const pending = navigation.current;
     if (id === pending.active) return;
     const sequence = ++pending.sequence;
     const outgoing = pending.active;
     pending.active = id;
     selectPageArtwork(id);
-    if (fromDial) playDialTick(artworkOrder.indexOf(id));
-    const fade = fromDial && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+    playDialTick(artworkOrder.indexOf(id));
+    const fade = !matchMedia("(prefers-reduced-motion: reduce)").matches;
     setDisplay({ active: id, outgoing: fade ? outgoing : null, reveal: fade ? { sequence, direction: 1 } : null });
-    try { localStorage.setItem(storageKey, id); } catch {}
-  }, [selectPageArtwork]);
-
-  useEffect(() => {
-    const pending = navigation.current;
-    const initialRequest = pending.sequence;
-    // Restore only after hydration so the server and client start with the same scene.
-    queueMicrotask(() => {
-      if (pending.sequence !== initialRequest) return;
-      try {
-        const saved = localStorage.getItem(storageKey);
-        const artwork = artworkOrder.find(id => id === saved);
-        if (artwork) selectArtwork(artwork, false);
-      } catch {}
-    });
-    return () => {
-      pending.sequence++;
-    };
-  }, [selectArtwork]);
+  }
 
   function step(direction: -1 | 1) {
     const index = artworkOrder.indexOf(navigation.current.active);
