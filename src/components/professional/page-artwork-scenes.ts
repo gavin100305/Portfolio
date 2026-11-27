@@ -18,6 +18,11 @@ export async function loadArtworkImage(src: string) {
   return image;
 }
 
+function noise(seed: number) {
+  const value = Math.sin(seed * 127.1 + 78.23) * 43758.5453;
+  return value - Math.floor(value);
+}
+
 export function makePagePond(images: HTMLImageElement[], view: ArtworkViewport): PageScene {
   const scale = .72;
   const margin = (view.width - 800) / 2;
@@ -59,6 +64,42 @@ export function makePagePond(images: HTMLImageElement[], view: ArtworkViewport):
       ctx.globalAlpha = opacity;
       ctx.drawImage(wake, left, 0, laneWidth, bounds.height);
       ctx.globalAlpha = 1;
+    }
+  } };
+}
+
+export function makePageFireflies(): PageScene {
+  const flies = Array.from({ length: 102 }, (_, i) => ({
+    x: noise(i), y: noise(i + 71), depth: noise(i + 140), timing: noise(i + 215),
+  }));
+  const lantern = document.createElement("canvas");
+  lantern.width = lantern.height = 48;
+  const brush = lantern.getContext("2d")!;
+  const glow = brush.createRadialGradient(24, 24, 0, 24, 24, 24);
+  glow.addColorStop(0, "#fff9bc");
+  glow.addColorStop(.19, "#e6d964bd");
+  glow.addColorStop(.49, "#cfb73136");
+  glow.addColorStop(1, "#cfb73100");
+  brush.fillStyle = glow;
+  brush.fillRect(0, 0, 48, 48);
+
+  return { draw(ctx, view, time, opacity) {
+    for (const fly of flies) {
+      const clock = time / (2.7 + fly.timing * 2.6) + fly.timing * 7;
+      const age = clock % 1 - (.12 + .43 * noise(Math.floor(clock) + fly.timing * 106));
+      if (age < 0 || age > .4) continue;
+      const flash = (1 - Math.exp(-age * 95)) * Math.exp(-age * 6.4) * (1 - (age / .4) ** 2);
+      const phase = time * (.23 + fly.depth * .26) + fly.timing * 24;
+      const drift = 21 + fly.depth * 60;
+      const x = fly.x * view.width + drift * (Math.sin(phase) + .24 * Math.sin(phase * 2.3));
+      const y = fly.y * view.height + drift * (.7 * Math.cos(phase * .72) + .25 * Math.sin(phase * 1.6));
+      const size = 5 + 12 * fly.depth ** 2;
+      ctx.globalAlpha = Math.min(1, opacity * flash * (1 + .65 * fly.depth));
+      ctx.drawImage(lantern, x - size, y - size, size * 2, size * 2);
+      ctx.fillStyle = view.dark ? "#fff5b1" : "#806300";
+      ctx.beginPath();
+      ctx.arc(x, y, 1 + 1.25 * fly.depth, 0, Math.PI * 2);
+      ctx.fill();
     }
   } };
 }
