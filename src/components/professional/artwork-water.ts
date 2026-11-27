@@ -21,13 +21,22 @@ uniform sampler2D floorPhoto;
 uniform sampler2D koiLayer;
 uniform sampler2D surfacePhoto;
 uniform sampler2D normals;
+uniform float time;
 
 void main() {
   vec2 slope = (texture2D(normals, uv).rg * 255. - 128.) / 128.;
+  // Slowly advect the photographed surface relief. Its uneven gradients keep
+  // sheltered patches quiet while the local wake travels past them.
+  vec2 drift = vec2(sin(time * .19 + uv.y * 4.), cos(time * .14 + uv.x * 3.));
+  vec2 surfaceUV = uv + .016 * drift;
+  float reliefHere = texture2D(surfacePhoto, surfaceUV).r;
+  vec2 reliefSlope = vec2(texture2D(surfacePhoto, surfaceUV + vec2(.008, 0.)).r,
+                         texture2D(surfacePhoto, surfaceUV + vec2(0., .014)).r) - reliefHere;
+  slope += reliefSlope * .34;
   vec2 bend = slope * vec2(.019, .034);
   vec3 bed = texture2D(floorPhoto, uv + bend * 1.45).rgb;
   // Low-frequency surface relief also refracts a fish as it crosses still water.
-  float relief = texture2D(surfacePhoto, uv).r - .5;
+  float relief = reliefHere - .5;
   vec2 throughWater = uv + bend + relief * vec2(.0022, -.0034);
   vec2 blur = vec2(.00085, .0015);
   vec4 fish = .52 * texture2D(koiLayer, throughWater)
@@ -41,7 +50,7 @@ void main() {
   // reflections cross the markings, with highlights tilted by the local wake.
   vec3 submerged = fish.rgb * vec3(.82, .88, .88) + vec3(.021, .067, .088) * fish.a;
   vec3 color = bed * (1. - fish.a) + submerged;
-  float sky = texture2D(surfacePhoto, uv + bend * 3.8).r;
+  float sky = texture2D(surfacePhoto, surfaceUV + bend * 2.1).r;
   float facing = dot(slope, vec2(-.54, -.84));
   float reflection = clamp(.024 + .115 * sky + facing * .20, .008, .29);
   color *= 1. + .13 * facing + (sky - .5) * .055;
@@ -124,10 +133,12 @@ export function createArtworkSurface(
   gl.uniform1i(gl.getUniformLocation(program, "floorPhoto"), 1);
   gl.uniform1i(gl.getUniformLocation(program, "surfacePhoto"), 2);
   gl.uniform1i(gl.getUniformLocation(program, "normals"), 3);
+  const clock = gl.getUniformLocation(program, "time");
   let allocated = false;
 
   return {
-    draw(flow: ReturnType<typeof createPondSwim>) {
+    draw(flow: ReturnType<typeof createPondSwim>, time: number) {
+      gl.uniform1f(clock, time);
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, fish);
       gl.activeTexture(gl.TEXTURE3);

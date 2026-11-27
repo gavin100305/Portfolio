@@ -8,6 +8,10 @@ const shoulder = 9;
 
 // Positions are at the shoulder; dorsal photographs run from tail to nose.
 const koi = [
+  { asset: 2, x: 645, y: 70, heading: .82, size: 83, frequency: 1.24, seed: .83, opacity: .55 },
+  { asset: 0, x: 342, y: 352, heading: 2.48, size: 91, frequency: 1.36, seed: .56, opacity: .60 },
+  { asset: 1, x: 898, y: 192, heading: -.95, size: 97, frequency: 1.18, seed: .96, opacity: .67 },
+  { asset: 2, x: 120, y: 478, heading: -.25, size: 104, frequency: 1.09, seed: .19, opacity: .72 },
   { asset: 1, x: 435, y: 180, heading: 2.85, size: 105, frequency: 1.15, seed: .44, opacity: .78 },
   { asset: 1, x: 573, y: 349, heading: -.32, size: 120, frequency: 1.02, seed: .09, opacity: .84 },
   { asset: 2, x: 756, y: 312, heading: 2.3, size: 165, frequency: .93, seed: .71, opacity: .91 },
@@ -46,20 +50,23 @@ export function createPondSwim() {
       const forwardX = Math.cos(heading), forwardY = Math.sin(heading);
       const lookX = fish.x + forwardX * fish.size * .88;
       const lookY = fish.y + forwardY * fish.size * .88;
-      let steerX = Math.max(0, (238 - lookX) / 68) - Math.max(0, (lookX - 762) / 68);
-      let steerY = Math.max(0, (177 - lookY) / 52) - Math.max(0, (lookY - 385) / 52);
+      const margin = fish.size * .72 + 12;
+      let steerX = (Math.max(0, margin - lookX) - Math.max(0, lookX - (1000 - margin))) / 38;
+      let steerY = (Math.max(0, margin - lookY) - Math.max(0, lookY - (562.5 - margin))) / 38;
       for (const [j, [x, y]] of positions.entries()) {
         if (j === i) continue;
         const dx = lookX - x, dy = lookY - y;
         const range = Math.max(1, Math.hypot(dx, dy));
-        const avoid = Math.max(0, 1 - range / (fish.size * .83));
+        const proximity = Math.max(0, 1 - range / (fish.size * .83));
+        const sameDepth = Math.exp(-8 * Math.abs(fish.opacity - swimmers[j].opacity));
+        const avoid = proximity * sameDepth;
         steerX += avoid * dx / range;
         steerY += avoid * dy / range;
       }
       // Near a bank, keep steering toward open water until the shoulder clears
       // the margin. Looking ahead alone can release a turn too early.
-      steerX += (Math.max(0, 210 - fish.x) - Math.max(0, fish.x - 790)) / 40;
-      steerY += (Math.max(0, 145 - fish.y) - Math.max(0, fish.y - 417)) / 32;
+      steerX += (Math.max(0, margin - fish.x) - Math.max(0, fish.x - (1000 - margin))) / 40;
+      steerY += (Math.max(0, margin - fish.y) - Math.max(0, fish.y - (562.5 - margin))) / 32;
       const wander = Math.sin(.39 * time + fish.seed * 15) * .22
         + Math.sin(.14 * time + fish.seed * 29) * .19;
       const side = forwardX * steerY - forwardY * steerX;
@@ -69,7 +76,7 @@ export function createPondSwim() {
       const bearing = Math.atan2(side + .04 * Math.sin(fish.seed * 15), .58 + ahead);
       const desiredTurn = wander + (ahead < -.68 && Math.abs(side) < .35 && Math.abs(fish.turn) > .09
         ? Math.sign(fish.turn) * Math.abs(bearing) : bearing);
-      const turnLimit = .28 + 1.75 * fish.speed / fish.size;
+      const turnLimit = .46 + 1.45 * fish.speed / fish.size;
       fish.turn += (Math.max(-turnLimit, Math.min(turnLimit, desiredTurn)) - fish.turn) * dt * 2.2;
 
       const burst = Math.sin(time * (1.24 + fish.seed * .24) + fish.seed * 14)
@@ -78,7 +85,7 @@ export function createPondSwim() {
       fish.effort += (effort - fish.effort) * dt * 3.6;
       fish.phase += tau * fish.frequency * (.69 + .46 * fish.effort) * dt;
       fish.heading += fish.turn * dt;
-      const bend = Math.tanh(fish.turn * 2.2) * 1.17;
+      const bend = Math.tanh(fish.turn / (.23 + fish.speed / fish.size)) * 1.35;
       const joints = bodyAt(fish, fish.x, fish.y, fish.heading, bend, fish.phase, fish.effort);
 
       // Tail velocity relative to the shoulder supplies thrust. During recovery
@@ -94,13 +101,20 @@ export function createPondSwim() {
       fish.x += dx;
       fish.y += dy;
       fish.joints = joints.map(([x, y]): Point => [x + dx, y + dy]);
-      // The shoulder parts water, the flank carries it, and the narrow tail
-      // sweeps it sideways. Use actual joint velocities, including in turns.
-      for (const [joint, radius] of [[4, .080], [15, .068], [27, .047], [32, .033]]) {
-        const [x, y] = fish.joints[joint];
-        const [px, py] = previous[joint];
-        ripples.push(x, y, (x - px) / dt, (y - py) / dt, fish.size * radius);
+      // Forward travel displaces water outward on either side of the head.
+      // The tail sheds a reversing lateral pulse as it flexes across the spine.
+      const wake = fish.opacity ** 4;
+      const normalX = -Math.sin(fish.heading), normalY = Math.cos(fish.heading);
+      const [bowX, bowY] = fish.joints[5];
+      for (const side of [-1, 1]) {
+        const offset = side * fish.size * .065;
+        ripples.push(bowX + normalX * offset, bowY + normalY * offset,
+          wake * fish.speed * (.35 * forwardX + side * normalX),
+          wake * fish.speed * (.35 * forwardY + side * normalY), fish.size * .092);
       }
+      const [tailX, tailY] = fish.joints[links];
+      ripples.push(tailX, tailY, wake * lateral * normalX, wake * lateral * normalY,
+        Math.max(6, fish.size * .058));
     }
   }
 

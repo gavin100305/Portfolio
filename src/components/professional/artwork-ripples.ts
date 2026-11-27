@@ -29,7 +29,7 @@ export function createPondRipples() {
         const end = (j + 1) * width - 1;
         for (let i = j * width + 1; i < end; i++) {
           const curvature = level[i-1] + level[i+1] + level[i-width] + level[i+width] - 4 * level[i];
-          velocity[i] = .926 * velocity[i] + .105 * curvature - .0024 * level[i];
+          velocity[i] = .965 * velocity[i] + .065 * curvature - .0007 * level[i];
         }
       }
       for (let i = 0; i < level.length; i++) level[i] += velocity[i];
