@@ -9,7 +9,10 @@ const surfaces = [
   ".folio-career-details", ".folio-career-autoplay", ".folio-contribution-case", ".folio-contact-panel",
   ".folio-space-card", ".folio-space-id",
 ].join(",");
-type Grain = { x: number; y: number; vx: number; vy: number; r: number; age: number; life: number; phase: number; fixed: boolean };
+type Grain = {
+  x: number; y: number; vx: number; vy: number; r: number; age: number; life: number; phase: number; fixed: boolean;
+  slide?: { bank: SnowLedge; u: number; direction: number; speed: number; above: number };
+};
 export function makePageSnow(shell: HTMLElement): PageScene {
   const spill = document.createElement("canvas");
   spill.className = "folio-snow-spill";
@@ -84,7 +87,6 @@ export function makePageSnow(shell: HTMLElement): PageScene {
   }
 
   function releasePowder(bank: SnowLedge, first: number, last: number, slope: number, show = true) {
-    const lip = slope < 0 ? 0 : 1;
     const direction = Math.sign(slope);
     const samples = bank.depth.length - 1;
     const stride = Math.max(1, Math.round(7 / bank.step));
@@ -101,16 +103,17 @@ export function makePageSnow(shell: HTMLElement): PageScene {
       powder = 0;
       if (!show) continue;
       for (let j = 0; j < count && debris.length < 260; j++) {
-        const u = slope ? lip - direction * Math.random() * Math.min(.15, 8 / bank.dx)
-          : Math.max(0, (i - Math.random() * stride) / samples);
+        const u = Math.max(first, i - Math.random() * stride) / samples;
         const x = bank.x + bank.dx * u;
         const y = bank.y + bank.dy * u + bank.foot[Math.round(u * samples)] * bank.verticalScale;
+        const above = Math.random() * Math.min(3, thickness);
         debris.push({
-          x, y: y - Math.random() * Math.min(3, thickness) + (bank.fixed ? 0 : scroll),
-          vx: direction * (6 + Math.random() * 8) + (Math.random() - .5) * 11,
+          x, y: y - above + (bank.fixed ? 0 : scroll),
+          vx: (Math.random() - .5) * 11,
           vy: 2 + Math.random() * 9,
           r: radius * (.72 + Math.random() * .68), age: 0, life: 1.45 + Math.random() * .85,
           phase: Math.random() * Math.PI * 2, fixed: bank.fixed,
+          slide: slope ? { bank, u, direction, speed: 7 + Math.random() * 8, above } : undefined,
         });
       }
     }
@@ -205,7 +208,8 @@ export function makePageSnow(shell: HTMLElement): PageScene {
           const probe = end - Math.sign(slope) * Math.min(.25, 9 / bank.dx);
           const first = end ? bank.depth.length - overhang : 0;
           const last = first + overhang - 1;
-          const visible = exposed(bank, bank.x + bank.dx * probe, bank.y + bank.dy * probe + 2);
+          const foot = bank.foot[Math.round(probe * (bank.depth.length - 1))] * bank.verticalScale;
+          const visible = exposed(bank, bank.x + bank.dx * probe, bank.y + bank.dy * probe + foot + 2);
           releasePowder(bank, first, last, slope, visible);
           bank.paint();
           bank.lastPaint = time;
@@ -233,17 +237,37 @@ export function makePageSnow(shell: HTMLElement): PageScene {
       ink.fillStyle = view.dark ? "#eaf3fb" : "#66839a";
       for (let i = debris.length - 1; i >= 0; i--) {
         const grain = debris[i];
-        grain.age += dt;
+        const slide = grain.slide;
+        if (slide) {
+          const { bank, direction } = slide;
+          if (!bank.sampled || bank.dx <= 1 || !bank.host.isConnected) { debris.splice(i, 1); continue; }
+          const slope = bank.dy / bank.dx;
+          slide.speed = Math.min(65, slide.speed + (28 + Math.max(0, slope * direction) * 330) * dt);
+          const next = slide.u + direction * slide.speed * dt / bank.dx;
+          slide.u = Math.min(1, Math.max(0, next));
+          const sample = slide.u * (bank.foot.length - 1);
+          const j = Math.min(bank.foot.length - 2, Math.floor(sample));
+          const foot = bank.foot[j] + (bank.foot[j + 1] - bank.foot[j]) * (sample - j);
+          grain.x = bank.x + bank.dx * slide.u;
+          grain.y = bank.y + bank.dy * slide.u + foot * bank.verticalScale - slide.above + (bank.fixed ? 0 : scroll);
+          if (next <= 0 || next >= 1) {
+            grain.slide = undefined;
+            grain.vx = direction * slide.speed * .42;
+            grain.vy = Math.max(5, Math.min(29, direction * slope * slide.speed + 7));
+          }
+        } else grain.age += dt;
         if (grain.age >= grain.life) { debris.splice(i, 1); continue; }
         // Air resistance gives each grain a settling speed. The shared gust
         // carries lighter powder farther, with a small flutter as it turns.
         const flutter = Math.sin(grain.phase + grain.age * 6);
         const wind = breeze / (1 + grain.r * .48) + flutter * 7;
         const settling = 13 + grain.r * 21 + flutter * 3;
-        grain.vx += (wind - grain.vx) * drag;
-        grain.vy += (settling - grain.vy) * drag;
-        grain.x += grain.vx * dt;
-        grain.y += grain.vy * dt;
+        if (!slide) {
+          grain.vx += (wind - grain.vx) * drag;
+          grain.vy += (settling - grain.vy) * drag;
+          grain.x += grain.vx * dt;
+          grain.y += grain.vy * dt;
+        }
         const y = grain.y - (grain.fixed ? 0 : scroll);
         ink.globalAlpha = opacity * (.64 + grain.r * .13) * Math.min(1, (grain.life - grain.age) * 1.65);
         ink.beginPath();

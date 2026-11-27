@@ -53,7 +53,7 @@ export function createLedge(host: HTMLElement, seed: number) {
   const el = document.createElement("span");
   el.className = "folio-snow-ledge";
   el.setAttribute("aria-hidden", "true");
-  const inset = round ? "23%" : Math.min(9, parseFloat(getComputedStyle(host).borderTopLeftRadius) || 3) + "px";
+  const inset = round ? "14%" : "1px";
   el.style.insetInline = inset;
   const left = document.createElement("i"), right = document.createElement("i");
   const canvas = document.createElement("canvas");
@@ -78,15 +78,23 @@ export function createLedge(host: HTMLElement, seed: number) {
     const depth = new Float32Array(count), capacity = new Float32Array(count), foot = new Float32Array(count);
     const scale = Math.min(7.6, 2.3 + Math.sqrt(width) * .28);
     const phase = noise(seed + 3) * 30;
+    const style = getComputedStyle(host);
+    const radius = Math.min(host.offsetWidth, host.offsetHeight) / 2;
+    const sideInset = Math.max(0, (host.clientWidth - width) / 2);
+    const leftRadius = round ? radius : Math.min(radius, parseFloat(style.borderTopLeftRadius) || 0);
+    const rightRadius = round ? radius : Math.min(radius, parseFloat(style.borderTopRightRadius) || 0);
+    const corner = (distance: number, r: number) => {
+      const inset = Math.min(r, distance);
+      return r - Math.sqrt(r * r - (r - inset) ** 2);
+    };
     for (let i = 0; i < count; i++) {
       const u = i / (count - 1), x = u * width;
-      const taper = Math.min(1, x / 10, (width - x) / 12);
-      const mound = .58 + .18 * Math.sin(x / 32 + phase) + .14 * Math.sin(x / 14 + seed) + .07 * Math.cos(x / 7 + phase);
+      const taper = Math.min(1, x / 6, (width - x) / 6);
+      const mound = .55 + .20 * Math.sin(x / 29 + phase) + .19 * Math.sin(x / 11 + seed) + .10 * Math.cos(x / 5 + phase);
       capacity[i] = Math.max(0, scale * taper * mound);
       depth[i] = old.length ? old[Math.round(u * (old.length - 1))] : capacity[i] * .08;
       depth[i] = Math.min(depth[i], capacity[i]);
-      const radius = host.offsetWidth / 2;
-      foot[i] = round ? radius - Math.sqrt(Math.max(0, radius ** 2 - ((u - .5) * width) ** 2)) : .45;
+      foot[i] = .45 + Math.max(corner(x + sideInset, leftRadius), corner(width - x + sideInset, rightRadius));
     }
     Object.assign(bank, { width, ratio, step: width / (count - 1), depth, capacity, foot, dirty: true });
     canvas.width = Math.round(width * ratio);
@@ -108,9 +116,13 @@ export function createLedge(host: HTMLElement, seed: number) {
       ctx.quadraticCurveTo(i * step, y, (i + .5) * step, (y + next) / 2);
     }
     ctx.lineTo(width, baseline + foot[depth.length - 1] - depth[depth.length - 1]);
-    for (let i = depth.length - 1; i >= 0; i--) {
-      ctx.lineTo(i * step, baseline + foot[i] + Math.min(depth[i] * .19, 1.2));
+    const drape = (j: number) => depth[j] * (.31 + .31 * noise(seed + j));
+    for (let i = depth.length - 1; i > 0; i--) {
+      const y = baseline + foot[i] + drape(i);
+      const prev = baseline + foot[i - 1] + drape(i - 1);
+      ctx.quadraticCurveTo(i * step, y, (i - .5) * step, (y + prev) / 2);
     }
+    ctx.lineTo(0, baseline + foot[0]);
     ctx.closePath();
     const shade = ctx.createLinearGradient(0, baseline - 6, 0, baseline + 1.1);
     shade.addColorStop(0, "#fcfdff"); shade.addColorStop(.55, "#e8f1f6"); shade.addColorStop(1, "#96afc3");
