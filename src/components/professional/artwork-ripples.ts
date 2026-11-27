@@ -1,11 +1,11 @@
 // Height and vertical velocity on a shallow-water grid in pond coordinates.
-export function createPondRipples() {
-  const width = 224, height = 126;
+export function createPondRipples(worldWidth = 1000, worldHeight = 562.5, width = 224) {
+  const height = Math.max(3, Math.round(width * worldHeight / worldWidth));
   const level = new Float32Array(width * height);
   const velocity = new Float32Array(level.length);
   const normals = new ImageData(width, height);
   const pixels = normals.data;
-  const scale = width / 1000;
+  const scale = width / worldWidth;
   let clock = 0;
 
   function push(x: number, y: number, vx: number, vy: number, radius: number) {
