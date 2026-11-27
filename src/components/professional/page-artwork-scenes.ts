@@ -103,3 +103,20 @@ export function makePageFireflies(): PageScene {
     }
   } };
 }
+
+export async function loadContourPoints() {
+  return Promise.all(["orbit-contours.svg", "orbit-contours-lower.svg"].map(async (file, side) => {
+    const response = await fetch(`/textures/${file}`);
+    if (!response.ok) throw new Error("Contour texture unavailable");
+    const svg = new DOMParser().parseFromString(await response.text(), "image/svg+xml");
+    return [...svg.querySelectorAll("path")].flatMap((path, index) => {
+      if (index % 2 !== 0 || index > 18) return [];
+      const length = path.getTotalLength();
+      const count = Math.ceil(length / 28);
+      return Array.from({ length: count }, (_, i) => {
+        const point = path.getPointAtLength(length * (i + .16 + noise(index + i * 13 + side) * .68) / count);
+        return { x: point.x / 640, y: (point.y + (side ? 160 : 0)) / 3200 };
+      }).filter(({ x, y }) => x > .06 && x < .86 && y > .025 && y < .985);
+    });
+  }));
+}
