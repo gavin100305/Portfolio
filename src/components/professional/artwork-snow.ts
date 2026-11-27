@@ -1,6 +1,6 @@
 // Travel is the integral of a breeze with two slow gust cycles. Nearby flakes
 // pick up the same gust with a small delay as it crosses the valley.
-function windTravel(time: number) {
+export function windTravel(time: number) {
   return 9 * time + 15 * Math.sin(time * .46) + 8 * Math.sin(time * .21 + 1.2);
 }
 

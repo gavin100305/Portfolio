@@ -6,6 +6,12 @@ function noise(seed: number) {
   return n - Math.floor(n);
 }
 
+export function snowBankProfile(index: number, count: number) {
+  if (count < 3) return 1;
+  const u = index / (count - 1);
+  return 4 * u * (1 - u);
+}
+
 // Carry loose snow downhill until the lip exceeds the depth it can support.
 // The caller then releases the loose snow from those samples as powder.
 export function slideSnow(depth: Float32Array, capacity: Float32Array, step: number, slope: number, dt: number) {
@@ -13,10 +19,10 @@ export function slideSnow(depth: Float32Array, capacity: Float32Array, step: num
   if (grade < .016 || dt <= 0 || depth.length < 2) return 0;
   const direction = Math.sign(slope);
   const lip = direction > 0 ? depth.length - 1 : 0;
-  const speed = Math.min(64, 5 + 160 * grade);
+  const speed = Math.min(49, 4 + 130 * grade);
   const fraction = 1 - Math.exp(-speed * dt / step);
   const retained = Math.max(.28, .73 - grade * 1.55);
-  const lipWidth = Math.min(21, (depth.length - 1) * step * .28);
+  const lipWidth = Math.min(26, (depth.length - 1) * step * .28);
   const lipCells = Math.min(depth.length - 1, Math.max(2, Math.round(lipWidth / step)));
   const shoulder = lip - direction * (lipCells - 1);
   // Work uphill so transported snow moves at most one sample per step.
@@ -25,14 +31,18 @@ export function slideSnow(depth: Float32Array, capacity: Float32Array, step: num
     const transfer = loose * fraction;
     depth[i] -= transfer;
     if (i + direction === shoulder) {
-      const share = transfer / lipCells;
-      for (let j = 0; j < lipCells; j++) depth[shoulder + direction * j] += share;
+      // Spread the flow over the corner, tapering into both the ledge and tip.
+      let total = 0;
+      for (let j = 0; j < lipCells; j++) total += snowBankProfile(j, lipCells);
+      for (let j = 0; j < lipCells; j++) {
+        depth[shoulder + direction * j] += transfer * snowBankProfile(j, lipCells) / total;
+      }
     } else depth[i + direction] += transfer;
   }
   const holdingDepth = Math.max(2.9, 4.6 - 8 * grade);
   for (let j = 0; j < lipCells; j++) {
     const i = shoulder + direction * j;
-    if (depth[i] >= holdingDepth) return lipCells;
+    if (snowBankProfile(j, lipCells) > .5 && depth[i] >= holdingDepth) return lipCells;
   }
   return 0;
 }

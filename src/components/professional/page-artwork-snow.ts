@@ -1,5 +1,5 @@
-import { createSnowfall } from "./artwork-snow";
-import { createLedge, slideSnow, type SnowLedge } from "./snow-ledge";
+import { createSnowfall, windTravel } from "./artwork-snow";
+import { createLedge, slideSnow, snowBankProfile, type SnowLedge } from "./snow-ledge";
 import type { ArtworkPointer, PageScene } from "./page-artwork-scenes";
 
 const surfaces = [
@@ -9,7 +9,7 @@ const surfaces = [
   ".folio-career-details", ".folio-career-autoplay", ".folio-contribution-case", ".folio-contact-panel",
   ".folio-space-card", ".folio-space-id",
 ].join(",");
-type Grain = { x: number; y: number; vx: number; vy: number; r: number; age: number; life: number; fixed: boolean };
+type Grain = { x: number; y: number; vx: number; vy: number; r: number; age: number; life: number; phase: number; fixed: boolean };
 export function makePageSnow(shell: HTMLElement): PageScene {
   const spill = document.createElement("canvas");
   spill.className = "folio-snow-spill";
@@ -78,7 +78,8 @@ export function makePageSnow(shell: HTMLElement): PageScene {
       if (debris.length >= 175) continue;
       debris.push({ x, y: y - bank.depth[i] * bank.verticalScale + (bank.fixed ? 0 : scroll),
         vx: velocity + (Math.random() - .46) * 20, vy: -6 + Math.random() * 17,
-        r: Math.min(2.8, .4 + Math.sqrt(amount) * .88), age: 0, life: .65 + Math.random() * .58, fixed: bank.fixed });
+        r: Math.min(1.75, .4 + Math.sqrt(amount) * .65), age: 0,
+        life: 1.2 + Math.random() * .8, phase: Math.random() * Math.PI * 2, fixed: bank.fixed });
     }
   }
 
@@ -90,9 +91,10 @@ export function makePageSnow(shell: HTMLElement): PageScene {
     let powder = 0;
     for (let i = first; i <= last; i++) {
       const thickness = bank.depth[i];
-      const retained = slope ? Math.min(thickness, bank.capacity[i] * .16) : 0;
-      powder += (thickness - retained) * bank.step;
-      bank.depth[i] = retained;
+      const loose = Math.max(0, thickness - bank.capacity[i] * .48);
+      const released = slope ? loose * .80 * snowBankProfile(i - first, last - first + 1) : thickness;
+      powder += released * bank.step;
+      bank.depth[i] -= released;
       if ((i - first + 1) % stride && i < last) continue;
       const count = powder >= .55 ? Math.min(5, Math.ceil(powder / 3)) : 0;
       const radius = Math.min(.9, .32 + Math.sqrt(powder) * .13);
@@ -105,9 +107,10 @@ export function makePageSnow(shell: HTMLElement): PageScene {
         const y = bank.y + bank.dy * u + bank.foot[Math.round(u * samples)] * bank.verticalScale;
         debris.push({
           x, y: y - Math.random() * Math.min(3, thickness) + (bank.fixed ? 0 : scroll),
-          vx: direction * (22 + Math.random() * 27) + (Math.random() - .5) * 29,
-          vy: 5 + Math.random() * 28,
-          r: radius * (.72 + Math.random() * .68), age: 0, life: .64 + Math.random() * .38, fixed: bank.fixed,
+          vx: direction * (6 + Math.random() * 8) + (Math.random() - .5) * 11,
+          vy: 2 + Math.random() * 9,
+          r: radius * (.72 + Math.random() * .68), age: 0, life: 1.45 + Math.random() * .85,
+          phase: Math.random() * Math.PI * 2, fixed: bank.fixed,
         });
       }
     }
@@ -225,15 +228,27 @@ export function makePageSnow(shell: HTMLElement): PageScene {
       if (spill.width !== w || spill.height !== h) { spill.width = w; spill.height = h; }
       ink.setTransform(ratio, 0, 0, ratio, 0, 0);
       ink.clearRect(0, 0, view.width, view.height);
+      const breeze = (windTravel(time + .08) - windTravel(time)) / .08;
+      const drag = 1 - Math.exp(-3.6 * dt);
+      ink.fillStyle = view.dark ? "#eaf3fb" : "#66839a";
       for (let i = debris.length - 1; i >= 0; i--) {
         const grain = debris[i];
         grain.age += dt;
         if (grain.age >= grain.life) { debris.splice(i, 1); continue; }
-        grain.vy += 175 * dt; grain.x += grain.vx * dt; grain.y += grain.vy * dt;
+        // Air resistance gives each grain a settling speed. The shared gust
+        // carries lighter powder farther, with a small flutter as it turns.
+        const flutter = Math.sin(grain.phase + grain.age * 6);
+        const wind = breeze / (1 + grain.r * .48) + flutter * 7;
+        const settling = 13 + grain.r * 21 + flutter * 3;
+        grain.vx += (wind - grain.vx) * drag;
+        grain.vy += (settling - grain.vy) * drag;
+        grain.x += grain.vx * dt;
+        grain.y += grain.vy * dt;
         const y = grain.y - (grain.fixed ? 0 : scroll);
-        ink.globalAlpha = opacity * Math.min(1, (grain.life - grain.age) * 3.5);
-        ink.beginPath(); ink.ellipse(grain.x, y, grain.r, grain.r * .78, grain.age * 3, 0, Math.PI * 2);
-        ink.fillStyle = "#eaf3fb"; ink.fill(); ink.strokeStyle = "#879fa999"; ink.lineWidth = .6; ink.stroke();
+        ink.globalAlpha = opacity * (.64 + grain.r * .13) * Math.min(1, (grain.life - grain.age) * 1.65);
+        ink.beginPath();
+        ink.ellipse(grain.x, y, grain.r, grain.r * (.72 + flutter * .12), grain.phase + grain.age * 2, 0, Math.PI * 2);
+        ink.fill();
       }
     },
     dispose() {
