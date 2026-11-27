@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { createSnowfall } from "./artwork-snow";
+import { makePageSnow } from "./page-artwork-snow";
 import type { ArtworkId } from "./artwork-scenes";
 import { makePageFlowers } from "./page-artwork-flowers";
 import {
@@ -114,12 +114,7 @@ export function PageArtwork({ children }: { children: ReactNode }) {
             ]).then(assets => { garden = assets; schedule(); }).catch(() => {});
           }
         }
-        if (id === "snow") {
-          const snowfall = createSnowfall("page");
-          return { draw(ctx, view, time, opacity) {
-            snowfall(ctx, view.width, view.height, time, opacity, view.dark);
-          } } satisfies PageScene;
-        }
+        if (id === "snow" && shell) return makePageSnow(shell);
         if (id === "grove") return makePageFireflies();
       }
 
