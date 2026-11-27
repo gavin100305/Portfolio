@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { DotMonogram } from "@/components/professional/brand";
 import { OpeningIntro } from "@/components/professional/opening-intro";
-import { AsciiDesk } from "@/components/professional/ascii-desk";
+import { PageArtwork } from "@/components/professional/page-artwork";
+import { ArtworkFrame } from "@/components/professional/artwork-frame";
 import { ThemeToggle } from "@/components/professional/theme-toggle";
 import { TechStack } from "@/components/professional/tech-stack";
 import { ProjectGallery } from "@/components/professional/project-gallery";
@@ -19,35 +20,37 @@ import "./professional.css";
 
 export default function Home() {
   return <div className="professional-shell min-h-svh bg-folio-background font-folio-sans text-folio-foreground antialiased">
-    <ButtonSoundEffects />
-    <ScrollReveals />
-    <OpeningIntro />
-    <a href="#main" className="folio-skip">Skip to content</a>
-    <SectionDock />
-    <div className="relative mx-auto bg-transparent max-w-[800px] px-6 sm:px-8">
-      <header id="home" className="flex h-20 items-center justify-between sm:h-24">
-        <Link href="/" className="folio-home-mark" aria-label="Home" title="Home">
-          <DotMonogram />
-        </Link>
-        <div className="folio-header-actions">
-          <ThemeToggle />
-        </div>
-      </header>
-      <main id="main" className="pb-14 pt-2 sm:pb-20">
-        <h1 className="sr-only">Gavin Soares | Full-Stack Developer & Software Engineer Portfolio</h1>
-        <AsciiDesk />
-        <section aria-label="Introduction" className="folio-introduction mx-auto mt-7 w-full max-w-[760px] text-center sm:mt-9">
-          <p className="mx-auto max-w-[700px] text-base leading-[1.85] text-folio-muted sm:text-[17px]">I’m a Computer Engineering student in Mumbai. I build full-stack applications, work with AI, and enjoy getting involved in both how a product works and how it looks.</p>
-        </section>
-        <TechStack />
-        <ProjectGallery />
-        <Experience />
-        <Achievements />
-        <GitHubCalendar />
-        <ContactSection />
-        <SpaceInvitation />
-      </main>
-      <PortfolioFooter />
-    </div>
+    <PageArtwork>
+      <ButtonSoundEffects />
+      <ScrollReveals />
+      <OpeningIntro />
+      <a href="#main" className="folio-skip">Skip to content</a>
+      <SectionDock />
+      <div className="relative mx-auto bg-transparent max-w-[800px] px-6 sm:px-8">
+        <header id="home" className="flex h-20 items-center justify-between sm:h-24">
+          <Link href="/" className="folio-home-mark" aria-label="Home" title="Home">
+            <DotMonogram />
+          </Link>
+          <div className="folio-header-actions">
+            <ThemeToggle />
+          </div>
+        </header>
+        <main id="main" className="pb-14 pt-2 sm:pb-20">
+          <h1 className="sr-only">Gavin Soares | Full-Stack Developer & Software Engineer Portfolio</h1>
+          <ArtworkFrame />
+          <section aria-label="Introduction" className="folio-introduction mx-auto mt-7 w-full max-w-[760px] text-center sm:mt-9">
+            <p className="mx-auto max-w-[700px] text-base leading-[1.85] text-folio-muted sm:text-[17px]">I’m a Computer Engineering student in Mumbai. I build full-stack applications, work with AI, and enjoy getting involved in both how a product works and how it looks.</p>
+          </section>
+          <TechStack />
+          <ProjectGallery />
+          <Experience />
+          <Achievements />
+          <GitHubCalendar />
+          <ContactSection />
+          <SpaceInvitation />
+        </main>
+        <PortfolioFooter />
+      </div>
+    </PageArtwork>
   </div>;
 }

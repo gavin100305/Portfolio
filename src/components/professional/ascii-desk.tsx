@@ -20,13 +20,12 @@ const fallback = `                         .          +
     |_|                              |_|`;
 
 export function AsciiDesk() {
-  const figureRef = useRef<HTMLElement>(null);
+  const layerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const replayRef = useRef<(() => void) | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const canvas = canvasRef.current, figure = figureRef.current;
+    const canvas = canvasRef.current, figure = layerRef.current;
     if (!canvas || !figure) return;
     const context = canvas.getContext("2d");
     if (!context) return;
@@ -35,7 +34,7 @@ export function AsciiDesk() {
     if (!base) return;
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let frame = 0, previousFrame = 0, start = 0, width = 0, height = 0, columns = 160;
-    let cells: AsciiCell[] = [], animatedCells: AsciiCell[] = [], visible = true, mounted = true, initialized = false, finished = false, playing = false;
+    let cells: AsciiCell[] = [], animatedCells: AsciiCell[] = [], visible = false, mounted = true, initialized = false, finished = false, playing = false;
     let foreground = "#171717", accent = "#2457e6";
     const rowCount = () => Math.round(columns * DESK_HEIGHT / DESK_WIDTH);
 
@@ -79,11 +78,20 @@ export function AsciiDesk() {
       columns = width < 500 ? 170 : 240;
       cells = createDeskCells(columns); animatedCells = cells.filter(cell => cell.kind); palette(); paintStill();
     };
+    function syncPlayback() {
+      const shouldPaint = playing && visible && !document.hidden;
+      if (shouldPaint && !frame) frame = requestAnimationFrame(tick);
+      if (!shouldPaint && frame) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
+    }
     const tick = (time: number) => {
-      frame = requestAnimationFrame(tick);
-      if (document.hidden || !visible || time - previousFrame < (finished ? 40 : 30)) return;
+      frame = 0;
+      if (!motion.matches) syncPlayback();
+      if (!motion.matches && time - previousFrame < (finished ? 40 : 30)) return;
       previousFrame = time;
-      const elapsed = motion.matches ? 10000 : time - start;
+      const elapsed = finished || motion.matches ? 10000 : time - start;
       context.clearRect(0, 0, width, height);
       if (elapsed >= 4900) {
         if (!finished) figure.dataset.revealState = "complete";
@@ -110,14 +118,20 @@ export function AsciiDesk() {
       start = performance.now();
       previousFrame = 0;
       figure!.dataset.revealState = "revealing";
-      frame = requestAnimationFrame(tick);
+      syncPlayback();
     }
     figure.dataset.revealState = "waiting";
     const opening = new MutationObserver(beginReveal);
     opening.observe(document.documentElement, { attributes: true, attributeFilter: ["data-folio-intro"] });
     const observer = new ResizeObserver(() => { if (initialized) resize(); }); observer.observe(canvas);
     const theme = new MutationObserver(palette); theme.observe(document.documentElement, { attributes: true, attributeFilter: ["data-professional-theme"] });
-    const viewport = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; }, { rootMargin: "100px" }); viewport.observe(canvas);
+    const viewport = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      syncPlayback();
+    }, { rootMargin: "100px" });
+    viewport.observe(canvas);
+    document.addEventListener("visibilitychange", syncPlayback);
+    motion.addEventListener("change", syncPlayback);
     document.fonts.ready.then(() => {
       if (!mounted) return;
       initialized = true;
@@ -127,17 +141,20 @@ export function AsciiDesk() {
       setReady(true);
       beginReveal();
     });
-    replayRef.current = () => {
-      if (!playing) { beginReveal(); return; }
-      start = performance.now(); finished = false; figure.dataset.revealState = "revealing";
+    return () => {
+      mounted = false;
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      theme.disconnect();
+      viewport.disconnect();
+      opening.disconnect();
+      document.removeEventListener("visibilitychange", syncPlayback);
+      motion.removeEventListener("change", syncPlayback);
     };
-    return () => { mounted = false; cancelAnimationFrame(frame); observer.disconnect(); theme.disconnect(); viewport.disconnect(); opening.disconnect(); replayRef.current = null; };
   }, []);
 
-  return <figure ref={figureRef} className="ascii-desk" data-ready={ready}>
-    <div className="ascii-art-frame"><div className="ascii-stage">
-      <pre className="ascii-fallback" aria-hidden="true">{fallback}</pre>
-      <canvas ref={canvasRef} role="img" aria-label="Dot art with Gavin Soares written in dots in the upper-left corner beside a retro computer on a desk, with a keyboard, coffee, and a window overlooking a ringed planet. Cobalt blue lights up the terminal and a few stars." />
-    </div></div>
-  </figure>;
+  return <div ref={layerRef} className="ascii-desk-layer" data-ready={ready}>
+    <pre className="ascii-fallback" aria-hidden="true">{fallback}</pre>
+    <canvas ref={canvasRef} role="img" aria-label="Dot art with Gavin Soares written in dots in the upper-left corner beside a retro computer on a desk, with a keyboard, coffee, and a window overlooking a ringed planet. Cobalt blue lights up the terminal and a few stars." />
+  </div>;
 }

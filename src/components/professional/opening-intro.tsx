@@ -80,7 +80,7 @@ export function OpeningIntro() {
       setWriting(true);
       stopWritingSound = startWritingSound(document.querySelector<SVGSVGElement>(".folio-opening-signature"), recording);
       timers.push(setTimeout(() => { if (!disposed) setWritten(true); }, 4200));
-      const hero = document.querySelector(".ascii-desk");
+      const hero = document.querySelector(".ascii-desk-layer");
       const ready = new Promise<void>(resolve => {
         if (!hero || hero.getAttribute("data-ready") === "true") { resolve(); return; }
         const observer = new MutationObserver(() => {
