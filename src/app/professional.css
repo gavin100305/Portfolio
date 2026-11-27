@@ -177,32 +177,8 @@ html[data-professional-theme="dark"] .folio-moon { display: none; }
 }
 .artwork-interact:focus-visible { outline: 2px solid #ede5ce; outline-offset: -4px; }
 @media (prefers-reduced-motion: reduce) {
-  .artwork-scenic .artwork-playback, .artwork-scenic .artwork-interact { display: none; }
+  .artwork-scenic .artwork-interact { display: none; }
 }
-.artwork-playback {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: #fff;
-  cursor: pointer;
-}
-.artwork-playback::before {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  border-radius: inherit;
-  border: 1px solid #ffffff5c;
-  background: #101517a8;
-}
-.artwork-playback svg { position: relative; }
-.artwork-playback:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .artwork-caption { display: grid; justify-items: center; gap: 0; margin-top: 6px; }
 .artwork-credit { min-height: 16px; color: var(--folio-muted); text-align: center; font-size: 10px; }
 .artwork-credit a { color: inherit; text-underline-offset: 2px; text-decoration: underline; }

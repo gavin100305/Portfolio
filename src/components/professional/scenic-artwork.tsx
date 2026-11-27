@@ -27,9 +27,6 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
   const surfaceRef = useRef<HTMLCanvasElement>(null);
   const lifeRef = useRef<HTMLCanvasElement>(null);
   const pulseRef = useRef<(x: number, y: number) => void>(() => {});
-  const syncRef = useRef<() => void>(() => {});
-  const paused = useRef(false);
-  const [isPaused, setIsPaused] = useState(false);
   const [isLive, setIsLive] = useState(false);
 
   useEffect(() => {
@@ -104,7 +101,7 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
     }
 
     function sync() {
-      const shouldRun = ready && visible && !document.hidden && !paused.current
+      const shouldRun = ready && visible && !document.hidden
         && !reduced.matches && root.dataset.folioIntro !== "pending"
         && host.closest(".artwork-layer")?.getAttribute("data-artwork-layer") !== "outgoing";
       if (shouldRun === running) return;
@@ -144,7 +141,6 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
     if (layer) opening.observe(layer, { attributes: true, attributeFilter: ["data-artwork-layer"] });
     document.addEventListener("visibilitychange", sync);
     reduced.addEventListener("change", sync);
-    syncRef.current = sync;
     pulseRef.current = (x, y) => {
       if (running && id === "plateau") gust.set([x, y, elapsed, 1]);
     };
@@ -202,16 +198,9 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
       waterCanvas.removeEventListener("webglcontextlost", loseSurface);
       surface?.dispose();
       delete waterCanvas.dataset.ready;
-      syncRef.current = () => {};
       pulseRef.current = () => {};
     };
   }, [id]);
-
-  function toggleMotion() {
-    paused.current = !paused.current;
-    setIsPaused(paused.current);
-    syncRef.current();
-  }
 
   return <div ref={wrapperRef} className="artwork-scenic">
     <Image fill sizes="(max-width: 750px) 100vw, 675px" unoptimized src={isLive && id !== "pond" ? grounds[id] : scene.image} alt={scene.description} />
@@ -228,13 +217,5 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
         pulseRef.current(x, y);
       }}
     />}
-    {active && isLive && <button type="button" className="artwork-playback"
-      aria-label={isPaused ? "Resume scene motion" : "Pause scene motion"}
-      onClick={toggleMotion}
-    >
-      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-        {isPaused ? <path d="M6 4l6 4-6 4z" fill="currentColor" /> : <path d="M6 4v8m4-8v8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />}
-      </svg>
-    </button>}
   </div>;
 }
