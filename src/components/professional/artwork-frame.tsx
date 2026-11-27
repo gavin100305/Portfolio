@@ -2,8 +2,9 @@
 
 import { playDialTick, unlockDialSound } from "@/lib/button-sound";
 import gsap from "gsap";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { artworkOrder, scenicArtworks, type ArtworkId, type ScenicId } from "./artwork-scenes";
+import { PageArtworkSelection } from "./page-artwork";
 import { AsciiDesk } from "./ascii-desk";
 import { ScenicArtwork } from "./scenic-artwork";
 
@@ -20,6 +21,7 @@ export function ArtworkFrame() {
     active: openingArtwork, outgoing: null, reveal: { sequence: 0, direction: 1 },
   });
   const navigation = useRef<{ sequence: number; active: ArtworkId }>({ sequence: 0, active: openingArtwork });
+  const selectPageArtwork = useContext(PageArtworkSelection);
   const stageRef = useRef<HTMLDivElement>(null);
 
   const selectArtwork = useCallback((id: ArtworkId, fromDial = true) => {
@@ -28,11 +30,12 @@ export function ArtworkFrame() {
     const sequence = ++pending.sequence;
     const outgoing = pending.active;
     pending.active = id;
+    selectPageArtwork(id);
     if (fromDial) playDialTick(artworkOrder.indexOf(id));
     const fade = fromDial && !matchMedia("(prefers-reduced-motion: reduce)").matches;
     setDisplay({ active: id, outgoing: fade ? outgoing : null, reveal: fade ? { sequence, direction: 1 } : null });
     try { localStorage.setItem(storageKey, id); } catch {}
-  }, []);
+  }, [selectPageArtwork]);
 
   useEffect(() => {
     const pending = navigation.current;
