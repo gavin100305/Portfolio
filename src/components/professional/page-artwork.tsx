@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createSnowfall } from "./artwork-snow";
 import type { ArtworkId } from "./artwork-scenes";
 import { makePageFlowers } from "./page-artwork-flowers";
 import {
@@ -112,6 +113,12 @@ export function PageArtwork({ children }: { children: ReactNode }) {
               Promise.all([1, 2, 3, 4].map(index => loadArtworkImage(`/artwork/contour-meadow-${index}.webp`))),
             ]).then(assets => { garden = assets; schedule(); }).catch(() => {});
           }
+        }
+        if (id === "snow") {
+          const snowfall = createSnowfall("page");
+          return { draw(ctx, view, time, opacity) {
+            snowfall(ctx, view.width, view.height, time, opacity, view.dark);
+          } } satisfies PageScene;
         }
         if (id === "grove") return makePageFireflies();
       }
