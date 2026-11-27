@@ -2,6 +2,7 @@ import gsap from "gsap";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { makeCreekCurrent, drawMeadow, makeFireflies } from "./artwork-life";
+import { createSnowfall } from "./artwork-snow";
 import { createPondSwim } from "./artwork-pond";
 import { scenicArtworks, type ScenicId } from "./artwork-scenes";
 import { createArtworkSurface } from "./artwork-water";
@@ -13,7 +14,7 @@ const pondSources = [
   "/artwork/kohaku.webp", "/artwork/sanke.webp", "/artwork/ogon.webp",
 ];
 
-const grounds = { plateau: "/artwork/poppy-field-ground.webp", grove: scenicArtworks.grove.image };
+const meadowGround = "/artwork/poppy-field-ground.webp";
 
 function loadImage(src: string) {
   const image = new window.Image();
@@ -51,6 +52,8 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
     const pond = id === "pond";
     const swim = pond ? createPondSwim() : null;
 
+    const snowfall = id === "snow" ? createSnowfall("frame") : null;
+
     function draw() {
       context.clearRect(0, 0, width, height);
       if (swim && plate) {
@@ -86,7 +89,9 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
       }
       if (!pond && plate) {
         if (id === "plateau") drawMeadow(context, life[0], life[1], elapsed, gust);
-        else {
+        else if (snowfall) {
+          snowfall(context, width, height, elapsed);
+        } else {
           drawCreek?.(context, elapsed);
           drawFireflies?.(context, elapsed);
         }
@@ -95,7 +100,7 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
 
     function tick(_time: number, delta: number) {
       throttle += Math.min(delta, 48);
-      if (!pond && throttle < 30) return;
+      if (!pond && !snowfall && throttle < 30) return;
       elapsed += throttle / 1000;
       throttle = 0;
       draw();
@@ -146,12 +151,13 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
       if (running && id === "plateau") gust.set([x, y, elapsed, 1]);
     };
 
-    const assets = pond
-      ? Promise.all(pondSources.map(loadImage))
-      : Promise.all((id === "plateau"
-        ? [grounds.plateau, "/artwork/poppy-hills-plants.webp", "/artwork/poppy-field-stems.webp"]
-        : [grounds.grove, "/artwork/creek-glints.webp"]).map(loadImage));
-    void assets.then(([base, ...subjects]) => {
+    const sources: Record<ScenicId, string[]> = {
+      pond: pondSources,
+      plateau: [meadowGround, "/artwork/poppy-hills-plants.webp", "/artwork/poppy-field-stems.webp"],
+      grove: [scenicArtworks.grove.image, "/artwork/creek-glints.webp"],
+      snow: [scenicArtworks.snow.image],
+    };
+    void Promise.all(sources[id].map(loadImage)).then(([base, ...subjects]) => {
       if (disposed) return;
       if (base) {
         plate = base;
@@ -207,7 +213,7 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
   }, [id]);
 
   return <div ref={wrapperRef} className="artwork-scenic">
-    <Image fill sizes="(max-width: 750px) 100vw, 675px" unoptimized src={isLive && id !== "pond" ? grounds[id] : scene.image} alt={scene.description} />
+    <Image fill sizes="(max-width: 750px) 100vw, 675px" unoptimized src={isLive && id === "plateau" ? meadowGround : scene.image} alt={scene.description} />
     <canvas className="artwork-water" ref={surfaceRef} aria-hidden="true" />
     <canvas className="artwork-life" ref={lifeRef} aria-hidden="true" />
     {active && isLive && id === "plateau" && <button

@@ -1,4 +1,4 @@
-export const artworkOrder = ["pond", "plateau", "grove", "desk"] as const;
+export const artworkOrder = ["pond", "plateau", "grove", "snow", "desk"] as const;
 export type ArtworkId = (typeof artworkOrder)[number];
 export type ScenicId = Exclude<ArtworkId, "desk">;
 
@@ -37,5 +37,12 @@ export const scenicArtworks: Record<ScenicId, Scene> = {
     image: "/artwork/moss-creek-poster.webp",
     creator: "Nguyen Ngoc Tien",
     source: "https://www.pexels.com/photo/serene-forest-stream-in-lush-greenery-33901108/",
+  },
+  snow: {
+    title: "Alpine Drift",
+    description: "Light snow drifts across a clearing where dark pines rise against mist-covered mountain peaks.",
+    image: "/artwork/misty-winter-pines.webp",
+    creator: "Jason Mavrommatis",
+    source: "https://unsplash.com/photos/pine-forest-covered-by-snow-and-mist-mRscGpKGRQc",
   },
 };
