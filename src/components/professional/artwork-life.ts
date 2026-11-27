@@ -9,60 +9,79 @@ function noise(seed: number) {
   return n - Math.floor(n);
 }
 
-const flies = Array.from({ length: 38 }, (_, i) => ({
-  x: .055 + noise(i) * .88,
-  y: .56 + noise(i + 180) * .34 + noise(i + 60) * .08,
-  phase: noise(i + 120) * circle,
-  depth: noise(i + 180),
-  rate: .34 + noise(i + 240) * .48,
-  timing: noise(i + 300),
-  seed: i,
+// Small groups follow the creek and the two mossy banks visible in the plate.
+const creekBanks = [
+  { x: .29, y: .51, spreadX: .20, spreadY: .19, depth: .22, count: 22 },
+  { x: .61, y: .56, spreadX: .23, spreadY: .20, depth: .33, count: 23 },
+  { x: .77, y: .68, spreadX: .29, spreadY: .24, depth: .46, count: 20 },
+  { x: .39, y: .79, spreadX: .32, spreadY: .24, depth: .66, count: 20 },
+  { x: .19, y: .83, spreadX: .18, spreadY: .18, depth: .77, count: 11 },
+];
+
+const flies = creekBanks.flatMap((bank, group) => Array.from({ length: bank.count }, (_, i) => {
+  const seed = group * 2048 + i * 19;
+  const depth = bank.depth + .18 * noise(seed + 3);
+  return {
+    seed,
+    depth,
+    x: (bank.x + (noise(seed + 1) - .5) * bank.spreadX) * width,
+    y: (bank.y + (noise(seed + 2) - .5) * bank.spreadY) * height,
+    phase: noise(seed + 4) * circle,
+    rate: .38 + .48 * noise(seed + 5),
+    flashPeriod: 2.5 + 1.9 * noise(seed + 6),
+    flashOffset: 5 * noise(seed + 7),
+    doubleFlash: noise(seed + 8) > .68,
+  };
 }));
 
 export function makeFireflies() {
   const halo = document.createElement("canvas");
   halo.width = halo.height = 48;
-  const ctx = halo.getContext("2d");
-  if (ctx) {
-    const glow = ctx.createRadialGradient(24, 24, 0, 24, 24, 24);
-    glow.addColorStop(0, "#fffbd5");
-    glow.addColorStop(.13, "#f4f5a9ed");
-    glow.addColorStop(.31, "#d4ed7873");
-    glow.addColorStop(.64, "#b5d9511c");
-    glow.addColorStop(1, "#a1c64700");
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, 48, 48);
-  }
+  const brush = halo.getContext("2d");
+  if (!brush) return () => {};
+
+  const glow = brush.createRadialGradient(24, 24, 0, 24, 24, 24);
+  glow.addColorStop(0, "#fff7bb");
+  glow.addColorStop(.16, "#f6e984d9");
+  glow.addColorStop(.33, "#dce76863");
+  glow.addColorStop(.65, "#bbce451a");
+  glow.addColorStop(1, "#bbce4500");
+  brush.fillStyle = glow;
+  brush.fillRect(0, 0, halo.width, halo.height);
 
   return (ctx: CanvasRenderingContext2D, time: number) => {
     ctx.save();
     ctx.globalCompositeOperation = "screen";
+    ctx.fillStyle = "#fff8cd";
     for (const fly of flies) {
-      const a = time * fly.rate + fly.phase;
-      const clock = time * (.16 + .16 * fly.rate) + fly.timing;
-      const interval = Math.floor(clock);
-      const age = clock - interval;
-      const firstFlash = .19 + .31 * noise(fly.seed + interval * 83);
-      const pulse = (delay: number) => {
-        const t = (age - firstFlash - delay) / (delay ? .032 : .043);
-        return Math.exp(-(t * t));
+      const clock = time + fly.flashOffset;
+      const interval = Math.floor(clock / fly.flashPeriod);
+      const flashStart = .18 + .9 * noise(fly.seed + interval * 149 + 9);
+      const age = clock % fly.flashPeriod - flashStart;
+      const pulse = (seconds: number) => {
+        if (seconds < 0 || seconds > 1) return 0;
+        return (1 - Math.exp(-seconds * 30)) * Math.exp(-seconds * 3.7) * (1 - seconds ** 4);
       };
-      const blink = pulse(0) + (fly.timing > .7 ? .48 * pulse(.13) : 0);
+      const blink = Math.max(pulse(age), fly.doubleFlash ? .8 * pulse(age - .65) : 0);
       if (blink < .025) continue;
-      const travel = .42 + .72 * fly.depth;
-      const x = (fly.x + travel * (Math.sin(a * .77) * .044 + Math.sin(a * 1.81) * .012)) * width;
-      const y = (fly.y + travel * (Math.cos(a * .69) * .033 + Math.sin(a * 1.37 + x * .002) * .017)) * height;
-      const size = 2.4 + fly.depth ** 2 * 8;
-      ctx.globalAlpha = blink * (.36 + .64 * fly.depth);
+
+      const phase = time * fly.rate + fly.phase;
+      const travel = 12 + 28 * fly.depth;
+      const x = fly.x + travel * (Math.sin(phase) + .38 * Math.sin(phase * 1.81));
+      const y = fly.y + travel * (.53 * Math.cos(phase * .78) + .18 * Math.sin(phase * 2.23));
+      const size = 4 + 8 * fly.depth ** 2;
+      const intensity = Math.min(1, blink * (1.18 + .45 * fly.depth));
+      ctx.globalAlpha = intensity * (.65 + .35 * fly.depth);
       ctx.drawImage(halo, x - size, y - size, size * 2, size * 2);
-      ctx.fillStyle = "#ffface";
+      ctx.globalAlpha = intensity;
       ctx.beginPath();
-      ctx.arc(x, y, .36 + fly.depth * .77, 0, circle);
+      ctx.arc(x, y, .67 + .86 * fly.depth, 0, circle);
       ctx.fill();
     }
     ctx.restore();
   };
 }
+
 // Rectangles pair each stem's atlas pixels with its position in the 1440 × 810 photograph.
 const stems = [
   [0, 0, 215, 576, 124, 239],
@@ -123,49 +142,57 @@ export function drawMeadow(ctx: CanvasRenderingContext2D, atlas: HTMLImageElemen
   }
 }
 
-// Reflections travel along the bends of the creek. The matte comes from the
-// photographed water and keeps the light off rocks and banks.
-export function makeCreekReflections(matte: HTMLImageElement) {
+// Refract the photographed water inside its alpha matte. The original plate
+// shows through around the rocks, where the matte falls to zero.
+export function makeCreekCurrent(plate: HTMLImageElement, matte: HTMLImageElement) {
+  const left = 457, top = 499;
   const layer = document.createElement("canvas");
-  layer.width = matte.width;
-  layer.height = matte.height;
-  const light = layer.getContext("2d");
-  if (!light) return () => {};
+  const columns = layer.width = Math.ceil(matte.width / 2);
+  const rows = layer.height = Math.ceil(matte.height / 2);
+  const brush = layer.getContext("2d");
+  if (!brush) return () => {};
 
-  const glints = Array.from({ length: 44 }, (_, i) => ({
-    phase: noise(i + 410),
-    lane: noise(i + 540) - .5,
-    speed: .13 + .11 * noise(i + 610),
-    brightness: .25 + .48 * noise(i + 680),
-  }));
+  brush.drawImage(matte, 0, 0, columns, rows);
+  const mask = brush.getImageData(0, 0, columns, rows).data;
+  brush.clearRect(0, 0, columns, rows);
+  brush.drawImage(plate, left, top, matte.width, matte.height, 0, 0, columns, rows);
+  const photo = brush.getImageData(0, 0, columns, rows).data;
+  const frame = brush.createImageData(columns, rows);
+  const water: { pixel: number; interior: number; ripple: number; eddy: number }[] = [];
+  for (let y = 2; y < rows - 2; y++) {
+    for (let x = 1; x < columns - 1; x++) {
+      const pixel = (y * columns + x) * 4;
+      const coverage = mask[pixel + 3] / 255;
+      if (coverage < .02) continue;
+      const interior = Math.min(coverage, mask[pixel - columns * 4 + 3] / 255,
+        mask[pixel + columns * 4 + 3] / 255);
+      water.push({ pixel, interior,
+        ripple: y * .82 + x * .19 + 1.8 * Math.sin(x * .21),
+        eddy: y * .32 - x * .25,
+      });
+      frame.data[pixel + 3] = Math.round(coverage * 255);
+    }
+  }
 
   return (ctx: CanvasRenderingContext2D, time: number) => {
-    light.clearRect(0, 0, layer.width, layer.height);
-    light.globalCompositeOperation = "source-over";
-    for (const glint of glints) {
-      const distance = (glint.phase + time * glint.speed) % 1;
-      const y = distance * layer.height;
-      const center = 240 - 183 * distance + 46 * Math.sin(distance * 8.2);
-      const x = center + glint.lane * (width * .085 + distance * 134);
-      const fade = Math.sin(Math.PI * distance) ** .7;
-      const spread = 8 + 20 * distance;
-      light.save();
-      light.translate(x, y);
-      light.rotate(.11 * Math.sin(distance * 14));
-      light.scale(spread, 1.1 + 2.2 * distance);
-      const sheen = light.createRadialGradient(0, 0, 0, 0, 0, 1);
-      sheen.addColorStop(0, `rgba(171,205,229,${glint.brightness * fade})`);
-      sheen.addColorStop(1, "rgba(171,205,229,0)");
-      light.fillStyle = sheen;
-      light.fillRect(-1, -1, 2, 2);
-      light.restore();
+    for (const { pixel, interior, ripple, eddy } of water) {
+      const fine = Math.sin(ripple - time * 8.1);
+      const broad = Math.sin(eddy - time * 3.2);
+      const offset = interior * (.78 * fine + .55 * broad);
+      const firstRow = Math.floor(offset);
+      const fraction = offset - firstRow;
+      const source = pixel + firstRow * columns * 4;
+      // Sample from inside the channel to keep the waterline and banks steady.
+      const brightness = 1 + .13 * interior * (fine + .5 * broad);
+      for (let channel = 0; channel < 3; channel++) {
+        const nearby = photo[source + channel] * (1 - fraction)
+          + photo[source + columns * 4 + channel] * fraction;
+        const refracted = photo[pixel + channel] + interior * (nearby - photo[pixel + channel]);
+        frame.data[pixel + channel] = brightness * refracted;
+      }
     }
-    light.globalCompositeOperation = "destination-in";
-    light.drawImage(matte, 0, 0);
-    ctx.save();
-    ctx.globalCompositeOperation = "screen";
-    ctx.drawImage(layer, 457 * photoScale, 499 * photoScale,
-      layer.width * photoScale, layer.height * photoScale);
-    ctx.restore();
+    brush.putImageData(frame, 0, 0);
+    ctx.drawImage(layer, left * photoScale, top * photoScale,
+      matte.width * photoScale, matte.height * photoScale);
   };
 }
