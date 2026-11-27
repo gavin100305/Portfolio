@@ -6,38 +6,35 @@ function noise(seed: number) {
   return n - Math.floor(n);
 }
 
-// Transport loose powder one sample downhill. Work from the low end back so
-// snow received this frame cannot traverse the entire ledge in a single step.
+// Carry loose snow downhill until the lip exceeds the depth it can support.
+// The caller then releases the loose snow from those samples as powder.
 export function slideSnow(depth: Float32Array, capacity: Float32Array, step: number, slope: number, dt: number) {
   const grade = Math.abs(slope);
-  if (grade < .009 || dt <= 0 || depth.length < 2) return 0;
+  if (grade < .016 || dt <= 0 || depth.length < 2) return 0;
   const direction = Math.sign(slope);
   const lip = direction > 0 ? depth.length - 1 : 0;
-  const speed = Math.min(100, 8 + 280 * grade);
+  const speed = Math.min(64, 5 + 160 * grade);
   const fraction = 1 - Math.exp(-speed * dt / step);
-  const retained = Math.max(.2, .66 - grade * 1.8);
-  const lipCells = Math.min(depth.length - 1, Math.max(1, Math.round(12 / step)));
+  const retained = Math.max(.28, .73 - grade * 1.55);
+  const lipWidth = Math.min(21, (depth.length - 1) * step * .28);
+  const lipCells = Math.min(depth.length - 1, Math.max(2, Math.round(lipWidth / step)));
   const shoulder = lip - direction * (lipCells - 1);
+  // Work uphill so transported snow moves at most one sample per step.
   for (let i = shoulder - direction; i >= 0 && i < depth.length; i -= direction) {
     const loose = Math.max(0, depth[i] - capacity[i] * retained);
     const transfer = loose * fraction;
     depth[i] -= transfer;
     if (i + direction === shoulder) {
-      for (let j = 0; j < lipCells; j++) depth[shoulder + direction * j] += transfer / lipCells;
+      const share = transfer / lipCells;
+      for (let j = 0; j < lipCells; j++) depth[shoulder + direction * j] += share;
     } else depth[i + direction] += transfer;
   }
-  // The overhang holds until its accumulated cross section breaks the crust.
-  let load = 0;
+  const holdingDepth = Math.max(2.9, 4.6 - 8 * grade);
   for (let j = 0; j < lipCells; j++) {
     const i = shoulder + direction * j;
-    load += Math.max(0, depth[i] - retained * capacity[i]);
+    if (depth[i] >= holdingDepth) return lipCells;
   }
-  if (load < 3.2 * lipCells) return 0;
-  for (let j = 0; j < lipCells; j++) {
-    const i = shoulder + direction * j;
-    depth[i] -= .9 * Math.max(0, depth[i] - retained * capacity[i]);
-  }
-  return .9 * load * step;
+  return 0;
 }
 
 export function createLedge(host: HTMLElement, seed: number) {
@@ -69,14 +66,14 @@ export function createLedge(host: HTMLElement, seed: number) {
     const old = bank.depth;
     const count = Math.max(5, Math.ceil(width / 3) + 1);
     const depth = new Float32Array(count), capacity = new Float32Array(count), foot = new Float32Array(count);
-    const scale = Math.min(12, 2.6 + Math.sqrt(width) * .38);
+    const scale = Math.min(7.6, 2.3 + Math.sqrt(width) * .28);
     const phase = noise(seed + 3) * 30;
     for (let i = 0; i < count; i++) {
       const u = i / (count - 1), x = u * width;
       const taper = Math.min(1, x / 10, (width - x) / 12);
       const mound = .58 + .18 * Math.sin(x / 32 + phase) + .14 * Math.sin(x / 14 + seed) + .07 * Math.cos(x / 7 + phase);
       capacity[i] = Math.max(0, scale * taper * mound);
-      depth[i] = old.length ? old[Math.round(u * (old.length - 1))] : capacity[i] * .35;
+      depth[i] = old.length ? old[Math.round(u * (old.length - 1))] : capacity[i] * .08;
       depth[i] = Math.min(depth[i], capacity[i]);
       const radius = host.offsetWidth / 2;
       foot[i] = round ? radius - Math.sqrt(Math.max(0, radius ** 2 - ((u - .5) * width) ** 2)) : .45;
@@ -91,6 +88,8 @@ export function createLedge(host: HTMLElement, seed: number) {
     const { width, depth, step, foot } = bank;
     if (!width) return;
     ctx.clearRect(0, 0, width, height);
+    bank.dirty = false;
+    if (!depth.some(value => value > 0)) return;
     ctx.save();
     ctx.beginPath();
     ctx.moveTo(0, baseline + foot[0]);
@@ -117,7 +116,6 @@ export function createLedge(host: HTMLElement, seed: number) {
       ctx.fillRect(x + 1, top + depth[i] * noise(i + seed), 1, .65);
     }
     ctx.restore();
-    bank.dirty = false;
   }
   return Object.assign(bank, { resize, paint });
 }

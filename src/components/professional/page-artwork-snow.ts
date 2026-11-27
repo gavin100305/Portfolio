@@ -10,7 +10,6 @@ const surfaces = [
   ".folio-space-card", ".folio-space-id",
 ].join(",");
 type Grain = { x: number; y: number; vx: number; vy: number; r: number; age: number; life: number; fixed: boolean };
-
 export function makePageSnow(shell: HTMLElement): PageScene {
   const spill = document.createElement("canvas");
   spill.className = "folio-snow-spill";
@@ -83,8 +82,40 @@ export function makePageSnow(shell: HTMLElement): PageScene {
     }
   }
 
+  function releasePowder(bank: SnowLedge, first: number, last: number, slope: number, show = true) {
+    const lip = slope < 0 ? 0 : 1;
+    const direction = Math.sign(slope);
+    const samples = bank.depth.length - 1;
+    const stride = Math.max(1, Math.round(7 / bank.step));
+    let powder = 0;
+    for (let i = first; i <= last; i++) {
+      const thickness = bank.depth[i];
+      const retained = slope ? Math.min(thickness, bank.capacity[i] * .16) : 0;
+      powder += (thickness - retained) * bank.step;
+      bank.depth[i] = retained;
+      if ((i - first + 1) % stride && i < last) continue;
+      const count = powder >= .55 ? Math.min(5, Math.ceil(powder / 3)) : 0;
+      const radius = Math.min(.9, .32 + Math.sqrt(powder) * .13);
+      powder = 0;
+      if (!show) continue;
+      for (let j = 0; j < count && debris.length < 260; j++) {
+        const u = slope ? lip - direction * Math.random() * Math.min(.15, 8 / bank.dx)
+          : Math.max(0, (i - Math.random() * stride) / samples);
+        const x = bank.x + bank.dx * u;
+        const y = bank.y + bank.dy * u + bank.foot[Math.round(u * samples)] * bank.verticalScale;
+        debris.push({
+          x, y: y - Math.random() * Math.min(3, thickness) + (bank.fixed ? 0 : scroll),
+          vx: direction * (22 + Math.random() * 27) + (Math.random() - .5) * 29,
+          vy: 5 + Math.random() * 28,
+          r: radius * (.72 + Math.random() * .68), age: 0, life: .64 + Math.random() * .38, fixed: bank.fixed,
+        });
+      }
+    }
+  }
+
   function land(x: number, before: number, after: number, size: number) {
     for (const bank of live) {
+      if (clock < bank.lastGrowth) continue;
       const u = (x - bank.x) / bank.dx;
       if (u <= 0 || u >= 1) continue;
       const i = Math.round(u * (bank.depth.length - 1));
@@ -92,7 +123,7 @@ export function makePageSnow(shell: HTMLElement): PageScene {
       const top = foot - bank.depth[i] * bank.verticalScale;
       if (before > top || after < top || !exposed(bank, x, foot)) continue;
       for (let j = Math.max(0, i - 2); j <= Math.min(i + 2, bank.depth.length - 1); j++) {
-        bank.depth[j] += Math.min(Math.max(0, bank.capacity[j] - bank.depth[j]), size * .4 * (1 - Math.abs(i - j) / 3));
+        bank.depth[j] += Math.min(Math.max(0, bank.capacity[j] - bank.depth[j]), size * .11 * (1 - Math.abs(i - j) / 3));
       }
       bank.dirty = true;
       return true;
@@ -124,11 +155,9 @@ export function makePageSnow(shell: HTMLElement): PageScene {
       const host = control.querySelector<HTMLElement>(".artwork-barrel") ?? control;
       const bank = banks.get(host);
       if (!bank?.sampled || !bank.width) return;
-      // A key travelling down jolts its whole rim. Loosen two small patches
-      // near the shoulders and carry their broken crust out over the face.
-      const reach = Math.min(25, bank.width * .24);
-      dislodge(bank, .19 + Math.random() * .14, reach, .84, -16);
-      dislodge(bank, .67 + Math.random() * .14, reach, .84, 16);
+      releasePowder(bank, 0, bank.depth.length - 1, 0);
+      bank.paint();
+      bank.lastGrowth = clock + .5;
     },
     brush(point, time) {
       sweep(point, previousPointer && time - previousPointer.time < .16 ? previousPointer : point);
@@ -151,42 +180,36 @@ export function makePageSnow(shell: HTMLElement): PageScene {
           const distance = Math.hypot(mx, my) + Math.abs(dy - bank.dy) * .5;
           if (distance < 50) bank.travel += distance;
         }
+        if (!bank.sampled && bank.lastGrowth <= time) bank.lastGrowth = time;
         Object.assign(bank, { x: a.x, y: a.y, dx, dy, verticalScale: dx > 1 ? (dx * dx + dy * dy) / (dx * bank.width) : 1, lastScroll: scroll, sampled: true });
         if (dx > 1) live.push(bank);
       }
       for (const bank of live) {
         const age = time - bank.lastGrowth;
         if (age > .14) {
-          const gain = 1 - Math.exp(-age / 9);
+          const gain = 1 - Math.exp(-Math.min(age, .2) / 42);
           for (let i = 0; i < bank.depth.length; i++) bank.depth[i] += Math.max(0, bank.capacity[i] - bank.depth[i]) * gain;
           bank.lastGrowth = time;
           bank.dirty = true;
         }
         const slope = bank.dy / bank.dx;
-        const released = slideSnow(bank.depth, bank.capacity, bank.step, slope, dt);
-        if (Math.abs(slope) >= .009) bank.dirty = true;
-        if (released > 0) {
+        const overhang = slideSnow(bank.depth, bank.capacity, bank.step, slope, dt);
+        if (Math.abs(slope) >= .016) bank.dirty = true;
+        if (overhang) {
           const end = slope > 0 ? 1 : 0;
-          const x = bank.x + bank.dx * end, y = bank.y + bank.dy * end;
-          const direction = Math.sign(slope);
           // Check the ledge just uphill of the lip, where the rounded card
           // is still under the snow. Overlapping cards can hide that lip.
-          const probe = end - direction * Math.min(.25, 9 / bank.dx);
-          if (exposed(bank, bank.x + bank.dx * probe, bank.y + bank.dy * probe + 2)) {
-            const count = Math.min(7, Math.ceil(released / 2.8));
-            for (let i = 0; i < count && debris.length < 175; i++) {
-              const vx = direction * (12 + Math.random() * 14 + Math.abs(slope) * 60);
-              debris.push({ x, y: y - Math.random() * 2 + (bank.fixed ? 0 : scroll),
-                vx, vy: vx * slope + Math.random() * 7,
-                r: Math.min(2.8, Math.sqrt(released / (Math.PI * count)) * (.8 + Math.random() * .65)),
-                age: 0, life: .82 + Math.random() * .5, fixed: bank.fixed });
-            }
-          }
+          const probe = end - Math.sign(slope) * Math.min(.25, 9 / bank.dx);
+          const first = end ? bank.depth.length - overhang : 0;
+          const last = first + overhang - 1;
+          const visible = exposed(bank, bank.x + bank.dx * probe, bank.y + bank.dy * probe + 2);
+          releasePowder(bank, first, last, slope, visible);
+          bank.paint();
+          bank.lastPaint = time;
         }
         if (bank.travel > bank.nextShed) {
           bank.travel = 0; bank.nextShed = 85 + Math.random() * 155;
-          const u = bank.dy > 2 ? .72 + Math.random() * .22 : bank.dy < -2 ? .06 + Math.random() * .22 : Math.random();
-          dislodge(bank, u, 7, .35, Math.sign(bank.dy) * 8);
+          if (Math.abs(slope) < .016) dislodge(bank, Math.random(), 7, .35, 0);
         }
         const alpha = String(opacity);
         if (bank.el.style.opacity !== alpha) bank.el.style.opacity = alpha;
