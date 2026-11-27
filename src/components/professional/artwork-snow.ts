@@ -26,13 +26,15 @@ function snowSprite(color: string, focus: number) {
   return sprite;
 }
 
-export function createSnowfall(target: "frame" | "page") {
+type Landing = (x: number, previousY: number, y: number, radius: number) => boolean;
+
+export function createSnowfall(target: "frame" | "page", land?: Landing) {
   const framed = target === "frame";
   const flakes = Array.from({ length: framed ? 112 : 125 }, (_, index) => {
     const seed = index * 8 + (framed ? 0 : 1800);
     const depth = sample(seed) ** 1.9;
     return {
-      depth, x: sample(seed + 1), y: sample(seed + 2),
+      previousY: NaN, landed: false, depth, x: sample(seed + 1), y: sample(seed + 2),
       phase: sample(seed + 3) * Math.PI * 2,
       speed: (13 + 53 * depth) * (.83 + .33 * sample(seed + 4)),
       radius: (.86 + 2.6 * depth ** 2) * (.78 + .44 * sample(seed + 5)),
@@ -62,6 +64,14 @@ export function createSnowfall(target: "frame" | "page") {
       const fade = framed ? Math.min(1, Math.max(0, (fall - y) / 30)) : 1;
       ctx.globalAlpha = opacity * fade * (.41 + .48 * depth) * (framed ? 1 : .73);
       const r = framed ? flake.radius * .84 : flake.radius;
+      if (land) {
+        if (y < flake.previousY) flake.landed = false;
+        if (!flake.landed && y >= flake.previousY && y - flake.previousY < 10) {
+          flake.landed = land(x, flake.previousY + r, y + r, r);
+        }
+        flake.previousY = y;
+        if (flake.landed) continue;
+      }
       const halfWidth = r * (.83 + .12 * Math.sin(tumble));
       const sprite = !dark ? shade : depth > .67 ? near : daylight;
       ctx.drawImage(sprite, x - halfWidth, y - r, halfWidth * 2, r * 2);
