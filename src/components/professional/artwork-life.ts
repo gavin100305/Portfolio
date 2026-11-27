@@ -9,12 +9,14 @@ function noise(seed: number) {
   return n - Math.floor(n);
 }
 
-const flies = Array.from({ length: 50 }, (_, i) => ({
+const flies = Array.from({ length: 38 }, (_, i) => ({
   x: .055 + noise(i) * .88,
   y: .56 + noise(i + 180) * .34 + noise(i + 60) * .08,
   phase: noise(i + 120) * circle,
   depth: noise(i + 180),
   rate: .34 + noise(i + 240) * .48,
+  timing: noise(i + 300),
+  seed: i,
 }));
 
 export function makeFireflies() {
@@ -37,14 +39,21 @@ export function makeFireflies() {
     ctx.globalCompositeOperation = "screen";
     for (const fly of flies) {
       const a = time * fly.rate + fly.phase;
-      const cycle = (time * (.21 + .25 * fly.rate) + fly.phase / circle) % 1;
-      const pulse = (center: number, spread: number) => Math.exp(-(((cycle - center) / spread) ** 2));
-      const blink = pulse(.31, .064) + (fly.rate > .58 ? .55 * pulse(.49, .046) : 0);
-      if (blink < .02) continue;
-      const x = (fly.x + (.35 + fly.depth) * (Math.sin(a * .64) * .04 + Math.sin(a * 1.33) * .013)) * width;
-      const y = (fly.y + Math.cos(a * .68) * .044 + Math.sin(a * 1.72) * .009) * height;
-      const size = 2.1 + fly.depth ** 2 * 6.8;
-      ctx.globalAlpha = blink * (.62 + .38 * fly.depth);
+      const clock = time * (.16 + .16 * fly.rate) + fly.timing;
+      const interval = Math.floor(clock);
+      const age = clock - interval;
+      const firstFlash = .19 + .31 * noise(fly.seed + interval * 83);
+      const pulse = (delay: number) => {
+        const t = (age - firstFlash - delay) / (delay ? .032 : .043);
+        return Math.exp(-(t * t));
+      };
+      const blink = pulse(0) + (fly.timing > .7 ? .48 * pulse(.13) : 0);
+      if (blink < .025) continue;
+      const travel = .42 + .72 * fly.depth;
+      const x = (fly.x + travel * (Math.sin(a * .77) * .044 + Math.sin(a * 1.81) * .012)) * width;
+      const y = (fly.y + travel * (Math.cos(a * .69) * .033 + Math.sin(a * 1.37 + x * .002) * .017)) * height;
+      const size = 2.4 + fly.depth ** 2 * 8;
+      ctx.globalAlpha = blink * (.36 + .64 * fly.depth);
       ctx.drawImage(halo, x - size, y - size, size * 2, size * 2);
       ctx.fillStyle = "#ffface";
       ctx.beginPath();
@@ -114,19 +123,49 @@ export function drawMeadow(ctx: CanvasRenderingContext2D, atlas: HTMLImageElemen
   }
 }
 
-// Advect light through the existing reflections. Sampling each row at its
-// photographed position keeps both banks and the rocks registered throughout.
-export function drawCreek(ctx: CanvasRenderingContext2D, water: HTMLImageElement, time: number) {
-  ctx.save();
-  ctx.scale(photoScale, photoScale);
-  ctx.globalCompositeOperation = "screen";
-  const step = 2;
-  for (let y = 0; y < water.height; y += step) {
-    const travel = y * .058 - time * 2.7;
-    const crest = .5 + .5 * Math.sin(travel + .75 * Math.sin(y * .028 - time * .63));
-    ctx.globalAlpha = .68 * crest ** 3 * (.7 + .3 * Math.sin(y * .024 - time * .88));
-    const rows = Math.min(step, water.height - y);
-    ctx.drawImage(water, 0, y, water.width, rows, 457, 499 + y, water.width, rows);
-  }
-  ctx.restore();
+// Reflections travel along the bends of the creek. The matte comes from the
+// photographed water and keeps the light off rocks and banks.
+export function makeCreekReflections(matte: HTMLImageElement) {
+  const layer = document.createElement("canvas");
+  layer.width = matte.width;
+  layer.height = matte.height;
+  const light = layer.getContext("2d");
+  if (!light) return () => {};
+
+  const glints = Array.from({ length: 44 }, (_, i) => ({
+    phase: noise(i + 410),
+    lane: noise(i + 540) - .5,
+    speed: .13 + .11 * noise(i + 610),
+    brightness: .25 + .48 * noise(i + 680),
+  }));
+
+  return (ctx: CanvasRenderingContext2D, time: number) => {
+    light.clearRect(0, 0, layer.width, layer.height);
+    light.globalCompositeOperation = "source-over";
+    for (const glint of glints) {
+      const distance = (glint.phase + time * glint.speed) % 1;
+      const y = distance * layer.height;
+      const center = 240 - 183 * distance + 46 * Math.sin(distance * 8.2);
+      const x = center + glint.lane * (width * .085 + distance * 134);
+      const fade = Math.sin(Math.PI * distance) ** .7;
+      const spread = 8 + 20 * distance;
+      light.save();
+      light.translate(x, y);
+      light.rotate(.11 * Math.sin(distance * 14));
+      light.scale(spread, 1.1 + 2.2 * distance);
+      const sheen = light.createRadialGradient(0, 0, 0, 0, 0, 1);
+      sheen.addColorStop(0, `rgba(171,205,229,${glint.brightness * fade})`);
+      sheen.addColorStop(1, "rgba(171,205,229,0)");
+      light.fillStyle = sheen;
+      light.fillRect(-1, -1, 2, 2);
+      light.restore();
+    }
+    light.globalCompositeOperation = "destination-in";
+    light.drawImage(matte, 0, 0);
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    ctx.drawImage(layer, 457 * photoScale, 499 * photoScale,
+      layer.width * photoScale, layer.height * photoScale);
+    ctx.restore();
+  };
 }

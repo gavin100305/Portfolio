@@ -1,7 +1,7 @@
 import gsap from "gsap";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { drawCreek, drawMeadow, makeFireflies } from "./artwork-life";
+import { makeCreekReflections, drawMeadow, makeFireflies } from "./artwork-life";
 import { createPondSwim } from "./artwork-pond";
 import { scenicArtworks, type ScenicId } from "./artwork-scenes";
 import { createArtworkSurface } from "./artwork-water";
@@ -44,6 +44,7 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
     let reflectionImage: HTMLImageElement | undefined;
     let surface: ReturnType<typeof createArtworkSurface> = null;
     let underwater: CanvasRenderingContext2D | null = null;
+    let drawCreek: ReturnType<typeof makeCreekReflections> | undefined;
     let drawFireflies: ReturnType<typeof makeFireflies> | undefined;
     let disposed = false, ready = false, visible = false, running = false;
     let elapsed = 0, throttle = 0;
@@ -86,7 +87,7 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
       if (!pond && plate) {
         if (id === "plateau") drawMeadow(context, life[0], life[1], elapsed, gust);
         else {
-          drawCreek(context, life[0], elapsed);
+          drawCreek?.(context, elapsed);
           drawFireflies?.(context, elapsed);
         }
       }
@@ -169,7 +170,10 @@ export function ScenicArtwork({ id, active }: { id: ScenicId; active: boolean })
           }
         } else {
           life = subjects;
-          if (id === "grove") drawFireflies = makeFireflies();
+          if (id === "grove") {
+            drawCreek = makeCreekReflections(subjects[0]);
+            drawFireflies = makeFireflies();
+          }
         }
       }
       ready = Boolean(plate);
