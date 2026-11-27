@@ -169,6 +169,15 @@ export function PageArtwork({ children }: { children: ReactNode }) {
         active?.scene.brush?.({ x: event.clientX, y: event.clientY }, active.time);
       }
 
+      function press(event: PointerEvent | KeyboardEvent) {
+        if (!active?.scene.press || !(event.target instanceof Element)) return;
+        if (event instanceof KeyboardEvent) {
+          if (event.repeat || (event.key !== "Enter" && event.key !== " ")) return;
+        } else if (event.button !== 0 || !event.isPrimary) return;
+        const control = event.target.closest<HTMLElement>("button, a[href], [role=slider]");
+        if (control && !control.matches(":disabled, [aria-disabled=true]")) active.scene.press(control);
+      }
+
       const bounds = new ResizeObserver(resize);
       const opening = new MutationObserver(sync);
       bounds.observe(shell);
@@ -176,6 +185,8 @@ export function PageArtwork({ children }: { children: ReactNode }) {
       window.addEventListener("resize", resize);
       window.addEventListener("pointermove", touch, { passive: true });
       window.addEventListener("pointerdown", touch, { passive: true });
+      window.addEventListener("pointerdown", press, { capture: true, passive: true });
+      window.addEventListener("keydown", press, true);
       document.addEventListener("visibilitychange", sync);
       resume.current = sync;
       resize();
@@ -191,6 +202,8 @@ export function PageArtwork({ children }: { children: ReactNode }) {
         window.removeEventListener("resize", resize);
         window.removeEventListener("pointermove", touch);
         window.removeEventListener("pointerdown", touch);
+        window.removeEventListener("pointerdown", press, true);
+        window.removeEventListener("keydown", press, true);
         document.removeEventListener("visibilitychange", sync);
         resume.current = () => {};
         canvas.width = 1;

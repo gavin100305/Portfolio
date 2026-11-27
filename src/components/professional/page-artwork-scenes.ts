@@ -8,6 +8,7 @@ export type ArtworkPointer = { x: number; y: number };
 export type PageScene = {
   draw: (ctx: CanvasRenderingContext2D, view: ArtworkViewport, time: number, opacity: number) => void;
   dispose?: () => void;
+  press?: (control: HTMLElement) => void;
   brush?: (pointer: ArtworkPointer, time: number) => void;
 };
 

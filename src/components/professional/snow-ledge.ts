@@ -6,6 +6,40 @@ function noise(seed: number) {
   return n - Math.floor(n);
 }
 
+// Transport loose powder one sample downhill. Work from the low end back so
+// snow received this frame cannot traverse the entire ledge in a single step.
+export function slideSnow(depth: Float32Array, capacity: Float32Array, step: number, slope: number, dt: number) {
+  const grade = Math.abs(slope);
+  if (grade < .009 || dt <= 0 || depth.length < 2) return 0;
+  const direction = Math.sign(slope);
+  const lip = direction > 0 ? depth.length - 1 : 0;
+  const speed = Math.min(100, 8 + 280 * grade);
+  const fraction = 1 - Math.exp(-speed * dt / step);
+  const retained = Math.max(.2, .66 - grade * 1.8);
+  const lipCells = Math.min(depth.length - 1, Math.max(1, Math.round(12 / step)));
+  const shoulder = lip - direction * (lipCells - 1);
+  for (let i = shoulder - direction; i >= 0 && i < depth.length; i -= direction) {
+    const loose = Math.max(0, depth[i] - capacity[i] * retained);
+    const transfer = loose * fraction;
+    depth[i] -= transfer;
+    if (i + direction === shoulder) {
+      for (let j = 0; j < lipCells; j++) depth[shoulder + direction * j] += transfer / lipCells;
+    } else depth[i + direction] += transfer;
+  }
+  // The overhang holds until its accumulated cross section breaks the crust.
+  let load = 0;
+  for (let j = 0; j < lipCells; j++) {
+    const i = shoulder + direction * j;
+    load += Math.max(0, depth[i] - retained * capacity[i]);
+  }
+  if (load < 3.2 * lipCells) return 0;
+  for (let j = 0; j < lipCells; j++) {
+    const i = shoulder + direction * j;
+    depth[i] -= .9 * Math.max(0, depth[i] - retained * capacity[i]);
+  }
+  return .9 * load * step;
+}
+
 export function createLedge(host: HTMLElement, seed: number) {
   const round = host.matches(".folio-theme-toggle, .folio-album-arrow");
   if (getComputedStyle(host).position === "static") host.classList.add("folio-snow-anchor");
@@ -22,7 +56,7 @@ export function createLedge(host: HTMLElement, seed: number) {
   const bank = {
     host, el, left, right, depth: new Float32Array(), capacity: new Float32Array(),
     foot: new Float32Array(), width: 0, ratio: 0, lastPaint: -1, dirty: true,
-    moving: host.matches(".folio-keycap,.folio-album-print,.folio-project-print,.folio-space-id"),
+    moving: host.matches(".folio-keycap-face,.folio-album-print,.folio-project-print,.folio-space-id"),
     fixed: !!host.closest(".folio-section-dock"),
     x: 0, y: 0, dx: 0, dy: 0, verticalScale: 1, lastScroll: 0, sampled: false, travel: 0,
     step: 1, nextShed: 64 + noise(seed) * 110, lastGrowth: 0,
@@ -64,6 +98,7 @@ export function createLedge(host: HTMLElement, seed: number) {
       const y = baseline + foot[i] - depth[i], next = baseline + foot[i+1] - depth[i+1];
       ctx.quadraticCurveTo(i * step, y, (i + .5) * step, (y + next) / 2);
     }
+    ctx.lineTo(width, baseline + foot[depth.length - 1] - depth[depth.length - 1]);
     for (let i = depth.length - 1; i >= 0; i--) {
       ctx.lineTo(i * step, baseline + foot[i] + Math.min(depth[i] * .19, 1.2));
     }
